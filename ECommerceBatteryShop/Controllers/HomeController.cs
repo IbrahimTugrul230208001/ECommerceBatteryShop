@@ -15,7 +15,19 @@ namespace ECommerceBatteryShop.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            var products = new List<Product>
+            {
+                new() { Name = "AA Battery", Price = 2.99m, ImageUrl = "https://via.placeholder.com/150" },
+                new() { Name = "AAA Battery", Price = 1.99m, ImageUrl = "https://via.placeholder.com/150" },
+                new() { Name = "C Battery", Price = 3.99m, ImageUrl = "https://via.placeholder.com/150" },
+                new() { Name = "D Battery", Price = 4.99m, ImageUrl = "https://via.placeholder.com/150" },
+                new() { Name = "9V Battery", Price = 5.49m, ImageUrl = "https://via.placeholder.com/150" },
+                new() { Name = "Button Cell", Price = 0.99m, ImageUrl = "https://via.placeholder.com/150" },
+                new() { Name = "Rechargeable Pack", Price = 14.99m, ImageUrl = "https://via.placeholder.com/150" },
+                new() { Name = "Lithium Battery", Price = 6.99m, ImageUrl = "https://via.placeholder.com/150" }
+            };
+
+            return View(products);
         }
 
         public IActionResult Privacy()

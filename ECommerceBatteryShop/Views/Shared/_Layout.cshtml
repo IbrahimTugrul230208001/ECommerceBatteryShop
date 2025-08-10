@@ -8,48 +8,26 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="text-xl font-bold">ECommerceBatteryShop</a>
-                <nav class="relative" x-data="{ open: false }">
-                    <button @mouseenter ="open = true" @mouseleave ="open = false" class="px-3 py-2 text-gray-700 hover:text-black">Products</button>
-                    <div x-show="open" @mouseenter ="open = true" @mouseleave ="open = false" class="absolute left-0 top-full w-screen bg-white shadow-lg" style="display: none;">
-                        <div class="max-w-7xl mx-auto p-8 grid grid-cols-4 gap-4">
-                            <div>
-                                <h3 class="font-semibold mb-2">Batteries</h3>
-                                <ul>
-                                    <li><a href="#" class="block py-1">AA</a></li>
-                                    <li><a href="#" class="block py-1">AAA</a></li>
-                                    <li><a href="#" class="block py-1">9V</a></li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold mb-2">Rechargeables</h3>
-                                <ul>
-                                    <li><a href="#" class="block py-1">Packs</a></li>
-                                    <li><a href="#" class="block py-1">Chargers</a></li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold mb-2">Specialty</h3>
-                                <ul>
-                                    <li><a href="#" class="block py-1">Button Cell</a></li>
-                                    <li><a href="#" class="block py-1">Lithium</a></li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold mb-2">Accessories</h3>
-                                <ul>
-                                    <li><a href="#" class="block py-1">Cables</a></li>
-                                    <li><a href="#" class="block py-1">Adapters</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ECommerceBatteryShop</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
+        </nav>
     </header>
     <main class="max-w-7xl mx-auto px-4 py-6">
         @RenderBody()
