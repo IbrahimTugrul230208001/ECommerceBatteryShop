@@ -1,44 +1,64 @@
-﻿@{
-    Layout = null;
-}
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ECommerceBatteryShop</title>
-    <link href="~/css/output.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
-    <!-- Header -->
+<body>
     <header class="bg-white shadow">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="~/" class="text-2xl font-bold text-blue-700">ECommerceBatteryShop</a>
-            <nav class="space-x-6">
-                <a href="~/" class="text-gray-700 hover:text-blue-700 font-medium">Home</a>
-                <a href="~/Products" class="text-gray-700 hover:text-blue-700 font-medium">Products</a>
-                <a href="~/Cart" class="text-gray-700 hover:text-blue-700 font-medium">Cart</a>
-                <a href="~/Account" class="text-gray-700 hover:text-blue-700 font-medium">Account</a>
-            </nav>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-1 container mx-auto px-4 py-8">
-        @RenderBody()
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-8">
-        <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between">
-            <span class="text-gray-500 text-sm">&copy; @DateTime.Now.Year ECommerceBatteryShop. All rights reserved.</span>
-            <div class="mt-2 md:mt-0 space-x-4">
-                <a href="~/Privacy" class="text-gray-400 hover:text-blue-700 text-sm">Privacy Policy</a>
-                <a href="~/Contact" class="text-gray-400 hover:text-blue-700 text-sm">Contact</a>
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="text-xl font-bold">ECommerceBatteryShop</a>
+                <nav class="relative" x-data="{ open: false }">
+                    <button @mouseenter ="open = true" @mouseleave ="open = false" class="px-3 py-2 text-gray-700 hover:text-black">Products</button>
+                    <div x-show="open" @mouseenter ="open = true" @mouseleave ="open = false" class="absolute left-0 top-full w-screen bg-white shadow-lg" style="display: none;">
+                        <div class="max-w-7xl mx-auto p-8 grid grid-cols-4 gap-4">
+                            <div>
+                                <h3 class="font-semibold mb-2">Batteries</h3>
+                                <ul>
+                                    <li><a href="#" class="block py-1">AA</a></li>
+                                    <li><a href="#" class="block py-1">AAA</a></li>
+                                    <li><a href="#" class="block py-1">9V</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold mb-2">Rechargeables</h3>
+                                <ul>
+                                    <li><a href="#" class="block py-1">Packs</a></li>
+                                    <li><a href="#" class="block py-1">Chargers</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold mb-2">Specialty</h3>
+                                <ul>
+                                    <li><a href="#" class="block py-1">Button Cell</a></li>
+                                    <li><a href="#" class="block py-1">Lithium</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold mb-2">Accessories</h3>
+                                <ul>
+                                    <li><a href="#" class="block py-1">Cables</a></li>
+                                    <li><a href="#" class="block py-1">Adapters</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
             </div>
         </div>
+    </header>
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        @RenderBody()
+    </main>
+    <footer class="border-t text-center text-sm text-gray-500 py-4">
+        &copy; 2025 - ECommerceBatteryShop - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="underline">Privacy</a>
     </footer>
-
-    @RenderSection("Scripts", required: false)
+    <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
