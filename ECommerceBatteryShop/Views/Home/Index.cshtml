@@ -3,15 +3,72 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="container mx-auto px-4 py-8">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        @foreach (var product in Model)
-        {
-            <div class="border rounded-lg p-4 text-center shadow hover:shadow-lg transition">
-                <img src="@product.ImageUrl" alt="@product.Name" class="mx-auto mb-4">
-                <h3 class="text-lg font-semibold">@product.Name</h3>
-                <p class="text-gray-700">$@product.Price</p>
-            </div>
-        }
+@using System.Linq
+@{
+    var list = Model.ToList();
+    var row1 = list.Where((p, i) => i % 2 == 0).ToList();
+    var row2 = list.Where((p, i) => i % 2 == 1).ToList();
+}
+
+<div class="container mx-auto px-4 py-8"
+     x-data="carousel({visible:4})">
+
+    <div class="relative">
+        <!-- Left -->
+        <button type="button" aria-label="Prev"
+                class="absolute -left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 grid place-items-center
+                   rounded-full bg-gray-800 text-white shadow hover:bg-gray-700
+                   disabled:opacity-40 disabled:pointer-events-none"
+                @@click ="move(-1)" :disabled="i===0">
+            &#10094;
+        </button>
+
+        <!-- Track -->
+        <div x-ref="track"
+             class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory
+                [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            @foreach (var product in Model)  // e.g., 8 total
+            {
+                <div data-item class="flex-none w-[24%] snap-start">
+                    <!-- 4 visible (25% each) -->
+                    <div class="border rounded-lg p-4 text-center shadow bg-white h-56 flex flex-col">
+                        <img src="@product.ImageUrl" alt="@product.Name" class="mx-auto mb-3 h-24 object-contain" />
+                        <h3 class="text-base font-semibold text-gray-900 truncate">@product.Name</h3>
+                        <p class="text-gray-700">$@product.Price</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Right -->
+        <button type="button" aria-label="Next"
+                class="absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 grid place-items-center
+                   rounded-full bg-gray-800 text-white shadow hover:bg-gray-700
+                   disabled:opacity-40 disabled:pointer-events-none"
+                @@click ="move(1)" :disabled="i >= maxIndex">
+            &#10095;
+        </button>
     </div>
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('carousel', ({visible=4}={}) => ({
+        i: 0, visible, maxIndex: 0,
+        init() {
+          this.$nextTick(() => {
+            const track = this.$refs.track;
+            const items = track.querySelectorAll('[data-item]');
+            const gap = parseFloat(getComputedStyle(track).gap || 16);
+            this.itemWidth = items[0]?.offsetWidth + gap || 0;
+            this.count = items.length;
+            this.maxIndex = Math.max(0, this.count - this.visible);
+          });
+        },
+        move(dir) {
+          this.i = Math.max(0, Math.min(this.i + dir, this.maxIndex));
+          this.$refs.track.scrollTo({ left: this.i * this.itemWidth, behavior: 'smooth' });
+        }
+      }));
+    });
+</script>

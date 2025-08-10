@@ -4,30 +4,62 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ECommerceBatteryShop</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="~/css/output.css"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ECommerceBatteryShop</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+        <nav class="bg-gray-900 text-white">
+            <div class="mx-auto max-w-7xl px-4 h-16 flex items-center gap-4">
+                <!-- Logo -->
+                <a asp-controller="Home" asp-action="Index"
+                   class="flex-none text-xl font-bold hover:text-gray-300">
+                    YiğitDayıShop
+                </a>
+
+                <!-- Search (center) -->
+                <form hx-get="/Search" hx-target="#search-results" hx-push-url="true" role="search" class="flex-1">
+                    <div class="mx-auto max-w-3xl">
+                        <div class="flex h-10 rounded-md border border-gray-300 bg-white overflow-hidden
+                            focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500">
+                            <input name="q" placeholder="Search..."
+                                   class="flex-1 px-3 text-black placeholder-gray-500 focus:outline-none" />
+                            <button type="submit" aria-label="Search"
+                                    class="bg-amber-300 hover:bg-amber-400 px-4 flex items-center justify-center">
+                                <svg class="h-5 w-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <circle cx="11" cy="11" r="7" stroke-width="2" />
+                                    <path d="M21 21l-4.3-4.3" stroke-width="2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Cart (updates via HTMX) -->
+                <a hx-get="/Cart/Partial"
+                   hx-target="#cart-icon"
+                   hx-swap="outerHTML"
+                   class="flex-none relative inline-flex items-center justify-center rounded-full w-16 h-16">
+                    <div id="cart-icon" class="relative">
+                        <!-- cart icon -->
+                        <svg class="h-8 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="9" cy="20" r="1.5" stroke-width="2" />
+                            <circle cx="18" cy="20" r="1.5" stroke-width="2" />
+                            <path d="M3 4h2l2.4 10.5a2 2 0 0 0 2 1.5h7.6a2 2 0 0 0 2-1.6L21 8H7" stroke-width="2" />
+                        </svg>
+                        <span class="sr-only">Cart</span>
+                        <span class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs
+                             bg-red-600 text-white flex items-center justify-center">
+                            @(ViewBag.CartCount ?? 0)
+                        </span>
+                    </div>
+                </a>
             </div>
         </nav>
+
+        <!-- Search results container -->
+        <div id="search-results"></div>
+
     </header>
     <main class="max-w-7xl mx-auto px-4 py-6">
         @RenderBody()
