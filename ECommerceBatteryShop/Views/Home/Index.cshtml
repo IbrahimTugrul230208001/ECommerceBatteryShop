@@ -17,7 +17,7 @@
         <!-- Left -->
         <button type="button" aria-label="Prev"
                 class="absolute -left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 grid place-items-center
-                   rounded-full bg-gray-800 text-white shadow hover:bg-gray-700
+                   rounded-full bg-gray-800 text-white cursor-pointer shadow hover:bg-gray-700
                    disabled:opacity-40 disabled:pointer-events-none"
                 @@click ="move(-1)" :disabled="i===0">
             &#10094;
@@ -32,7 +32,7 @@
                 <div data-item class="flex-none w-[24%] snap-start">
                     <!-- 4 visible (25% each) -->
                     <div class="border rounded-lg p-4 text-center shadow bg-white h-56 flex flex-col">
-                        <img src="@product.ImageUrl" alt="@product.Name" class="mx-auto mb-3 h-24 object-contain" />
+                        <img src="/img/battery.jpg" alt="@product.Name" class="mx-auto mb-3 h-24 object-contain" />
                         <h3 class="text-base font-semibold text-gray-900 truncate">@product.Name</h3>
                         <p class="text-gray-700">$@product.Price</p>
                     </div>
@@ -43,7 +43,7 @@
         <!-- Right -->
         <button type="button" aria-label="Next"
                 class="absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 grid place-items-center
-                   rounded-full bg-gray-800 text-white shadow hover:bg-gray-700
+                   rounded-full bg-gray-800 text-white cursor-pointer shadow hover:bg-gray-700
                    disabled:opacity-40 disabled:pointer-events-none"
                 @@click ="move(1)" :disabled="i >= maxIndex">
             &#10095;
@@ -51,24 +51,5 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('alpine:init', () => {
-      Alpine.data('carousel', ({visible=4}={}) => ({
-        i: 0, visible, maxIndex: 0,
-        init() {
-          this.$nextTick(() => {
-            const track = this.$refs.track;
-            const items = track.querySelectorAll('[data-item]');
-            const gap = parseFloat(getComputedStyle(track).gap || 16);
-            this.itemWidth = items[0]?.offsetWidth + gap || 0;
-            this.count = items.length;
-            this.maxIndex = Math.max(0, this.count - this.visible);
-          });
-        },
-        move(dir) {
-          this.i = Math.max(0, Math.min(this.i + dir, this.maxIndex));
-          this.$refs.track.scrollTo({ left: this.i * this.itemWidth, behavior: 'smooth' });
-        }
-      }));
-    });
-</script>
+
+<script src="~/js/anasayfa.js"></script>
