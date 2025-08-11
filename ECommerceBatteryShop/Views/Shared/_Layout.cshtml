@@ -84,111 +84,97 @@
         </nav>
         <div class="h-20"></div>
 
-        <!-- CATEGORIES SUB-NAV (inline) -->
-        <div class="bg-gray-800 text-white">
-            <div class="mx-auto max-w-7xl px-4">
-                <ul class="h-12 flex items-center gap-8 overflow-x-auto whitespace-nowrap">
-                    <!-- (Optional) left caret icon just for visual parity -->
-                    <li class="opacity-80">
-                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M7 10l5-5v10l-5-5z" />
-                        </svg>
-                    </li>
 
-                    <li class="relative group">
-                        <!-- Trigger -->
-                        <a href="#"
-                           class="relative font-semibold px-1 focus:outline-none
-            after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-            after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-            group-hover:after:scale-x-100 focus:after:scale-x-100">
-                            Perakende Pil
-                        </a>
-
-                        <!-- Panel -->
-                        <div class="absolute left-0 top-full z-50 w-64
-           opacity-0 invisible translate-y-2 scale-95
-           transition duration-150 ease-out
-           group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100
-           focus-within:opacity-100 focus-within:visible focus-within:translate-y-0 focus-within:scale-100
-           bg-white text-gray-900 shadow-xl ring-1 ring-black/5
-           rounded-b-lg rounded-t-none
-           before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']">
+@{
+    var categories = new[]
+    {
+        new {
+            Text = "Perakende Pil",
+            Url = "#",
+            Children = new[]
+            {
+                new { Text = "AA Piller", Url = "/perakende-pil/aa" },
+                new { Text = "AAA Piller", Url = "/perakende-pil/aaa" },
+                new { Text = "Şarj Edilebilir", Url = "/perakende-pil/sarj" },
+                new { Text = "Tümünü Gör", Url = "/perakende-pil/tumu" }
+            }
+        },
+        new {
+            Text = "Endüstriyel Pil",
+            Url = Url.Action("Index", "Catalog", new { category = "endustriyel-pil" }),
+            Children = Array.Empty<dynamic>()
+        },
+        new {
+            Text = "Özel Pil Paketleri",
+            Url = Url.Action("Index", "Catalog", new { category = "ozel-pil-paketleri" }),
+            Children = Array.Empty<dynamic>()
+        },
+        new {
+            Text = "Elektronik",
+            Url = Url.Action("Index", "Catalog", new { category = "elektronik" }),
+            Children = Array.Empty<dynamic>()
+        },
+        new {
+            Text = "Pil Gruplama",
+            Url = Url.Action("Index", "Catalog", new { category = "pil-gruplama" }),
+            Children = Array.Empty<dynamic>()
+        },
+        new {
+            Text = "Aküler",
+            Url = Url.Action("Index", "Catalog", new { category = "akuler" }),
+            Children = Array.Empty<dynamic>()
+        },
+        new {
+            Text = "İletişim",
+            Url = Url.Action("Contact", "Home"),
+            Children = Array.Empty<dynamic>()
+        }
+    };
+}
+<div class="bg-gray-800 text-white">
+    <div class="mx-auto max-w-7xl px-4">
+        <ul class="h-12 flex items-center gap-8 overflow-x-auto whitespace-nowrap">
+            <!-- (Optional) left caret icon just for visual parity -->
+            <li class="opacity-80">
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M7 10l5-5v10l-5-5z" />
+                </svg>
+            </li>
+            @foreach (var item in categories)
+            {
+                var hasChildren = item.Children.Length > 0;
+                if (hasChildren)
+                {
+                    <li class="relative" x-data="{open:false}" @mouseenter="open=true" @mouseleave="open=false" @keydown.escape="open=false">
+                        <button type="button" @click="open = !open" class="relative font-semibold px-1 focus:outline-none after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 hover:after:scale-x-100" :aria-expanded="open.toString()">
+                            @item.Text
+                        </button>
+                        <div x-cloak x-show="open" x-transition class="absolute left-0 top-full z-50 w-64 bg-white text-gray-900 shadow-xl ring-1 ring-black/5 rounded-b-lg rounded-t-none">
                             <ul class="text-sm p-3 space-y-1">
-                                <li><a href="/perakende-pil/aa" class="block rounded px-2 py-2 hover:bg-gray-100">AA Piller</a></li>
-                                <li><a href="/perakende-pil/aaa" class="block rounded px-2 py-2 hover:bg-gray-100">AAA Piller</a></li>
-                                <li><a href="/perakende-pil/sarj" class="block rounded px-2 py-2 hover:bg-gray-100">Şarj Edilebilir</a></li>
-                                <li class="pt-1 border-t"><a href="/perakende-pil/tumu" class="block rounded px-2 py-2 hover:bg-gray-100 font-medium">Tümünü Gör</a></li>
+                                @for (int i = 0; i < item.Children.Length; i++)
+                                {
+                                    var child = item.Children[i];
+                                    var last = i == item.Children.Length - 1;
+                                    <li class="@(last ? "pt-1 border-t font-medium" : string.Empty)">
+                                        <a href="@child.Url" class="block rounded px-2 py-2 hover:bg-gray-100">@child.Text</a>
+                                    </li>
+                                }
                             </ul>
                         </div>
                     </li>
-
-
-
-
-
+                }
+                else
+                {
                     <li>
-                        <a asp-controller="Catalog" asp-action="Index" asp-route-category="endustriyel-pil"
-                           class="relative font-semibold
-                  after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                  after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-                  hover:after:scale-x-100">
-                            Endüstriyel Pil
+                        <a href="@item.Url" class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 hover:after:scale-x-100">
+                            @item.Text
                         </a>
                     </li>
-
-                    <li>
-                        <a asp-controller="Catalog" asp-action="Index" asp-route-category="ozel-pil-paketleri"
-                           class="relative font-semibold
-                  after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                  after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-                  hover:after:scale-x-100">
-                            Özel Pil Paketleri
-                        </a>
-                    </li>
-
-                    <li>
-                        <a asp-controller="Catalog" asp-action="Index" asp-route-category="elektronik"
-                           class="relative font-semibold
-                  after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                  after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-                  hover:after:scale-x-100">
-                            Elektronik
-                        </a>
-                    </li>
-
-                    <li>
-                        <a asp-controller="Catalog" asp-action="Index" asp-route-category="pil-gruplama"
-                           class="relative font-semibold
-                  after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                  after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-                  hover:after:scale-x-100">
-                            Pil Gruplama
-                        </a>
-                    </li>
-
-                    <li>
-                        <a asp-controller="Catalog" asp-action="Index" asp-route-category="akuler"
-                           class="relative font-semibold
-                  after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                  after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-                  hover:after:scale-x-100">
-                            Aküler
-                        </a>
-                    </li>
-
-                    <li>
-                        <a asp-controller="Home" asp-action="Contact"
-                           class="relative font-semibold
-                  after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                  after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-                  hover:after:scale-x-100">
-                            İletişim
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
+                }
+            }
+        </ul>
+    </div>
+</div>
 
         <!-- Search results container -->
         <div id="search-results"></div>
