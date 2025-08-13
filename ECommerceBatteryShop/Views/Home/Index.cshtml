@@ -1,55 +1,69 @@
-@model IEnumerable<ECommerceBatteryShop.Models.Product>
 @{
     ViewData["Title"] = "Home";
+
+    var features = new[]
+    {
+        new { Icon = "🔋", Title = "Quality Batteries", Description = "Industry leading power solutions." },
+        new { Icon = "🚚", Title = "Fast Delivery", Description = "Quick and reliable shipping." },
+        new { Icon = "💬", Title = "Expert Support", Description = "We are here to help you." }
+    };
+
+    var testimonials = new[]
+    {
+        new { Quote = "Best battery shop around!", Author = "Alex R." },
+        new { Quote = "My order arrived lightning fast.", Author = "Maria S." },
+        new { Quote = "Great customer service and quality.", Author = "David K." }
+    };
 }
 
-@using System.Linq
-@{
-    var list = Model.ToList();
-    var row1 = list.Where((p, i) => i % 2 == 0).ToList();
-    var row2 = list.Where((p, i) => i % 2 == 1).ToList();
-}
+<div class="bg-gray-100">
+    <!-- Hero Section -->
+    <section class="bg-cover bg-center h-96 flex items-center justify-center text-white" style="background-image: url('/img/battery.jpg');">
+        <div class="text-center bg-black bg-opacity-50 p-8 rounded">
+            <h1 class="text-4xl font-bold mb-4">Power Your Life</h1>
+            <p class="mb-6">Premium batteries delivered to your door.</p>
+            <a href="/Products" class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded">Shop Now</a>
+        </div>
+    </section>
 
-<div class="container mx-auto px-4 py-8"
-     x-data="carousel({visible:4})">
-
-    <div class="relative">
-        <!-- Left -->
-        <button type="button" aria-label="Prev"
-                class="absolute -left-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 grid place-items-center
-                   rounded-full bg-gray-800 text-white cursor-pointer shadow hover:bg-gray-700
-                   disabled:opacity-40 disabled:pointer-events-none"
-                @@click ="move(-1)" :disabled="i===0">
-            &#10094;
-        </button>
-
-        <!-- Track -->
-        <div x-ref="track"
-             class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory
-                [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            @foreach (var product in Model)  // e.g., 8 total
+    <!-- Features Section -->
+    <section class="container mx-auto py-16">
+        <h2 class="text-2xl font-bold text-center mb-12">Why Choose Us?</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            @foreach (var feature in features)
             {
-                <div data-item class="flex-none w-[24%] snap-start">
-                    <!-- 4 visible (25% each) -->
-                    <div class="border rounded-lg p-4 text-center shadow bg-white h-56 flex flex-col">
-                        <img src="/img/battery.jpg" alt="@product.Name" class="mx-auto mb-3 h-24 object-contain" />
-                        <h3 class="text-base font-semibold text-gray-900 truncate">@product.Name</h3>
-                        <p class="text-gray-700">$@product.Price</p>
-                    </div>
+                <div class="text-center p-6 bg-white rounded shadow">
+                    <div class="mb-4 text-5xl">@feature.Icon</div>
+                    <h3 class="text-xl font-semibold mb-2">@feature.Title</h3>
+                    <p class="text-gray-600">@feature.Description</p>
                 </div>
             }
         </div>
+    </section>
 
-        <!-- Right -->
-        <button type="button" aria-label="Next"
-                class="absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-10 w-10 grid place-items-center
-                   rounded-full bg-gray-800 text-white cursor-pointer shadow hover:bg-gray-700
-                   disabled:opacity-40 disabled:pointer-events-none"
-                @@click ="move(1)" :disabled="i >= maxIndex">
-            &#10095;
-        </button>
-    </div>
+    <!-- Testimonials Section -->
+    <section class="bg-white py-16">
+        <h2 class="text-2xl font-bold text-center mb-12">What Our Customers Say</h2>
+        <div class="container mx-auto grid md:grid-cols-3 gap-8">
+            @foreach (var t in testimonials)
+            {
+                <div class="p-6 bg-gray-100 rounded shadow">
+                    <p class="mb-4 italic">&ldquo;@t.Quote&rdquo;</p>
+                    <p class="font-semibold">- @t.Author</p>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="bg-yellow-500 py-16">
+        <div class="container mx-auto text-center">
+            <h2 class="text-2xl font-bold mb-4">Stay Charged with Our Newsletter</h2>
+            <p class="mb-6">Get updates on new products and special offers.</p>
+            <form class="flex justify-center">
+                <input type="email" placeholder="Enter your email" class="px-4 py-2 rounded-l" />
+                <button type="submit" class="bg-gray-900 text-white px-6 py-2 rounded-r">Subscribe</button>
+            </form>
+        </div>
+    </section>
 </div>
-
-
-<script src="~/js/anasayfa.js"></script>
