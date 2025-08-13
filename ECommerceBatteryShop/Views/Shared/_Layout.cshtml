@@ -8,22 +8,25 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
+    <header class="relative z-40">
+        <!-- add this -->
         <!-- NAVBAR -->
-
         <nav x-data="{ scrolled:false }"
              @@scroll.window.passive ="scrolled = window.scrollY > 0"
              class="fixed top-0 inset-x-0 z-50 bg-gray-900 text-white transition-shadow duration-200 h-20"
              :class="scrolled ? 'shadow-md bg-gray-900/90 backdrop-blur' : ''">
-            <div class="mx-auto max-w-7xl px-4 h-full flex items-center gap-4">
+            <div class="mx-auto max-w-[90%] px-4 h-full flex items-center gap-10">
                 <!-- Logo -->
-                <a asp-controller="Home" asp-action="Index"
-                   class="flex-none text-xl font-bold hover:text-gray-300">
-                    <img src="~/img/logo.png" alt="Logo" class="h-16 w-auto object-contain" />
-                </a>
+                <div>
+                    <a asp-controller="Home" asp-action="Index"
+                       class="flex-none text-xl font-bold hover:text-gray-300">
+                        <img src="~/img/logo.png" alt="Logo" class="h-16 w-auto object-contain" />
+                    </a>
 
+                </div>
+                
                 <!-- Search -->
-                <form hx-get="/Search" hx-target="#search-results" hx-push-url="true" role="search" class="flex-1">
+                <div hx-get="/Search" hx-target="#search-results" hx-push-url="true" role="search" class="flex-1">
                     <div class="mx-auto max-w-3xl">
                         <div class="flex h-10 rounded-md border border-gray-300 bg-white overflow-hidden
                             focus-within:ring-2 focus-within:ring-yellow-300 focus-within:border-yellow-300 relative">
@@ -35,7 +38,7 @@
                             <input name="q" placeholder="Search..."
                                    class="flex-1 pl-10 pr-3 text-black placeholder-gray-500 focus:outline-none" />
                             <button type="submit" aria-label="Search"
-                                    class="px-4 flex items-center justify-center bg-yellow-300 cursor-pointer hover:bg-yellow-400">
+                                    class="px-4 flex items-center justify-center bg-amber-300 cursor-pointer hover:bg-amber-400">
                                 <svg class="h-6 w-6" viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#000000">
                                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -54,127 +57,301 @@
                             </button>
                         </div>
                     </div>
-                </form>
-
-                <!-- Cart -->
-                <a aria-label="Sepet"
-                   class="group inline-flex items-center justify-center px-4 h-16
-                  cursor-pointer rounded-md transition hover:bg-white/10
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
-                    <div class="relative inline-flex transition-transform duration-200 group-hover:scale-110 origin-center">
-                        <svg class="h-10 w-10 text-white transition-colors duration-200 group-hover:text-yellow-300"
-                             viewBox="0 0 24 24" fill="none">
-                            <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z"
-                                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <span class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs
-         bg-yellow-300 text-gray-900 flex items-center justify-center ring-1
-         transition-colors duration-200 group-hover:scale-110">
-                            @(ViewBag.CartCount ?? 0)
-                        </span>
-                    </div>
-                </a>
-
-                <div class="flex items-center ml-auto">
-                    <a class="cursor-pointer px-4 py-2 rounded-md bg-yellow-300 border border-yellow-300 hover:bg-yellow-400 text-black font-medium">
-                        Kayıt ol
-                    </a>
                 </div>
+                <div class="flex gap-5">
+                <!-- Cart -->
+                    <!-- Sepet -->
+                    <a aria-label="Sepet (0 ürün)"
+                       class="group relative inline-flex items-center gap-2 h-16 px-4 shrink-0 rounded-md
+   transition duration-150 cursor-pointer hover:bg-white/5 hover:scale-105
+   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+
+                        <span class="relative inline-flex">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-8 w-8 text-white transition-colors duration-150 group-hover:text-amber-300"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" />
+                            </svg>
+
+                            <span class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs font-medium
+            bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10
+            transition duration-150">
+                                @((ViewBag.CartCount is int c && c > 99) ? "99+" : (ViewBag.CartCount ?? 0).ToString())
+                            </span>
+                        </span>
+
+                        <span class="text-white text-md font-semibold transition-colors duration-150 group-hover:text-amber-300">
+                            Sepetim
+                        </span>
+                    </a>
+
+                    <!-- Favoriler -->
+                    <a aria-label="Favoriler"
+                       class="group relative inline-flex items-center gap-2 h-16 px-4 shrink-0 rounded-md
+   transition duration-150 cursor-pointer hover:bg-white/5 hover:scale-105
+   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
+
+                        <span class="relative inline-flex">
+                            <svg class="h-8 w-8 text-white transition-colors duration-150 group-hover:text-amber-300"
+                                 viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                      d="M11.993 5.09691C11.0387 4.25883 9.78328 3.75 8.40796 3.75C5.42122 3.75 3 6.1497 3 9.10988C3 10.473 3.50639 11.7242 4.35199 12.67L12 20.25L19.4216 12.8944L19.641 12.6631C20.4866 11.7172 21 10.473 21 9.10988C21 6.1497 18.5788 3.75 15.592 3.75C14.2167 3.75 12.9613 4.25883 12.007 5.09692L12 5.08998L11.993 5.09691ZM12 7.09938L12.0549 7.14755L12.9079 6.30208L12.9968 6.22399C13.6868 5.61806 14.5932 5.25 15.592 5.25C17.763 5.25 19.5 6.99073 19.5 9.10988C19.5 10.0813 19.1385 10.9674 18.5363 11.6481L18.3492 11.8453L12 18.1381L5.44274 11.6391C4.85393 10.9658 4.5 10.0809 4.5 9.10988C4.5 6.99073 6.23699 5.25 8.40796 5.25C9.40675 5.25 10.3132 5.61806 11.0032 6.22398L11.0921 6.30203L11.9452 7.14752L12 7.09938Z" />
+                            </svg>
+
+                            <span class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs font-medium
+            bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10
+            transition duration-150">
+                                @((ViewBag.FavoriteCount is int f && f > 99) ? "99+" : (ViewBag.FavoriteCount ?? 0).ToString())
+                            </span>
+                        </span>
+
+                        <span class="text-white text-md font-semibold transition-colors duration-150 group-hover:text-amber-300">
+                            Favoriler
+                        </span>
+                    </a>
+
+                <!-- Account / Profile -->
+                    <a aria-label="Profil"
+                       class="group inline-flex items-center justify-center px-4 h-16 cursor-pointer rounded-md
+   transition hover:bg-white/10 hover:scale-105 focus-visible:outline-none
+   focus-visible:ring-2 focus-visible:ring-amber-400">
+                        <div class="relative inline-flex transition-transform duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-8 w-8 text-white transition-colors duration-200 group-hover:text-amber-300"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+                                <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
+                            </svg>
+                        </div>
+                        <span class="ml-2 text-white text-md font-semibold transition-colors duration-200 group-hover:text-amber-300">
+                            Kayıt ol
+                        </span>
+                    </a>
+
+            </div>
+                <!-- Favorites -->
+            
             </div>
         </nav>
+
         <div class="h-20"></div>
 
+        <div class="bg-gray-800 text-white relative z-40 shadow-xl">
+            <div class="mx-auto max-w-7xl px-4">
+                <ul class="h-12 flex items-center gap-8 whitespace-nowrap
+               overflow-x-auto md:overflow-visible overflow-y-visible">
 
-@{
-    var categories = new[]
-    {
-        new {
-            Text = "Perakende Pil",
-            Url = "#",
-            Children = new[]
-            {
-                new { Text = "AA Piller", Url = "/perakende-pil/aa" },
-                new { Text = "AAA Piller", Url = "/perakende-pil/aaa" },
-                new { Text = "Şarj Edilebilir", Url = "/perakende-pil/sarj" },
-                new { Text = "Tümünü Gör", Url = "/perakende-pil/tumu" }
-            }
-        },
-        new {
-            Text = "Endüstriyel Pil",
-            Url = Url.Action("Index", "Catalog", new { category = "endustriyel-pil" }),
-            Children = Array.Empty<dynamic>()
-        },
-        new {
-            Text = "Özel Pil Paketleri",
-            Url = Url.Action("Index", "Catalog", new { category = "ozel-pil-paketleri" }),
-            Children = Array.Empty<dynamic>()
-        },
-        new {
-            Text = "Elektronik",
-            Url = Url.Action("Index", "Catalog", new { category = "elektronik" }),
-            Children = Array.Empty<dynamic>()
-        },
-        new {
-            Text = "Pil Gruplama",
-            Url = Url.Action("Index", "Catalog", new { category = "pil-gruplama" }),
-            Children = Array.Empty<dynamic>()
-        },
-        new {
-            Text = "Aküler",
-            Url = Url.Action("Index", "Catalog", new { category = "akuler" }),
-            Children = Array.Empty<dynamic>()
-        },
-        new {
-            Text = "İletişim",
-            Url = Url.Action("Contact", "Home"),
-            Children = Array.Empty<dynamic>()
-        }
-    };
-}
-<div class="bg-gray-800 text-white">
-    <div class="mx-auto max-w-7xl px-4">
-        <ul class="h-12 flex items-center gap-8 overflow-x-auto whitespace-nowrap">
-            <!-- (Optional) left caret icon just for visual parity -->
-            <li class="opacity-80">
-                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M7 10l5-5v10l-5-5z" />
-                </svg>
-            </li>
-            @foreach (var item in categories)
-            {
-                var hasChildren = item.Children.Length > 0;
-                if (hasChildren)
-                {
-                    <li class="relative" x-data="{open:false}" @mouseenter="open=true" @mouseleave="open=false" @keydown.escape="open=false">
-                        <button type="button" @click="open = !open" class="relative font-semibold px-1 focus:outline-none after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 hover:after:scale-x-100" :aria-expanded="open.toString()">
-                            @item.Text
-                        </button>
-                        <div x-cloak x-show="open" x-transition class="absolute left-0 top-full z-50 w-64 bg-white text-gray-900 shadow-xl ring-1 ring-black/5 rounded-b-lg rounded-t-none">
-                            <ul class="text-sm p-3 space-y-1">
-                                @for (int i = 0; i < item.Children.Length; i++)
-                                {
-                                    var child = item.Children[i];
-                                    var last = i == item.Children.Length - 1;
-                                    <li class="@(last ? "pt-1 border-t font-medium" : string.Empty)">
-                                        <a href="@child.Url" class="block rounded px-2 py-2 hover:bg-gray-100">@child.Text</a>
-                                    </li>
-                                }
-                            </ul>
-                        </div>
-                    </li>
-                }
-                else
-                {
-                    <li>
-                        <a href="@item.Url" class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 hover:after:scale-x-100">
-                            @item.Text
+                    <!-- Perakende Pil -->
+                    <li class="relative group">
+                        <a class="relative z-30 font-semibold flex items-center gap-1
+           after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
+           after:origin-left after:scale-x-0 after:transition-transform after:duration-300
+           hover:after:scale-x-100
+           group-hover:after:scale-x-100
+           group-focus-within:after:scale-x-100 cursor-pointer">
+                            Perakende Pil
+                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180"
+                                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
                         </a>
+                        <ul class="absolute left-0 top-full z-20 mt-2  <!-- lower than link -->
+             min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
+             flex flex-col gap-1 invisible opacity-0 translate-y-1 transition
+             group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="alkaline"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Alkaline</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="lithium"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Lithium</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="rechargeable"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Şarj Edilebilir</a>
+                            </li>
+                        </ul>
                     </li>
-                }
-            }
-        </ul>
-    </div>
-</div>
+
+                    <!-- Endüstriyel Pil -->
+                    <li class="relative group">
+                        <a class="relative z-30 font-semibold flex items-center gap-1
+           after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
+           after:origin-left after:scale-x-0 after:transition-transform after:duration-300
+           hover:after:scale-x-100
+           group-hover:after:scale-x-100
+           group-focus-within:after:scale-x-100 cursor-pointer">
+                            Endüstriyel Pil
+                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180"
+                                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                      
+                        </a>
+                        <ul class="absolute left-0 top-full z-20 mt-2  <!-- lower than link -->
+             min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
+             flex flex-col gap-1 invisible opacity-0 translate-y-1 transition
+             group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="ups"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">UPS</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="solar"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Solar</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="medical"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Medikal</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Özel Pil Paketleri -->
+                    <li class="relative group">
+                        <a class="relative z-30 font-semibold flex items-center gap-1
+           after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
+           after:origin-left after:scale-x-0 after:transition-transform after:duration-300
+           hover:after:scale-x-100
+           group-hover:after:scale-x-100
+           group-focus-within:after:scale-x-100 cursor-pointer">Özel Pil Paketleri
+                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180"
+                                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </a>
+                        <ul class="absolute left-0 top-full z-20 mt-2  <!-- lower than link -->
+             min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
+             flex flex-col gap-1 invisible opacity-0 translate-y-1 transition
+             group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="ni-mh-pack"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Ni-MH Paket</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="li-ion-pack"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Li-ion Paket</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="custom-bms"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Özel BMS</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Elektronik -->
+                    <li class="relative group">
+                        <a class="relative z-30 font-semibold flex items-center gap-1
+           after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
+           after:origin-left after:scale-x-0 after:transition-transform after:duration-300
+           hover:after:scale-x-100
+           group-hover:after:scale-x-100
+           group-focus-within:after:scale-x-100 cursor-pointer">
+                            Elektronik
+                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180"
+                                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </a>
+                        <ul class="absolute left-0 top-full z-20 mt-2  <!-- lower than link -->
+             min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
+             flex flex-col gap-1 invisible opacity-0 translate-y-1 transition
+             group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="sarj-cihazlari"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Şarj Cihazları</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="adaptorler"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Adaptörler</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="aksesuar"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Aksesuar</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Pil Gruplama -->
+                    <li class="relative group">
+                        <a class="relative z-30 font-semibold flex items-center gap-1
+           after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
+           after:origin-left after:scale-x-0 after:transition-transform after:duration-300
+           hover:after:scale-x-100
+           group-hover:after:scale-x-100
+           group-focus-within:after:scale-x-100 cursor-pointer">
+                            Pil Gruplama
+                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180"
+                                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </a>
+                        <ul class="absolute left-0 top-full z-20 mt-2  <!-- lower than link -->
+             min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
+             flex flex-col gap-1 invisible opacity-0 translate-y-1 transition
+             group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="18650"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">18650 Grupları</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="pack-tasarim"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Pack Tasarım</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="kaynak"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Nikel Kaynak</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Aküler -->
+                    <li class="relative group">
+                        <a class="relative z-30 font-semibold flex items-center gap-1
+           after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
+           after:origin-left after:scale-x-0 after:transition-transform after:duration-300
+           hover:after:scale-x-100
+           group-hover:after:scale-x-100
+           group-focus-within:after:scale-x-100 cursor-pointer">
+                            Aküler
+                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180"
+                                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </a>
+                        <ul class="absolute left-0 top-full z-20 mt-2  <!-- lower than link -->
+             min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
+             flex flex-col gap-1 invisible opacity-0 translate-y-1 transition
+             group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="agm"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">AGM</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="gel"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">GEL</a>
+                            </li>
+                            <li>
+                                <a asp-controller="Catalog" asp-action="Index" asp-route-category="lityum"
+                                   class="block rounded-lg px-3 py-2 hover:bg-gray-100">Lityum</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- İletişim (no dropdown) -->
+                    <li>
+                        <a asp-controller="Home" asp-action="Contact"
+                           class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
+                  after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
+                  hover:after:scale-x-100">İletişim</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
 
         <!-- Search results container -->
         <div id="search-results"></div>
