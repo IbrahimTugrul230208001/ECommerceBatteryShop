@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36310.24 d17.14
+VisualStudioVersion = 17.14.36310.24
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceBatteryShop", "ECommerceBatteryShop\ECommerceBatteryShop.csproj", "{5F162F40-957F-43E5-92DD-7AEE916671FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceBatteryShop.DataAccess", "ECommerceBatteryShop.DataAccess\ECommerceBatteryShop.DataAccess.csproj", "{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{5F162F40-957F-43E5-92DD-7AEE916671FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F162F40-957F-43E5-92DD-7AEE916671FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F162F40-957F-43E5-92DD-7AEE916671FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
