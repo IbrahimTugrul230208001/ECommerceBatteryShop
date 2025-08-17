@@ -360,9 +360,69 @@
     <main class="max-w-7xl mx-auto px-4 py-6">
         @RenderBody()
     </main>
-    <footer class="border-t text-center text-sm text-gray-500 py-4">
-        &copy; 2025 - ECommerceBatteryShop - <a class="underline">Privacy</a>
+    <footer class="bg-gray-900 text-gray-300" aria-labelledby="site-footer">
+        <h2 id="site-footer" class="sr-only">Site alt bilgisi</h2>
+
+        <!-- Main Footer -->
+        <div class="mx-auto max-w-7xl px-4 py-12 grid md:grid-cols-4 gap-8">
+            <!-- Brand -->
+            <div>
+                <a href="/" class="inline-flex items-end gap-2 text-white text-xl font-extrabold">
+                    <img src="~/img/logo.png" alt="Logo" class="h-16 w-auto object-contain" />
+                </a>
+                <p class="mt-3 text-sm text-gray-400">
+                    Her cihaza doğru güç. Hızlı gönderim, güvenli alışveriş.
+                </p>
+            </div>
+
+            <!-- Shop Links -->
+            <div>
+                <div class="text-white font-semibold">Mağaza</div>
+                <ul class="mt-3 space-y-2 text-sm">
+                    <li><a class="hover:underline" href="#">Yeni Gelenler</a></li>
+                    <li><a class="hover:underline" href="#">En Çok Satanlar</a></li>
+                    <li><a class="hover:underline" href="#">Kampanyalar</a></li>
+                    <li><a class="hover:underline" href="#">Kategoriler</a></li>
+                </ul>
+            </div>
+
+            <!-- Support Links -->
+            <div>
+                <div class="text-white font-semibold">Destek</div>
+                <ul class="mt-3 space-y-2 text-sm">
+                    <li><a class="hover:underline" href="#">SSS</a></li>
+                    <li><a class="hover:underline" href="#">İade & Değişim</a></li>
+                    <li><a class="hover:underline" href="#">Kargo Takip</a></li>
+                    <li><a class="hover:underline" href="#">İletişim</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div>
+                <div class="text-white font-semibold">İletişim</div>
+                <ul class="mt-3 space-y-2 text-sm">
+                    <li>Tel: +90 850 000 0000</li>
+                    <li>E-posta: <a href="mailto:destek@ebs-battery.test" class="underline">destek@ebs-battery.test</a></li>
+                    <li>Adres: İstanbul, Türkiye</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="border-t border-gray-800">
+            <div class="mx-auto max-w-7xl px-4 py-4 flex flex-wrap items-center justify-between gap-4 text-xs">
+                <div class="text-gray-400">
+                    © 2025 EBS Battery • Tüm hakları saklıdır.
+                </div>
+                <div class="flex gap-3">
+                    <a href="#" class="hover:underline">Gizlilik</a>
+                    <a href="#" class="hover:underline">Şartlar</a>
+                    <a href="#" class="hover:underline">Çerezler</a>
+                </div>
+            </div>
+        </div>
     </footer>
+
     <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
