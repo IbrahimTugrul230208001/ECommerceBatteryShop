@@ -15,7 +15,7 @@ namespace ECommerceBatteryShop.Controllers
 
         public IActionResult Index()
         {
-            var products = new List<Product>
+            var products = new List<ProductViewModel>
             {
                 new() { Name = "AA Battery", Price = 2.99m, ImageUrl = "https://via.placeholder.com/150" },
                 new() { Name = "AAA Battery", Price = 1.99m, ImageUrl = "https://via.placeholder.com/150" },

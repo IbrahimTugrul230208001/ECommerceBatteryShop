@@ -1,4 +1,4 @@
-@model IEnumerable<ECommerceBatteryShop.Models.Product>
+@model IEnumerable<ECommerceBatteryShop.Models.ProductViewModel>
 
 @{
     ViewData["Title"] = "Home";
@@ -138,3 +138,13 @@
 </section>
 
 <script src="~/js/anasayfa.js"></script>
+<style>
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+</style>

@@ -9,6 +9,11 @@
 </head>
 <body>
     <header class="relative z-40">
+
+        <div id="overlay"
+             class="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm
+            transition-opacity duration-300 opacity-0 pointer-events-none">
+        </div>
         <!-- add this -->
         <!-- NAVBAR -->
         <nav x-data="{ scrolled:false }"
@@ -35,7 +40,7 @@
                                 <circle cx="11" cy="11" r="7" stroke-width="2" />
                                 <path d="M21 21l-4.3-4.3" stroke-width="2" />
                             </svg>
-                            <input name="q" placeholder="Search..."
+                            <input name="q" id="search-input" placeholder="Ara..."
                                    class="flex-1 pl-10 pr-3 text-black placeholder-gray-500 focus:outline-none" />
                             <button type="submit" aria-label="Search"
                                     class="px-4 flex items-center justify-center bg-amber-300 cursor-pointer hover:bg-amber-400">
