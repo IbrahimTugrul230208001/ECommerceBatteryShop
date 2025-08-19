@@ -16,4 +16,8 @@
     <Folder Include="Views\Shared\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ECommerceBatteryShop.DataAccess\ECommerceBatteryShop.DataAccess.csproj" />
+  </ItemGroup>
+
 </Project>
