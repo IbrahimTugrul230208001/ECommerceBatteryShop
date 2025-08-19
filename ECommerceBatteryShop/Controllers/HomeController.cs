@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Mvc;
+using ECommerceBatteryShop.DataAccess.Entities;
 
 namespace ECommerceBatteryShop.Controllers
 {

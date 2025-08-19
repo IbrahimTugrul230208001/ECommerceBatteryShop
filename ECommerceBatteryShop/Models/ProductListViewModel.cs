@@ -1,3 +1,4 @@
+using ECommerceBatteryShop.DataAccess.Entities;
 using System.Collections.Generic;
 
 namespace ECommerceBatteryShop.Models
