@@ -69,7 +69,11 @@ namespace ECommerceBatteryShop.Controllers
         {
             return View();
         }
-
+        public IActionResult Cart()
+        {
+                       // Placeholder for cart functionality
+            return View();
+        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

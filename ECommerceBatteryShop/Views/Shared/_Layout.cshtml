@@ -34,7 +34,7 @@
                 </form>
 
                 <!-- Cart -->
-                <a aria-label="Sepet" class="relative inline-flex items-center h-9 px-3 rounded-md hover:bg-white/10">
+                <a href="/Home/Cart" aria-label="Sepet" class="relative inline-flex items-center h-9 px-3 rounded-md hover:bg-white/10">
                     <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" />
@@ -56,12 +56,16 @@
             </div>
         </div>
 
+        <div x-data="{ overlay:false }" @@keydown.escape.window="overlay=false">
+
         <div id="overlay"
-             class="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm
-            transition-opacity duration-300 opacity-0 pointer-events-none">
-        </div>
+             class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-opacity duration-200
+              opacity-0 pointer-events-none"
+             :class="overlay ? 'opacity-100 pointer-events-auto' : ''"
+             @@click ="overlay=false"></div>
         <!-- add this -->
         <!-- NAVBAR -->
+
         <nav x-data="{ scrolled:false }"
              @@scroll.window.passive ="scrolled = window.scrollY > 0"
              class="fixed top-0 inset-x-0 z-50 bg-gray-900 text-white hidden sm:block transition-shadow duration-200 h-20"
@@ -87,8 +91,10 @@
                                 <path d="M21 21l-4.3-4.3" stroke-width="2" />
                             </svg>
                             <input name="q" id="search-input" placeholder="Ara..."
-                                   class="flex-1 pl-10 pr-3 text-black placeholder-gray-500 focus:outline-none" />
-                            <button type="submit" aria-label="Search"
+                                   class="flex-1 pl-10 pr-3 text-black placeholder-gray-500 focus:outline-none" 
+                                @@focus="overlay=true" @@blur="overlay=false" />
+
+                                   <button type="submit" aria-label="Search"
                                     class="px-4 flex items-center justify-center bg-amber-300 cursor-pointer hover:bg-amber-400">
                                 <svg class="h-6 w-6" viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#000000">
                                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -112,7 +118,7 @@
                 <div class="flex gap-3">
                 <!-- Cart -->
                     <!-- Sepet -->
-                    <a aria-label="Sepet (0 ürün)"
+                    <a href="/Home/Cart"aria-label="Sepet (0 ürün)"
                        class="group relative inline-flex items-center gap-2 h-16 px-4 shrink-0 rounded-md
    transition duration-150 cursor-pointer hover:bg-white/5 hover:scale-105
    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">

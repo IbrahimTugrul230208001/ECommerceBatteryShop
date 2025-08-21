@@ -5,6 +5,7 @@ namespace ECommerceBatteryShop.DataAccess;
 
 public class BatteryShopContext : DbContext
 {
+
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<ProductCategory> ProductCategories { get; set; } = null!;
@@ -35,6 +36,21 @@ public class BatteryShopContext : DbContext
             entity.Property(b => b.Name)
                   .UseCollation(trCollation);
         });
+        modelBuilder.Entity<Address>().ToTable("addresses");
+        modelBuilder.Entity<Cart>().ToTable("carts");
+        modelBuilder.Entity<CartItem>().ToTable("cart_items");
+        modelBuilder.Entity<Category>().ToTable("categories");
+        modelBuilder.Entity<Inventory>().ToTable("inventories");
+        modelBuilder.Entity<Order>().ToTable("orders");
+        modelBuilder.Entity<OrderItem>().ToTable("order_items");
+        modelBuilder.Entity<OrderStatus>().ToTable("order_statuses");
+        modelBuilder.Entity<PaymentTransaction>().ToTable("payment_transactions");
+        modelBuilder.Entity<Product>().ToTable("products");
+        modelBuilder.Entity<ProductCategory>().ToTable("product_categories");
+        modelBuilder.Entity<ProductImage>().ToTable("product_images");
+        modelBuilder.Entity<ProductVariant>().ToTable("product_variants");
+        modelBuilder.Entity<Shipment>().ToTable("shipments");
+        modelBuilder.Entity<User>().ToTable("users");
 
         base.OnModelCreating(modelBuilder);
     }
