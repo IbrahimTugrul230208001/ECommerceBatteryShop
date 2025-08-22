@@ -1,77 +1,47 @@
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Linq;
+using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Mvc;
-using ECommerceBatteryShop.DataAccess.Entities;
+using System.Diagnostics;
 
 namespace ECommerceBatteryShop.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IProductRepository _repo;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IProductRepository repo)
         {
             _logger = logger;
+            _repo = repo;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            var products = new List<ProductViewModel>
+            var products = await _repo.GetMainPageProductsAsync(8, ct);
+            var vm = products.Select(p => new ProductViewModel
             {
-                new() { Name = "AA Battery", Price = 2.99m, ImageUrl = "https://via.placeholder.com/150" },
-                new() { Name = "AAA Battery", Price = 1.99m, ImageUrl = "https://via.placeholder.com/150" },
-                new() { Name = "C Battery", Price = 3.99m, ImageUrl = "https://via.placeholder.com/150" },
-                new() { Name = "D Battery", Price = 4.99m, ImageUrl = "https://via.placeholder.com/150" },
-                new() { Name = "9V Battery", Price = 5.49m, ImageUrl = "https://via.placeholder.com/150" },
-                new() { Name = "Button Cell", Price = 0.99m, ImageUrl = "https://via.placeholder.com/150" },
-                new() { Name = "Rechargeable Pack", Price = 14.99m, ImageUrl = "https://via.placeholder.com/150" },
-                new() { Name = "Lithium Battery", Price = 6.99m, ImageUrl = "https://via.placeholder.com/150" }
-            };
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Rating = p.Rating
+            }).ToList();
 
+            return View(vm); // View is strongly-typed to IEnumerable<ProductViewModel>
+        }
+
+        public async Task<IActionResult> Products(decimal? minPrice, decimal? maxPrice, float? minRating, CancellationToken ct)
+        {
+            var products = await _repo.GetMainPageProductsAsync(20, ct); // or apply filters later
             return View(products);
         }
-
-        public IActionResult Products(decimal? minPrice, decimal? maxPrice, float? minRating)
-        {
-            var products = new List<Product>
-            {
-                new() { Id = 1, Name = "PowerMax 5000 Battery", Price = 299.90m, ImageUrl = "/img/battery.jpg", Rating = 4 },
-                new() { Id = 2, Name = "EcoCharge AA Rechargeable Pack", Price = 79.50m, ImageUrl = "/img/battery.jpg", Rating = 5 },
-                new() { Id = 3, Name = "UltraLife Car Battery 12V", Price = 850.00m, ImageUrl = "/img/battery.jpg", Rating = 3 },
-                new() { Id = 4, Name = "MiniCell CR2032 Lithium", Price = 15.99m, ImageUrl = "/img/battery.jpg", Rating = 4 },
-                new() { Id = 5, Name = "VoltCore 9V Pro Pack", Price = 129.00m, ImageUrl = "/img/battery.jpg", Rating = 5 },
-                new() { Id = 6, Name = "SolarEdge Power Bank 20K", Price = 499.00m, ImageUrl = "/img/battery.jpg", Rating = 4 },
-                new() { Id = 7, Name = "HeavyDuty Truck Battery 24V", Price = 1490.00m, ImageUrl = "/img/battery.jpg", Rating = 4 },
-                new() { Id = 8, Name = "NanoCell AAA 24-Pack", Price = 59.90m, ImageUrl = "/img/battery.jpg", Rating = 3 }
-            };
-
-            if (minPrice.HasValue)
-                products = products.Where(p => p.Price >= minPrice.Value).ToList();
-            if (maxPrice.HasValue)
-                products = products.Where(p => p.Price <= maxPrice.Value).ToList();
-            if (minRating.HasValue)
-                products = products.Where(p => p.Rating >= minRating.Value).ToList();
-
-            var vm = new ProductListViewModel
-            {
-                Products = products,
-                MinPrice = minPrice,
-                MaxPrice = maxPrice,
-                MinRating = minRating
-            };
-
-            return View(vm);
-        }
-
         public IActionResult Privacy()
         {
             return View();
         }
         public IActionResult Cart()
         {
-                       // Placeholder for cart functionality
+            // Placeholder for cart functionality
             return View();
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
