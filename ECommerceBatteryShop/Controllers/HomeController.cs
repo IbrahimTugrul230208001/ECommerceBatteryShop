@@ -24,21 +24,13 @@ namespace ECommerceBatteryShop.Controllers
                 Id = p.Id,
                 Name = p.Name,
                 Price = p.Price,
-                Rating = p.Rating
+                Rating = p.Rating,
+                ImageUrl = p.ImageUrl
             }).ToList();
 
             return View(vm); // View is strongly-typed to IEnumerable<ProductViewModel>
         }
 
-        public async Task<IActionResult> Products(decimal? minPrice, decimal? maxPrice, float? minRating, CancellationToken ct)
-        {
-            var products = await _repo.GetMainPageProductsAsync(20, ct); // or apply filters later
-            return View(products);
-        }
-        public IActionResult Privacy()
-        {
-            return View();
-        }
         public IActionResult Cart()
         {
             // Placeholder for cart functionality
