@@ -28,14 +28,13 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             {
                 var query = _ctx.Products
                     .AsNoTracking()
-                    .Include(p => p.Images)
                     .Include(p => p.Variants)
                     // Optional filters:
                     //.Where(p => p.IsActive)
                     //.Where(p => p.Stock > 0)
                     // Deterministic order:
-                    .OrderByDescending(p => p.Id)  // “newest” if Id is identity/autoincrement
-                    .ThenByDescending(p => p.Name); // tie-breaker to keep stable plans
+                    .OrderBy(p => p.Id)  // “newest” if Id is identity/autoincrement
+                    .ThenBy(p => p.Name); // tie-breaker to keep stable plans
 
                 return await query.Take(count).ToListAsync(ct);
             }
