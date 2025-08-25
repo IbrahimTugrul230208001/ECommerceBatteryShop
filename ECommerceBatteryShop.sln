@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceBatteryShop", "ECo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceBatteryShop.DataAccess", "ECommerceBatteryShop.DataAccess\ECommerceBatteryShop.DataAccess.csproj", "{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceBatteryShop.Domain", "ECommerceBatteryShop.Domain\ECommerceBatteryShop.Domain.csproj", "{BBB790C3-FF12-4413-A919-8F545CB7DFC5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60AFD928-CDAB-4B9A-91D9-FEBF7096E9B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBB790C3-FF12-4413-A919-8F545CB7DFC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBB790C3-FF12-4413-A919-8F545CB7DFC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBB790C3-FF12-4413-A919-8F545CB7DFC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBB790C3-FF12-4413-A919-8F545CB7DFC5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
