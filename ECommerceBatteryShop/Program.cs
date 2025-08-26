@@ -12,12 +12,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<BatteryShopContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.Configure<CurrencyOptions>(builder.Configuration.GetSection("Currency"));
 builder.Services.AddMemoryCache();
-
-// HttpClient-based service
-builder.Services.AddHttpClient<ICurrencyService, CurrencyService>()
-    .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+builder.Services.Configure<CurrencyOptions>(builder.Configuration.GetSection("Currency"));
+builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 
 var app = builder.Build();
 
