@@ -1,5 +1,5 @@
 ﻿using ECommerceBatteryShop.DataAccess.Abstract;
-using ECommerceBatteryShop.DataAccess.Entities;
+using ECommerceBatteryShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
