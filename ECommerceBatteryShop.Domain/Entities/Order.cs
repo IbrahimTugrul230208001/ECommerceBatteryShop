@@ -1,4 +1,5 @@
-namespace ECommerceBatteryShop.DataAccess.Entities;
+namespace ECommerceBatteryShop.Domain.Entities;
+
 
 public class Order
 {
