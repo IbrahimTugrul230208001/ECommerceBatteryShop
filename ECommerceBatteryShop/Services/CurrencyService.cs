@@ -1,9 +1,7 @@
-﻿using ECommerceBatteryShop.Options;
+using ECommerceBatteryShop.Options;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System.Text.Json;
-using static System.Net.WebRequestMethods;
 
 namespace ECommerceBatteryShop.Services
 {
@@ -13,11 +11,6 @@ namespace ECommerceBatteryShop.Services
         private readonly IMemoryCache _cache;
         private readonly CurrencyOptions _opt;
 
-        private static readonly JsonSerializerOptions JsonOpts = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
         private const string CacheKeyUsdTry = "USDTRY_RATE";
 
         public CurrencyService(HttpClient http, IMemoryCache cache, IOptions<CurrencyOptions> opt)
@@ -26,7 +19,7 @@ namespace ECommerceBatteryShop.Services
             _cache = cache;
             _opt = opt.Value;
 
-            _http.BaseAddress = new Uri(_opt.BaseUrl); // e.g. https://api.exchangerate.host/
+            _http.BaseAddress = new Uri(_opt.BaseUrl); // e.g. https://open.er-api.com/v6/
         }
 
         public async Task<decimal> GetUsdTryAsync(CancellationToken ct = default)
@@ -34,16 +27,20 @@ namespace ECommerceBatteryShop.Services
             if (_cache.TryGetValue(CacheKeyUsdTry, out decimal cached))
                 return cached;
 
-            // GET https://api.exchangerate.host/latest?base=USD&symbols=TRY
-            using var resp = await _http.GetAsync("latest?base=USD&symbols=TRY", ct);
+            // GET https://open.er-api.com/v6/latest/USD
+            using var resp = await _http.GetAsync("latest/USD", ct);
             resp.EnsureSuccessStatusCode();
 
-            var json = await resp.Content.ReadAsStringAsync(ct);
-            var dto = System.Text.Json.JsonSerializer.Deserialize<ExchangerateHostModels.LatestDto>(json, JsonOpts)
-                      ?? throw new InvalidOperationException("Empty JSON");
+            await using var stream = await resp.Content.ReadAsStreamAsync(ct);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
 
-            if (dto.Rates is null || !dto.Rates.TryGetValue("TRY", out var rate))
+            if (!doc.RootElement.TryGetProperty("rates", out var rates) ||
+                !rates.TryGetProperty("TRY", out var rateEl))
+            {
                 throw new InvalidOperationException("TRY rate missing");
+            }
+
+            var rate = rateEl.GetDecimal();
 
             _cache.Set(CacheKeyUsdTry, rate, TimeSpan.FromSeconds(Math.Max(30, _opt.CacheSeconds)));
             return rate;
@@ -56,3 +53,4 @@ namespace ECommerceBatteryShop.Services
         }
     }
 }
+
