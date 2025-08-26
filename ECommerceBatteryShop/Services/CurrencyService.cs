@@ -27,9 +27,8 @@ namespace ECommerceBatteryShop.Services
             _http = http;
             _cache = cache;
             _opt = opt.Value;
-            _http.BaseAddress = new Uri(_opt.BaseUrl); // e.g. https://api.exchangerate.host/
+            _http.BaseAddress = new Uri(_opt.BaseUrl);
         }
-
         public async Task<decimal?> TryGetUsdTryAsync(CancellationToken ct = default)
         {
             if (_cache.TryGetValue(CacheKeyRate, out decimal cached)) return cached;
