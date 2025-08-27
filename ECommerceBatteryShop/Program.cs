@@ -14,7 +14,10 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddMemoryCache();
 builder.Services.Configure<CurrencyOptions>(builder.Configuration.GetSection("Currency"));
-builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
+
+builder.Services.AddHttpClient<ICurrencyService, CurrencyService>(client => { /* headers set in service */ });
+
+builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
 
 var app = builder.Build();
 
