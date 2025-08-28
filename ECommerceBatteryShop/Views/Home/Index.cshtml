@@ -93,8 +93,8 @@
              class="flex gap-[var(--g)] overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar px-1 py-2">
             @foreach (var product in products)
             {
-                <div class="flex-none min-w-0 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
-                    <article class="group h-72 flex flex-col rounded-xl border border-white/10 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition hover:shadow-[0_6px_16px_rgba(0,0,0,0.14)]">
+                    <div class="flex-none  min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
+                    <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                         <!-- Image -->
                         <a href="/Products" class="block p-3 pb-0">
                             <div class="h-32 grid place-items-center overflow-hidden">

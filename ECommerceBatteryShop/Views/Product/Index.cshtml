@@ -22,7 +22,8 @@
         var price = product.Price.ToString("C", new CultureInfo("tr-TR"));
         var fullStars = (int)Math.Floor(product.Rating);
     var hasHalf = product.Rating - fullStars >= 0.5;
-    <div class="group relative rounded-2xl bg-white shadow-md ring-1 ring-gray-100 hover:shadow-xl transition overflow-hidden">
+    <a href="/Product/Battery">
+        <div class="group cursor-pointer relative rounded-2xl border-slate-200 bg-white shadow-md ring-1 ring-gray-100 hover:shadow-xl transition overflow-hidden">
         <div class="p-4">
             <div class="rounded-xl h-40 flex items-center justify-center overflow-hidden">
                 <img src="~/img/@product.ImageUrl" alt="@product.Name" class="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]" />
@@ -110,9 +111,10 @@
                 </div>
             </div>
         </div>
-
+       
         <!-- subtle top border accent on hover -->
         <div class="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 opacity-0 group-hover:opacity-100 transition"></div>
     </div>
+        </a>
 }
 </div>

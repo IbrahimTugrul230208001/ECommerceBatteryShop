@@ -14,9 +14,10 @@ namespace ECommerceBatteryShop.Controllers
         public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log)
         { _repo = repo; _currency = currency; _log = log; }
 
-        public async Task<IActionResult> Products(CancellationToken ct)
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
             var products = await _repo.GetMainPageProductsAsync(21, ct);
+            const decimal KdvRate = 0.20m;
 
             var rate = await _currency.GetCachedUsdTryAsync(ct);
             if (rate is null)
@@ -30,7 +31,31 @@ namespace ECommerceBatteryShop.Controllers
             {
                 Id = p.Id,
                 Name = p.Name,
-                Price = _currency.ConvertUsdToTry(p.Price /*USD*/, fx),
+                Price = _currency.ConvertUsdToTry(p.Price /*USD*/, fx) * (1 + KdvRate),
+                Rating = p.Rating,
+                ImageUrl = p.ImageUrl
+            }).ToList();
+
+            return View(vm);
+        }
+        public async Task<IActionResult> Details(CancellationToken ct)
+        {
+            var products = await _repo.GetMainPageProductsAsync(21, ct);
+            const decimal KdvRate = 0.20m;
+
+            var rate = await _currency.GetCachedUsdTryAsync(ct);
+            if (rate is null)
+            {
+                TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
+                _log.LogWarning("USD→TRY unavailable; using USD display.");
+            }
+
+            var fx = rate ?? 1m;
+            var vm = products.Select(p => new ProductViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = _currency.ConvertUsdToTry(p.Price /*USD*/, fx) * (1 + KdvRate),
                 Rating = p.Rating,
                 ImageUrl = p.ImageUrl
             }).ToList();
