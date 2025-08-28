@@ -1,4 +1,4 @@
-using ECommerceBatteryShop.DataAccess;
+﻿using ECommerceBatteryShop.DataAccess;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Concrete;
 using ECommerceBatteryShop.Options;
@@ -7,37 +7,49 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// MVC + EF
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<BatteryShopContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddMemoryCache();
-builder.Services.Configure<CurrencyOptions>(builder.Configuration.GetSection("Currency"));
 
-builder.Services.AddHttpClient<ICurrencyService, CurrencyService>(client => { /* headers set in service */ });
+// Options (with validation is better)
+builder.Services.AddOptions<CurrencyOptions>()
+    .Bind(builder.Configuration.GetSection("Currency"))
+    .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl) && !string.IsNullOrWhiteSpace(o.ApiKey),
+              "Currency:BaseUrl and Currency:ApiKey are required")
+    .ValidateOnStart();
 
+// Typed HttpClient for currency service
+builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
+
+// ⬇️ Make sure this matches your actual hosted service class name
 builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
+
+// Quick manual trigger to verify everything runs
+app.MapPost("/debug/currency/refresh", async (ICurrencyService svc, CancellationToken ct) =>
+{
+    var r = await svc.RefreshNowAsync(ct);
+    return Results.Ok(new { rate = r });
+});
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Register}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

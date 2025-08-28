@@ -7,68 +7,65 @@
     }
 </style>
 
-<main class="bg-gray-50 dark:bg-gray-900 min-h-screen pt-28 pb-24">
+<main class="bg-white min-h-screen pt-28 pb-24">
     <div x-data="cartPage()" x-init="init()" class="mx-auto max-w-7xl px-4">
 
         <!-- Header -->
         <div class="mb-6 flex items-center justify-between">
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Sepetim</h1>
-            <div class="flex items-center gap-4">
-                <button @@click="clearCart" x-show="items.length" class="text-sm text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white">Sepeti boşalt</button>
-                <a href="/" class="text-sm text-gray-600 hover:text-gray-900 dark:text-white/70 dark:hover:text-white">Alışverişe devam et</a>
+            <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Sepetim</h1>
+            <div class="flex items-center gap-3">
+                <button @@click="clearCart" x-show="items.length" class="h-10 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-600 hover:text-slate-900 hover:border-slate-300 transition">Sepeti boşalt</button>
+                <a href="/" class="h-10 inline-flex items-center rounded-lg border border-transparent px-4 text-sm font-medium text-slate-600 hover:text-slate-900">Alışverişe devam et</a>
             </div>
         </div>
 
         <!-- Empty state -->
-        <div x-cloak x-show="items.length===0"
-             class="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-700 shadow-sm dark:border-white/10 dark:bg-gray-900/50 dark:text-white">
-            <div class="mx-auto mb-3 h-12 w-12 grid place-items-center rounded-full bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white">
+        <div x-cloak x-show="items.length===0" class="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-700 shadow-sm">
+            <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-slate-50 text-slate-700">
                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" /></svg>
             </div>
             <p class="text-lg">Sepetiniz boş.</p>
-            <a href="/" class="mt-4 inline-flex h-11 items-center justify-center rounded-xl bg-amber-300 px-5 font-semibold text-gray-900 hover:bg-amber-400">Ürünlere Göz At</a>
+            <a href="/Product/Products" class="mt-4 inline-flex h-11 items-center justify-center rounded-xl bg-amber-300 px-5 font-semibold text-gray-900 shadow-sm hover:bg-amber-400 hover:shadow transition">Ürünlere Göz At</a>
         </div>
 
         <!-- Grid -->
-        <div x-show="items.length>0" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div x-show="items.length>0" class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
             <!-- Items -->
-            <section class="lg:col-span-2 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm dark:border-white/10 dark:bg-gray-900/50">
-                <ul class="divide-y divide-gray-200 dark:divide-white/10">
+            <section class="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <ul class="divide-y divide-slate-200">
                     <template x-for="item in items" :key="item.id">
                         <li class="py-4 sm:py-5 flex gap-4 sm:gap-6" x-transition>
-                            <img src="/img/battery.jpg" :alt="item.name" class="h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover bg-gray-100 dark:bg-white/10">
-                            <div class="flex-1 min-w-0">
+                            <img :src="item.image" :alt="item.name" class="h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover bg-slate-50">
+                            <div class="min-w-0 flex-1">
                                 <div class="flex items-start justify-between gap-3">
-                                    <div>
-                                        <h3 class="text-gray-900 dark:text-white font-medium" x-text="item.name"></h3>
-                                        <p class="text-gray-600 dark:text-white/60 text-sm" x-text="item.variant"></p>
+                                    <div class="min-w-0">
+                                        <h3 class="truncate text-slate-900 font-medium" x-text="item.name"></h3>
+                                        <p class="text-slate-500 text-sm" x-text="item.variant"></p>
                                     </div>
-                                    <button @@click="remove(item.id)" class="text-gray-500 hover:text-gray-700 dark:text-white/60 dark:hover:text-white" aria-label="Kaldır" title="Kaldır">
-                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2m-1 0v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V6" /></svg>
+                                    <button @@click="remove(item.id)" class="text-slate-400 hover:text-slate-700" aria-label="Kaldır" title="Kaldır">
+                                        <svg class="h-5 w-5 cursor-pointer" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M18 6V16.2C18 17.8802 18 18.7202 17.673 19.362C17.3854 19.9265 16.9265 20.3854 16.362 20.673C15.7202 21 14.8802 21 13.2 21H10.8C9.11984 21 8.27976 21 7.63803 20.673C7.07354 20.3854 6.6146 19.9265 6.32698 19.362C6 18.7202 6 17.8802 6 16.2V6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
                                     </button>
                                 </div>
 
                                 <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
                                     <!-- Qty -->
                                     <label class="sr-only" :for="'qty-'+item.id">Adet</label>
-                                    <div class="inline-flex h-9 items-center rounded-lg border border-gray-300 bg-white dark:border-white/10 dark:bg-white/5">
-                                        <button @@click="dec(item)" class="px-3 h-full text-gray-700 hover:text-gray-900 dark:text-white/70 dark:hover:text-white" :aria-controls="'qty-'+item.id" aria-label="Azalt">−</button>
-                                        <input :id="'qty-'+item.id" type="number" min="1" x-model.number="item.qty"
-                                               class="w-16 bg-transparent text-center text-gray-900 dark:text-white outline-none"
-                                               @@change="sanitize(item)" aria-live="polite" aria-label="Adet">
-                                        <button @@click="inc(item)" class="px-3 h-full text-gray-700 hover:text-gray-900 dark:text-white/70 dark:hover:text-white" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
+                                    <div class="inline-flex h-10 items-center rounded-xl border border-slate-300 bg-white shadow-xs">
+                                        <button @@click="dec(item)" class="px-3 h-full text-slate-700 hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Azalt">−</button>
+                                        <input :id="'qty-'+item.id" type="number" min="1" inputmode="numeric" x-model.number="item.qty" class="w-16 bg-transparent text-center text-slate-900 outline-none" @@change="sanitize(item)" aria-live="polite" aria-label="Adet">
+                                        <button @@click="inc(item)" class="px-3 h-full text-slate-700 hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
                                     </div>
 
                                     <!-- Unit price / line total -->
                                     <div class="ml-auto text-right">
-                                        <div class="text-gray-500 dark:text-white/70 text-sm">Birim</div>
-                                        <div class="text-gray-900 dark:text-white font-medium" x-text="formatCents(item.priceCents)"></div>
+                                        <div class="text-slate-500 text-xs">Birim</div>
+                                        <div class="text-slate-900 font-medium" x-text="formatCents(item.priceCents)"></div>
                                     </div>
-                                    <div class="w-px h-8 bg-gray-200 dark:bg-white/10"></div>
+                                    <div class="h-8 w-px bg-slate-200"></div>
                                     <div class="text-right">
-                                        <div class="text-gray-500 dark:text-white/70 text-sm">Ara Toplam</div>
-                                        <div class="text-gray-900 dark:text-white font-semibold" x-text="formatCents(item.priceCents * item.qty)"></div>
+                                        <div class="text-slate-500 text-xs">Ara Toplam</div>
+                                        <div class="text-slate-900 font-semibold" x-text="formatCents(item.priceCents * item.qty)"></div>
                                     </div>
                                 </div>
                             </div>
@@ -78,71 +75,72 @@
             </section>
 
             <!-- Summary -->
-            <aside class="rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 h-max shadow-sm lg:sticky lg:top-24 dark:border-white/10 dark:bg-gray-900/50">
-                <h2 class="text-gray-900 dark:text-white font-semibold mb-4">Sipariş Özeti</h2>
+            <aside class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 h-max shadow-sm lg:sticky lg:top-24">
+                <h2 class="text-slate-900 font-semibold mb-4">Sipariş Özeti</h2>
 
                 <!-- Free shipping progress -->
                 <template x-if="thresholdCents > 0">
                     <div class="mb-4">
-                        <div class="flex items-center justify-between text-xs text-gray-600 dark:text-white/70">
+                        <div class="flex items-center justify-between text-xs text-slate-600">
                             <span x-text="subtotalCents < thresholdCents ? ('Ücretsiz kargo için ' + formatCents(thresholdCents - subtotalCents) + ' kaldı') : 'Ücretsiz kargo!' "></span>
                             <span x-text="Math.min(100, Math.round((subtotalCents/thresholdCents)*100)) + '%' "></span>
                         </div>
-                        <div class="mt-2 h-2 w-full rounded-full bg-gray-100 dark:bg-white/10">
-                            <div class="h-2 rounded-full bg-amber-300" :style="{width: Math.min(100, (subtotalCents/thresholdCents)*100) + '%'}"></div>
+                        <div class="mt-2 h-2 w-full rounded-full bg-slate-100">
+                            <div class="h-2 rounded-full bg-amber-500 transition-all" :style="{width: Math.min(100, (subtotalCents/thresholdCents)*100) + '%'}"></div>
                         </div>
                     </div>
                 </template>
 
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                        <dt class="text-gray-600 dark:text-white/70">Ara toplam</dt>
-                        <dd class="text-gray-900 dark:text-white" x-text="formatCents(subtotalCents)" aria-live="polite"></dd>
+                        <dt class="text-slate-600">Ara toplam</dt>
+                        <dd class="text-slate-900" x-text="formatCents(subtotalCents)" aria-live="polite"></dd>
                     </div>
                     <div class="flex justify-between" x-show="activeCoupon">
-                        <dt class="text-gray-600 dark:text-white/70">İndirim <button @@click="removeCoupon" class="ml-2 text-xs underline">(kaldır)</button></dt>
-                        <dd class="text-gray-900 dark:text-white" x-text="discountCents>0 ? '-'+formatCents(discountCents) : formatCents(0)"></dd>
+                        <dt class="text-slate-600">İndirim <button @@click="removeCoupon" class="ml-2 text-xs underline">(kaldır)</button></dt>
+                        <dd class="text-slate-900" x-text="discountCents>0 ? '-'+formatCents(discountCents) : formatCents(0)"></dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-600 dark:text-white/70">Kargo</dt>
-                        <dd class="text-gray-900 dark:text-white" x-text="shippingCents>0 ? formatCents(shippingCents) : 'Ücretsiz'"></dd>
+                        <dt class="text-slate-600">Kargo</dt>
+                        <dd class="text-slate-900" x-text="shippingCents>0 ? formatCents(shippingCents) : 'Ücretsiz'"></dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-600 dark:text-white/70">KDV (dahil)</dt>
-                        <dd class="text-gray-900 dark:text-white" x-text="formatCents(vatIncludedCents)"></dd>
+                        <dt class="text-slate-600">KDV (dahil)</dt>
+                        <dd class="text-slate-900" x-text="formatCents(vatIncludedCents)"></dd>
                     </div>
-                    <div class="border-t border-gray-200 dark:border-white/10 pt-3 flex justify-between text-base">
-                        <dt class="text-gray-900 dark:text-white">Toplam</dt>
-                        <dd class="text-gray-900 dark:text-white font-semibold" x-text="formatCents(totalCents)" aria-live="polite"></dd>
+                    <div class="border-t border-slate-200 pt-3 flex justify-between text-base">
+                        <dt class="text-slate-900">Toplam</dt>
+                        <dd class="text-slate-900 font-semibold" x-text="formatCents(totalCents)" aria-live="polite"></dd>
                     </div>
                 </dl>
 
-                <button class="mt-4 w-full h-11 rounded-xl bg-amber-300 text-gray-900 font-semibold hover:bg-amber-400 transition" id="pay">
+
+                <button class="mt-4 w-full h-12 rounded-xl bg-amber-300 font-semibold hover:bg-amber-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-slate-200 transition hover:shadow-md" id="pay">
                     Güvenli Ödeme
                 </button>
-                <p class="mt-2 text-xs text-gray-500 dark:text-white/60 text-center">3D Secure desteklenir</p>
+                <p class="mt-2 text-xs text-slate-500 text-center">3D Secure desteklenir</p>
             </aside>
         </div>
     </div>
 
     <!-- Mobile sticky checkout -->
     <div x-show="items.length>0" x-cloak class="md:hidden fixed bottom-4 left-4 right-4 z-40">
-        <div class="rounded-xl border border-gray-200 bg-white shadow-lg px-4 py-3 flex items-center justify-between dark:border-white/10 dark:bg-gray-900/80 backdrop-blur">
+        <div class="backdrop-blur rounded-xl border border-slate-200 bg-white/95 shadow-lg px-4 py-3 flex items-center justify-between">
             <div>
-                <div class="text-xs text-gray-600 dark:text-white/70">Toplam</div>
-                <div class="font-semibold text-gray-900 dark:text-white" x-text="formatCents(totalCents)"></div>
+                <div class="text-xs text-slate-600">Toplam</div>
+                <div class="font-semibold text-slate-900" x-text="formatCents(totalCents)"></div>
             </div>
-            <a href="#pay" class="inline-flex h-10 items-center rounded-lg bg-amber-300 px-4 font-semibold text-gray-900 hover:bg-amber-400">Ödeme</a>
+            <a href="#pay" class="inline-flex h-10 items-center rounded-lg bg-slate-900 px-4 font-semibold text-white hover:bg-black">Ödeme</a>
         </div>
     </div>
 
     <!-- Toast -->
-    <div x-cloak x-show="toast.show" x-transition.opacity.duration.200ms class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div x-cloak x-show="toast.show" x-transition.opacity.duration.200ms class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50" role="status" aria-live="polite">
         <div class="rounded-lg px-4 py-2 text-sm shadow-lg"
              :class="{
-            'bg-gray-900 text-white': toast.type==='info',
-            'bg-green-600 text-white': toast.type==='success',
-            'bg-amber-500 text-gray-900': toast.type==='warn',
+            'bg-slate-900 text-white': toast.type==='info',
+            'bg-emerald-600 text-white': toast.type==='success',
+            'bg-amber-500 text-slate-900': toast.type==='warn',
             'bg-red-600 text-white': toast.type==='error'
           }">
             <div class="flex items-center gap-3">
