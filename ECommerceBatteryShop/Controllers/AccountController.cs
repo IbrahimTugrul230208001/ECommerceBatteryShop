@@ -1,32 +1,64 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using ECommerceBatteryShop.DataAccess.Abstract;
+using ECommerceBatteryShop.Models;
+using Microsoft.AspNetCore.Mvc;
 
-namespace ECommerceBatteryShop.Controllers
+namespace ECommerceBatteryShop.Controllers;
+
+public class AccountController : Controller
 {
-    public class AccountController : Controller
+    private readonly IAccountRepository _accountRepository;
+
+    public AccountController(IAccountRepository accountRepository)
     {
-        public IActionResult Register()
+        _accountRepository = accountRepository;
+    }
+
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Register(RegisterViewModel model, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
         {
-            return View();
+            return View(model);
         }
-        public IActionResult LogIn()
+
+        var user = await _accountRepository.RegisterAsync(model.Email, model.Password, ct);
+        if (user == null)
         {
-            return View();
+            ModelState.AddModelError(string.Empty, "Email already exists");
+            return View(model);
         }
-        public IActionResult ForgotPassword()
-        {
-            return View();
-        }
-        public IActionResult ResetPassword()
-        {
-            return View();
-        }
-        public IActionResult Profile()
-        {
-            return View();
-        }
-        public IActionResult VerifyAccount()
-        {
-            return View();
-        }
+
+        return RedirectToAction(nameof(LogIn));
+    }
+
+    public IActionResult LogIn()
+    {
+        return View();
+    }
+
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    public IActionResult ResetPassword()
+    {
+        return View();
+    }
+
+    public IActionResult Profile()
+    {
+        return View();
+    }
+
+    public IActionResult VerifyAccount()
+    {
+        return View();
     }
 }
