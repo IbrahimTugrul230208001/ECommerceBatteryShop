@@ -38,6 +38,26 @@ public sealed class AccountRepository : IAccountRepository
         return user;
     }
 
+    public async Task<User?> LogInAsync(string email, string password, CancellationToken ct = default)
+    {
+        var user = await _ctx.Users.SingleOrDefaultAsync(u => u.Email == email, ct);
+        if (user == null)
+        {
+            _log.LogInformation("User not found: {Email}", email);
+            return null;
+        }
+
+        var hash = HashPassword(password);
+        if (hash != user.PasswordHash)
+        {
+            _log.LogInformation("Invalid password for {Email}", email);
+            return null;
+        }
+
+        return user;
+    }
+
+
     private static string HashPassword(string password)
     {
         using var sha = SHA256.Create();

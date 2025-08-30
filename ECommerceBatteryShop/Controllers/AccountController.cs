@@ -42,6 +42,39 @@ public class AccountController : Controller
         return View();
     }
 
+    [HttpPost]
+    public async Task<IActionResult> LogIn(LoginViewModel model, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+
+        {
+            return View(model);
+        }
+
+        var user = await _accountRepository.LogInAsync(model.Email, model.Password, ct);
+        if (user == null)
+        {
+            ModelState.AddModelError(string.Empty, "Invalid email or password");
+            return View(model);
+        }
+
+        return RedirectToAction(nameof(Profile));
+
+        var user = await _accountRepository.RegisterAsync(model.Email, model.Password, ct);
+        if (user == null)
+        {
+            ModelState.AddModelError(string.Empty, "Email already exists");
+            return View(model);
+        }
+
+        return RedirectToAction(nameof(LogIn));
+    }
+
+    public IActionResult LogIn()
+    {
+        return View();
+    }
+
     public IActionResult ForgotPassword()
     {
         return View();
