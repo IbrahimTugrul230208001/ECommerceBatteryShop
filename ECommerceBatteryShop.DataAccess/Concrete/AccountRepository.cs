@@ -57,6 +57,7 @@ public sealed class AccountRepository : IAccountRepository
         return user;
     }
 
+
     private static string HashPassword(string password)
     {
         using var sha = SHA256.Create();

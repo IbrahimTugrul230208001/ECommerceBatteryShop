@@ -7,4 +7,5 @@ public interface IAccountRepository
     Task<User?> RegisterAsync(string email, string password, CancellationToken ct = default);
 
     Task<User?> LogInAsync(string email, string password, CancellationToken ct = default);
+
 }
