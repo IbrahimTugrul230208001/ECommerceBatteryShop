@@ -22,7 +22,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             _log = log;
         }
 
-        public async Task<IReadOnlyList<Product>> GetMainPageProductsAsync(int count = 8, CancellationToken ct = default)
+        public async Task<IReadOnlyList<Product>> GetMainPageProductsAsync(int count, CancellationToken ct = default)
         {
             try
             {
