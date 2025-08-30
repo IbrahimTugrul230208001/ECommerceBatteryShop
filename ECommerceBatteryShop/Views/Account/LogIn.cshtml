@@ -1,45 +1,6 @@
 ﻿@{
-    Layout = null;
+    Layout = "_AccountLayout";
 }
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="~/css/global.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-    <link href="~/css/output.css" rel="stylesheet" />
-
-    <!-- Alpine -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        [x-cloak] {
-            display: none !important
-        }</style>
-    <script>
-        document.addEventListener('alpine:init', () => {
-          Alpine.data('passwordField', () => ({
-            show: false,
-            toggle(){ this.show = !this.show },
-            hold(){ this.show = true },
-            release(){ this.show = false }
-          }));
-        });
-    </script>
-</head>
-
-<body class="min-h-screen bg-gray-50">
-    <div class="grid min-h-screen place-items-center px-4">
-        <div class="w-full max-w-md animate-fadeIn">
-            <div class="rounded-2xl bg-white/70 backdrop-blur-md p-8
-                  shadow-[0_12px_32px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
-
-                <!-- Logo -->
-                <div class="mb-8 flex justify-center">
-                    <a href="/Home/Index">
-                        <img src="/img/logo_gray.png" alt="Logo" class="mx-auto h-24" />
-                    </a>
-                </div>
 
                 <!-- Google -->
                 <button type="button"
@@ -110,10 +71,3 @@
                         Hesabınız yok mu? Kayıt olun.
                     </a>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-</body>
-</html>
