@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ECommerceBatteryShop.Domain.Entities;
 
-namespace ECommerceBatteryShop.DataAccess.Abstract
+namespace ECommerceBatteryShop.DataAccess.Abstract;
+
+public interface IAccountRepository
 {
-    internal interface IAccountRepository
-    {
-    }
+    Task<User?> RegisterAsync(string email, string password, CancellationToken ct = default);
+
+    Task<User?> LogInAsync(string email, string password, CancellationToken ct = default);
 }

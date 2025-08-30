@@ -13,6 +13,7 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddMemoryCache();
 
 // Options (with validation is better)
