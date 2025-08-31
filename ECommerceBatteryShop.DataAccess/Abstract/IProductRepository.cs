@@ -9,6 +9,7 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
 {
     public interface IProductRepository
     {
-        Task<IReadOnlyList<Product>> GetMainPageProductsAsync(int count = 8, CancellationToken ct = default);
+        Task<IReadOnlyList<Product>> GetMainPageProductsAsync(int count, CancellationToken ct = default);
+        Task<Product?> GetProductAsync(int id, CancellationToken ct);
     }
 }

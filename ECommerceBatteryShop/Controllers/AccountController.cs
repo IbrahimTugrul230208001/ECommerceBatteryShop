@@ -59,21 +59,8 @@ public class AccountController : Controller
         }
 
         return RedirectToAction(nameof(Profile));
-
-        var user = await _accountRepository.RegisterAsync(model.Email, model.Password, ct);
-        if (user == null)
-        {
-            ModelState.AddModelError(string.Empty, "Email already exists");
-            return View(model);
-        }
-
-        return RedirectToAction(nameof(LogIn));
     }
 
-    public IActionResult LogIn()
-    {
-        return View();
-    }
 
     public IActionResult ForgotPassword()
     {

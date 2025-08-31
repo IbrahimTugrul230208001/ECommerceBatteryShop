@@ -49,5 +49,11 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 throw; // don’t hide coding errors
             }
         }
+        public async Task<Product?> GetProductAsync(int id, CancellationToken ct)
+        {
+            return await _ctx.Products
+                .FirstOrDefaultAsync(p => p.Id == id, ct);
+        }
+
     }
 }
