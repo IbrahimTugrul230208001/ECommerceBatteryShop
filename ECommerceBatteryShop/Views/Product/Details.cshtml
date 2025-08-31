@@ -63,6 +63,9 @@
 
                     <!-- CTA buttons -->
                     <button type="button"
+                            hx-post='@Url.Action("Add","Cart")'
+                            hx-vals='js:{ productId: @Model.Id, quantity: qty }'
+                            hx-swap="none"
                             @@click="addToCart(false)"
                             class="h-11 px-5 cursor-pointer rounded-xl bg-amber-300 text-slate-900 font-semibold shadow-sm hover:bg-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-100">
                         Sepete Ekle
