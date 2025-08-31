@@ -9,20 +9,22 @@
 </head>
 <body>
     <header class="relative z-40">
+
+       
         <!-- MOBILE BAR -->
-        <div class="md:hidden bg-gray-900 text-white">
+        <div class="md:hidden bg-gray-900 text-white relative z-50">
             <div class="mx-auto max-w-7xl px-4 h-14 flex items-center gap-3 py-6">
                 <!-- Search -->
                 <form hx-get="/Search" hx-target="#search-results" hx-push-url="true" role="search" class="flex-1">
                     <div class="flex h-10 rounded-lg border border-gray-300 bg-white overflow-hidden
-                  focus-within:ring-2 focus-within:ring-yellow-300 focus-within:border-yellow-300 relative">
+                  focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 relative">
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none"
                              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <circle cx="11" cy="11" r="7" stroke-width="2" />
                             <path d="M21 21l-4.3-4.3" stroke-width="2" />
                         </svg>
                         <input name="q" id="search-input-mobile" placeholder="Ara..."
-                               class="flex-1 pl-10 pr-3 text-black placeholder-gray-500 focus:outline-none" />
+                               @@focus="overlay=true" @@blur="overlay=false" class="flex-1 pl-10 pr-3 text-black placeholder-gray-500 focus:outline-none" />
                         <button type="submit" aria-label="Search"
                                 class="px-3 bg-amber-300 hover:bg-amber-400 grid place-items-center">
                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
@@ -46,7 +48,7 @@
                 </a>
 
                 <!-- Profile -->
-                <a aria-label="Profil" class="inline-flex items-center justify-center h-9 px-3 rounded-md hover:bg-white/10">
+                <a aria-label="Profil" class="inline-flex items-center justify-center h-9 px-3 rounded-md cursor-pointer hover:bg-white/10">
                     <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
@@ -55,14 +57,14 @@
                 </a>
             </div>
         </div>
-
         <div x-data="{ overlay:false }" @@keydown.escape.window="overlay=false">
 
-        <div id="overlay"
-             class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-opacity duration-200
+            <div id="overlay"
+                 class="fixed inset-0 z-40 bg-black/70 transition-opacity duration-200
               opacity-0 pointer-events-none"
-             :class="overlay ? 'opacity-100 pointer-events-auto' : ''"
-             @@click ="overlay=false"></div>
+                 :class="overlay ? 'opacity-100 pointer-events-auto' : ''"
+                 @@click="overlay=false"></div>
+
         <!-- add this -->
         <!-- NAVBAR -->
 
@@ -73,7 +75,7 @@
             <div class="mx-auto max-w-[95%] px-4 h-full flex items-center gap-10">
                 <!-- Logo -->
                 <div>
-                    <a asp-controller="Home" asp-action="Index"
+                    <a href="/Home/Index"
                        class="flex-none text-xl font-bold hover:text-gray-300">
                         <img src="~/img/logo.png" alt="Logo" class="h-16 w-auto object-contain" />
                     </a>
@@ -84,7 +86,7 @@
                 <div hx-get="/Search" hx-target="#search-results" hx-push-url="true" role="search" class="flex-1">
                     <div class="mx-auto max-w-3xl">
                         <div class="flex h-10 rounded-md border border-gray-300 bg-white overflow-hidden
-                            focus-within:ring-2 focus-within:ring-yellow-300 focus-within:border-yellow-300 relative">
+                            focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 relative">
                             <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none"
                                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <circle cx="11" cy="11" r="7" stroke-width="2" />

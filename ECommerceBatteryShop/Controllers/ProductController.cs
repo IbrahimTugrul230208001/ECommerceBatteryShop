@@ -38,30 +38,29 @@ namespace ECommerceBatteryShop.Controllers
 
             return View(vm);
         }
-        public async Task<IActionResult> Details(CancellationToken ct)
+        [HttpGet] // optional
+        public async Task<IActionResult> Details(int id, CancellationToken ct = default)
         {
-            var products = await _repo.GetMainPageProductsAsync(21, ct);
+            var product = await _repo.GetProductAsync(id, ct);
+            if (product is null) return NotFound();
+
             const decimal KdvRate = 0.20m;
-
             var rate = await _currency.GetCachedUsdTryAsync(ct);
-            if (rate is null)
-            {
-                TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
-                _log.LogWarning("USD→TRY unavailable; using USD display.");
-            }
-
             var fx = rate ?? 1m;
-            var vm = products.Select(p => new ProductViewModel
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Price = _currency.ConvertUsdToTry(p.Price /*USD*/, fx) * (1 + KdvRate),
-                Rating = p.Rating,
-                ImageUrl = p.ImageUrl
-            }).ToList();
 
-            return View(vm);
+            var vm = new ProductViewModel
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = _currency.ConvertUsdToTry(product.Price, fx) * (1 + KdvRate),
+                Rating = product.Rating,
+                ImageUrl = product.ImageUrl,
+                Description = product.Description
+            };
+
+            return View("Details", vm); // full view under _Layout
         }
+
     }
 
 }
