@@ -14,6 +14,7 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddMemoryCache();
 
 // Options (with validation is better)
