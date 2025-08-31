@@ -61,6 +61,8 @@
             <div class="px-4 pb-4 pt-0">
                 <div x-data="{ added:false }">
                     <button type="button"
+                            hx-post='@Url.Action("Add","Cart", new { productId = product.Id })'
+                            hx-swap="none"
                             @@click ="if (added) return; added = true; setTimeout(()=>added=false,1600)"
                             class="relative w-full h-10 rounded-xl text-sm font-semibold shadow
                                    transition-colors duration-200 overflow-hidden cursor-pointer"
