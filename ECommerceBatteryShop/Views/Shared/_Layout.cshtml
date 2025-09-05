@@ -43,8 +43,8 @@
                     </svg>
                     <span id="cart-count-mobile" class="absolute -top-1 -right-1 min-w-[1.1rem] h-5 px-1 rounded-full text-[10px] font-medium
                    bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10">
-                        @((ViewBag.CartCount is int c1 && c1 > 99) ? "99+" : (ViewBag.CartCount ?? 0).ToString())
-                    </span>
+                    0
+               </span>
                 </a>
 
                 <!-- Profile -->
@@ -136,7 +136,7 @@
                             <span id="cart-count-desktop" class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs font-medium
             bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10
             transition duration-150">
-                                @((ViewBag.CartCount is int c && c > 99) ? "99+" : (ViewBag.CartCount ?? 0).ToString())
+                                    0
                             </span>
                         </span>
 
