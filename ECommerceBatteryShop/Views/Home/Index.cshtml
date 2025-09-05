@@ -126,17 +126,15 @@
                             <!-- Actions -->
                             <div class="mt-3 mb-3 flex items-center gap-2">
                                 <button
+                                         hx-post="/Cart/Add"
+                                        hx-vals='{"productId": @product.Id, "quantity": 1}'
+                                        hx-swap="none"
                                   x-data="{ added: false }"
-                                  @@click="
-                                    if (added) return;
-                                    added = true;
-                                    setTimeout(() => added = false, 1600);
-                                  "
+                                  @@click="if (added) return; added = true; setTimeout(() => added = false, 1600);"
                                   :class="added
                                     ? 'bg-green-500 text-white'
                                     : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
-                                  class="flex-1 h-9 rounded-md text-sm font-semibold shadow transition-colors duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 cursor-pointer"
-                                >
+                                  class="flex-1 h-9 rounded-md text-sm font-semibold shadow transition-colors duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 cursor-pointer">
                                   <span
                                     x-show="!added"
                                     x-transition:enter="transition transform ease-out duration-250"
@@ -151,6 +149,7 @@
                                   </span>
 
                                   <span
+                                   
                                     x-show="added"
                                     x-transition:enter="transition transform ease-out duration-250"
                                     x-transition:enter-start="translate-y-3 opacity-0"
