@@ -4,6 +4,10 @@ using ECommerceBatteryShop.DataAccess.Concrete;
 using ECommerceBatteryShop.Options;
 using ECommerceBatteryShop.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +21,7 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddMemoryCache();
 
-// Options (with validation is better)
+// Options
 builder.Services.AddOptions<CurrencyOptions>()
     .Bind(builder.Configuration.GetSection("Currency"))
     .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl) && !string.IsNullOrWhiteSpace(o.ApiKey),
@@ -27,8 +31,29 @@ builder.Services.AddOptions<CurrencyOptions>()
 // Typed HttpClient for currency service
 builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 
-// ⬇️ Make sure this matches your actual hosted service class name
+// Hosted service
 builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
+
+// ⬇️ AUTH: Cookie + Google
+builder.Services.AddAuthentication(o =>
+{
+    o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    o.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+.AddCookie(o =>
+{
+    o.LoginPath = "/login";
+    o.LogoutPath = "/logout";
+})
+.AddGoogle(o =>
+{
+    o.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+    o.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    o.SaveTokens = true;
+    o.Scope.Add("email");
+    o.Scope.Add("profile");
+    o.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
+});
 
 var app = builder.Build();
 
@@ -41,15 +66,31 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// ⬇️ AUTH MIDDLEWARE ORDER
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Quick manual trigger to verify everything runs
+// Debug endpoint you had
 app.MapPost("/debug/currency/refresh", async (ICurrencyService svc, CancellationToken ct) =>
 {
     var r = await svc.RefreshNowAsync(ct);
     return Results.Ok(new { rate = r });
 });
 
+// ⬇️ Minimal login/logout routes (optional; use your own controller if preferred)
+app.MapGet("/login", (HttpContext ctx) =>
+{
+    var props = new AuthenticationProperties { RedirectUri = "/" };
+    return Results.Challenge(props, new[] { GoogleDefaults.AuthenticationScheme });
+});
+app.MapGet("/logout", async (HttpContext ctx) =>
+{
+    await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Redirect("/");
+});
+
+// Example home
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
