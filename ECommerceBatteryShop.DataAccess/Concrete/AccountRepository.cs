@@ -64,4 +64,20 @@ public sealed class AccountRepository : IAccountRepository
         var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
         return Convert.ToBase64String(bytes);
     }
+
+    public Task<bool> ValidateEmailAsync(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> ValidateUserNameAsync(string userName)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public Task AddNewUserAsync(string email, string password)
+    {
+        throw new NotImplementedException();
+    }
 }

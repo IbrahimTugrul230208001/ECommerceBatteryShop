@@ -1,6 +1,7 @@
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
+using ECommerceBatteryShop.Services;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Identity;
@@ -17,22 +18,22 @@ public class AccountController : Controller
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IConfiguration _configuration;
-
-    public AccountController(IAccountRepository accountRepository, IConfiguration configuration)
+    private readonly IUserService _userService;
+    public AccountController(IAccountRepository accountRepository, IConfiguration configuration, IUserService userService)
     {
         _accountRepository = accountRepository;
         _configuration = configuration;
+        _userService = userService;
     }
 
     [HttpPost]
-    public async Task<IActionResult> RegisterUser([FromBody] User user)
+    public async Task<IActionResult> RegisterUser([FromBody] UserViewModel userViewModel)
     {
         try
         {
-            string email = user.Email;
-            string userName = user.UserName;
-            string password = user.NewPassword;
-            string confirmPassword = user.NewPasswordAgain;
+            string email = userViewModel.Email;
+            string password = userViewModel.NewPassword;
+            string confirmPassword = userViewModel.NewPasswordAgain;
 
 
             if (password != confirmPassword)
@@ -40,12 +41,12 @@ public class AccountController : Controller
                 return Json(new { success = false, message = "Þifreler eþleþmiyor." });
             }
 
-            if (await _userManager.ValidateEmailAsync(email) == false)
+            if (await _accountRepository.ValidateEmailAsync(email) == false)
             {
                 return Json(new { success = false, message = "Email zaten kayýtlý." });
             }
 
-            if (await _userManager.ValidateUserNameAsync(userName) == false)
+            if (await _accountRepository.ValidateUserNameAsync(email) == false)
             {
                 return Json(new { success = false, message = "Kullanýcý adý mevcut Baþka bir isim deneyiniz." });
             }
@@ -53,7 +54,6 @@ public class AccountController : Controller
             string verificationCode = new Random().Next(100000, 999999).ToString();
             _userService.VerificationCode = verificationCode;
             await SendEmailAsync();
-            _userService.UserName = userName;
             _userService.Email = email;
             _userService.Password = password;
             return Json(new { success = true, redirectUrl = Url.Action("KullaniciDogrulama", "Dogrulama") });
@@ -71,14 +71,13 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> VerifyEmail([FromBody] User user)
+    public async Task<IActionResult> VerifyEmail([FromBody] UserViewModel userViewModel)
     {
-        if (user.VerificationCode == _userService.VerificationCode)
+        if (userViewModel.VerificationCode == _userService.VerificationCode)
         {
             string email = _userService.Email;
-            string userName = _userService.UserName;
             string password = _userService.Password;
-            await _userManager.AddNewUserAsync(email, userName, password);
+            await _accountRepository.AddNewUserAsync(email, password);
             return Json(new { success = true, redirectUrl = Url.Action("Profil", "Kullanici") });
         }
         else
