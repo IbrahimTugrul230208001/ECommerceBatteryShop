@@ -56,38 +56,35 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
         }
         public async Task<List<Product>> ProductSearchResultAsync(string searchTerm)
         {
-         
-                IQueryable<Product> query = _ctx.Products;
+            IQueryable<Product> query = _ctx.Products.AsNoTracking();
+
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(b => EF.Functions.Like(b.Name, $"%{searchTerm}%"));
+                var term = searchTerm.ToLowerInvariant();
+                query = query.Where(b => b.Name.ToLower().Contains(term));
             }
 
             return await query
                 .Take(100) // or use paging parameters
                 .ToListAsync();
         }
-        
 
         public async Task<List<string>> ProductSearchQueryResultAsync(string searchTerm)
         {
-         
-                IQueryable<Product> query = _ctx.Products;
+            IQueryable<Product> query = _ctx.Products.AsNoTracking();
+
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(b => EF.Functions.Like(b.Name, $"%{searchTerm}%"));
+                var term = searchTerm.ToLowerInvariant();
+                query = query.Where(b => b.Name.ToLower().Contains(term));
             }
-            foreach (var name in query)
-            {
-                Console.WriteLine(name);
-            }
-            var results = await query
-    .Select(b => b.Name)
-    .Distinct()
-    .OrderBy(n => n)
-    .Take(20)
-    .ToListAsync();
-            return results;
+
+            return await query
+                .Select(b => b.Name)
+                .Distinct()
+                .OrderBy(n => n)
+                .Take(20)
+                .ToListAsync();
         }
         public async Task<IReadOnlyList<Product>> BringProductsByCategoryIdAsync(
       int categoryId,
