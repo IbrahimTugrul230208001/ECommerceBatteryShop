@@ -10,9 +10,12 @@ namespace ECommerceBatteryShop.Controllers
         private readonly IProductRepository _repo;
         private readonly ICurrencyService _currency;
         private readonly ILogger<ProductController> _log;
-
-        public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log)
-        { _repo = repo; _currency = currency; _log = log; }
+        private readonly IUserService _userService;
+        public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log, IUserService userService)
+        {
+            _repo = repo; _currency = currency; _log = log;
+            _userService = userService;
+        }
 
         public async Task<IActionResult> Index(CancellationToken ct)
         {

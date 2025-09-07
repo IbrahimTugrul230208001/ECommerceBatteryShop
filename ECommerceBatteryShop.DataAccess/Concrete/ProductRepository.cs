@@ -77,12 +77,17 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             {
                 query = query.Where(b => EF.Functions.Like(b.Name, $"%{searchTerm}%"));
             }
-
-            return await query
-                .Select(b => b.Name)
-                .Distinct()
-                .Take(20) // autocomplete cap
-                .ToListAsync();
+            foreach (var name in query)
+            {
+                Console.WriteLine(name);
+            }
+            var results = await query
+    .Select(b => b.Name)
+    .Distinct()
+    .OrderBy(n => n)
+    .Take(20)
+    .ToListAsync();
+            return results;
         }
         public async Task<IReadOnlyList<Product>> BringProductsByCategoryIdAsync(
       int categoryId,
