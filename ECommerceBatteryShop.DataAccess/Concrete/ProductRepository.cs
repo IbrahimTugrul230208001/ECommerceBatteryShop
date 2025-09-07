@@ -54,6 +54,55 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             return await _ctx.Products
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
         }
+        public async Task<List<Product>> ProductSearchResultAsync(string searchTerm)
+        {
+         
+                IQueryable<Product> query = _ctx.Products;
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(b => EF.Functions.Like(b.Name, $"%{searchTerm}%"));
+            }
+
+            return await query
+                .Take(100) // or use paging parameters
+                .ToListAsync();
+        }
+        
+
+        public async Task<List<string>> ProductSearchQueryResultAsync(string searchTerm)
+        {
+         
+                IQueryable<Product> query = _ctx.Products;
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(b => EF.Functions.Like(b.Name, $"%{searchTerm}%"));
+            }
+
+            return await query
+                .Select(b => b.Name)
+                .Distinct()
+                .Take(20) // autocomplete cap
+                .ToListAsync();
+        }
+        public async Task<IReadOnlyList<Product>> BringProductsByCategoryIdAsync(
+      int categoryId,
+      int page = 1,
+      int pageSize = 24,
+      CancellationToken ct = default)
+        {
+            if (categoryId <= 0) return Array.Empty<Product>();
+
+            var q =
+                from pc in _ctx.ProductCategories.AsNoTracking()
+                where pc.CategoryId == categoryId
+                select pc.Product!;
+
+            return await q.Where(p => p != null)
+                          .OrderBy(p => p.Name)               // or CreatedAt/Popularity
+                          .Skip((page - 1) * pageSize)
+                          .Take(pageSize)
+                          .ToListAsync(ct);
+        }
 
     }
 }

@@ -11,5 +11,7 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
     {
         Task<IReadOnlyList<Product>> GetMainPageProductsAsync(int count, CancellationToken ct = default);
         Task<Product?> GetProductAsync(int id, CancellationToken ct);
+        Task<List<Product>> ProductSearchResultAsync(string searchTerm);
+        Task<List<string>> ProductSearchQueryResultAsync(string searchTerm);
     }
 }
