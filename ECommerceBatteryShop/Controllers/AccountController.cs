@@ -25,7 +25,6 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    [HttpPost]
     public async Task<IActionResult> RegisterUser([FromBody] User user)
     {
         try

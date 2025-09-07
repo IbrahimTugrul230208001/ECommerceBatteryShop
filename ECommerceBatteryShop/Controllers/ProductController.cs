@@ -60,6 +60,20 @@ namespace ECommerceBatteryShop.Controllers
 
             return View("Details", vm); // full view under _Layout
         }
+        public async Task<IActionResult> Search([FromQuery] string? q, CancellationToken ct)
+        {
+            // Use your lightweight names query (autocomplete)
+            var names = await _repo.ProductSearchQueryResultAsync(q ?? string.Empty);
+            // Render as HTML (partial)
+            return PartialView("_ProductNames", names);
+        }
+
+        [HttpGet("/Product/Search")]
+        public async Task<IActionResult> Search([FromQuery] string q)
+        {
+            var names = await _repo.ProductSearchQueryResultAsync(q ?? string.Empty);
+            return PartialView("_ProductPredictions", names);
+        }
 
     }
 
