@@ -17,10 +17,14 @@ namespace ECommerceBatteryShop.Controllers
 
         }
 
-        public async Task<IActionResult> Index(int? categoryId, CancellationToken ct)
+        public async Task<IActionResult> Index(int? categoryId, string? q, CancellationToken ct)
         {
             IReadOnlyList<Product> products;
-            if (categoryId.HasValue && categoryId > 0)
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                products = await _repo.ProductSearchResultAsync(q);
+            }
+            else if (categoryId.HasValue && categoryId > 0)
             {
                 products = await _repo.BringProductsByCategoryIdAsync(categoryId.Value, ct: ct);
             }
