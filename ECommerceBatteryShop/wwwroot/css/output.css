@@ -335,6 +335,9 @@
   .right-4 {
     right: calc(var(--spacing) * 4);
   }
+  .right-12 {
+    right: calc(var(--spacing) * 12);
+  }
   .bottom-0 {
     bottom: calc(var(--spacing) * 0);
   }
@@ -388,6 +391,9 @@
   }
   .z-70 {
     z-index: 70;
+  }
+  .z-100 {
+    z-index: 100;
   }
   .order-0 {
     order: 0;
@@ -1145,6 +1151,10 @@
   }
   .rounded-xl {
     border-radius: var(--radius-xl);
+  }
+  .rounded-r-lg {
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
   }
   .rounded-b-2xl {
     border-bottom-right-radius: var(--radius-2xl);
