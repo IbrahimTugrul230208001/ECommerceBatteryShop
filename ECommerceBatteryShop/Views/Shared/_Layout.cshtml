@@ -21,8 +21,7 @@
             <div class="mx-auto max-w-7xl px-4 h-14 flex items-center gap-3 py-6">
                 <!-- Search -->
                 <div class="flex-1">
-                    <div class="relative h-10 rounded-lg border border-gray-300 bg-white overflow-hidden
-              focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
+                    <form method="get" action="/Product/Index" class="relative h-10 rounded-lg border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
 
                         <!-- Search icon -->
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none"
@@ -37,7 +36,7 @@
                                type="search"
                                placeholder="Ara..."
                                hx-get="/Product/Search"
-                               hx-trigger="keyup changed delay:300ms, search"
+                               hx-trigger="keyup changed delay:300ms"
                                hx-target="#search-predictions-mobile"
                                hx-indicator="#search-spinner"
                                autocomplete="off"
@@ -58,7 +57,7 @@
                   rounded-b-2xl shadow-2xl bg-white text-black z-70 hidden">
                             <!-- HTMX injects results here -->
                         </div>
-                    </div>
+                    </form>
                 </div>
 
 
@@ -115,8 +114,7 @@
                         <div class="relative">
 
                             <!-- Input box -->
-                            <div class="h-10 rounded-md border border-gray-300 bg-white overflow-hidden
-                focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
+                            <form method="get" action="/Product/Index" class="h-10 rounded-md border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
 
                                 <!-- Search icon -->
                                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none"
@@ -130,7 +128,7 @@
                                        type="search"
                                        placeholder="Ara..."
                                        hx-get="/Product/Search"
-                                       hx-trigger="keyup changed delay:300ms, search"
+                                       hx-trigger="keyup changed delay:300ms"
                                        hx-target="#search-predictions-desktop"
                                        hx-indicator="#search-spinner-desktop"
                                        autocomplete="off"
@@ -151,7 +149,7 @@
                                       class="htmx-indicator absolute right-12 top-1/2 -translate-y-1/2 text-gray-500 hidden">
                                     Yükleniyor...
                                 </span>
-                            </div>
+                            </form>
                             <!-- Predictions dropdown (sibling, not inside input box) -->
                             <div id="search-predictions-desktop"
                                  class="absolute top-full left-0 w-full max-h-104 overflow-y-auto
