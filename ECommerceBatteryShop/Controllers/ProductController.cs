@@ -10,11 +10,10 @@ namespace ECommerceBatteryShop.Controllers
         private readonly IProductRepository _repo;
         private readonly ICurrencyService _currency;
         private readonly ILogger<ProductController> _log;
-        private readonly IUserService _userService;
-        public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log, IUserService userService)
+        public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log)
         {
             _repo = repo; _currency = currency; _log = log;
-            _userService = userService;
+
         }
 
         public async Task<IActionResult> Index(CancellationToken ct)
@@ -67,7 +66,7 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> Search([FromQuery] string q, CancellationToken ct = default)
         {
             var names = await _repo.ProductSearchQueryResultAsync(q ?? string.Empty);
-            return PartialView("_ProductPredictions", names);
+            return PartialView("_ProductPredictions.cshtml", names);
         }
 
     }

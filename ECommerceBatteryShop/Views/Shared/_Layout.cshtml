@@ -27,13 +27,13 @@
                         </svg>
 
                         <!-- Input -->
-                        <input id="search-input-mobile"
+                        <input
                                name="q"
                                type="search"
                                placeholder="Ara..."
                                hx-get="/Product/Search"
                                hx-trigger="keyup changed delay:300ms, search"
-                               hx-target="#search-predictions"
+                               hx-target="#search-predictions-mobile"
                                hx-indicator="#search-spinner"
                                autocomplete="off"
                                class="flex-1 pl-10 pr-10 text-black placeholder-gray-500 focus:outline-none w-full" />
@@ -48,7 +48,7 @@
                         </button>
 
                         <!-- Predictions dropdown -->
-                        <div id="search-predictions"
+                        <div id="search-predictions-mobile"
                              class="absolute top-full left-0 w-full max-h-80 overflow-y-auto
                   rounded-b-2xl shadow-2xl bg-white text-black z-70 hidden">
                             <!-- HTMX injects results here -->
@@ -105,49 +105,62 @@
                 </div>
                 
                 <!-- Search -->
-                <div hx-get="/Search" hx-target="#search-results" hx-push-url="true" role="search" class="flex-1">
-                    <div class="mx-auto max-w-3xl">
-                        <div class="flex h-10 rounded-md border border-gray-300 bg-white overflow-hidden
-                            focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 relative">
-                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none"
-                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <circle cx="11" cy="11" r="7" stroke-width="2" />
-                                <path d="M21 21l-4.3-4.3" stroke-width="2" />
-                            </svg>
-                                <input id="search-input-mobile"
-                                       name="q"
+                    <div class="flex-1">
+                        <!-- wrapper controls positioning -->
+                        <div class="relative">
+
+                            <!-- Input box -->
+                            <div class="h-10 rounded-lg border border-gray-300 bg-white overflow-hidden
+                focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
+
+                                <!-- Search icon -->
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none"
+                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <circle cx="11" cy="11" r="7" stroke-width="2" />
+                                    <path d="M21 21l-4.3-4.3" stroke-width="2" />
+                                </svg>
+
+                                <!-- Input -->
+                                <input name="q"
                                        type="search"
                                        placeholder="Ara..."
                                        hx-get="/Product/Search"
                                        hx-trigger="keyup changed delay:300ms, search"
-                                       hx-target="#search-predictions"
-                                       hx-indicator="#search-spinner"
+                                       hx-target="#search-predictions-desktop"
+                                       hx-indicator="#search-spinner-desktop"
                                        autocomplete="off"
-                                       @@focus ="overlay=true" @@blur ="overlay=false"
-                                       class="flex-1 pl-10 pr-3 text-black placeholder-gray-500 focus:outline-none" />
-                                <span id="search-spinner" class="htmx-indicator hidden">Loading...</span>
+                                       @@focus="overlay=true" @@blur="overlay=false"
+                                       class="w-full pl-10 pr-10 text-black placeholder-gray-500 focus:outline-none h-10" />
 
-                                   <button type="submit" aria-label="Search"
-                                    class="px-4 flex items-center justify-center bg-amber-300 cursor-pointer hover:bg-amber-400">
-                                <svg class="h-6 w-6" viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#000000">
-                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                                    <g id="SVGRepo_iconCarrier">
-                                        <defs>
-                                            <style>
-                                                .cls-1 {
-                                                    fill: none;
-                                                    stroke: #020202;
-                                                    stroke-miterlimit: 10;
-                                                    stroke-width: 1.91px;
-                                                }</style>
-                                        </defs><circle class="cls-1" cx="9.14" cy="9.14" r="7.64"></circle><line class="cls-1" x1="22.5" y1="22.5" x2="14.39" y2="14.39"></line>
-                                    </g>
-                                </svg>
-                            </button>
+                                <!-- Submit button -->
+                                <button type="submit" aria-label="Search"
+                                        class="absolute cursor-pointer right-0 top-0 rounded-r-lg h-10 px-3 bg-amber-300 hover:bg-amber-400 grid place-items-center">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                                        <circle cx="9.14" cy="9.14" r="7.64" stroke="#020202" stroke-width="1.9"></circle>
+                                        <line x1="22.5" y1="22.5" x2="14.39" y2="14.39" stroke="#020202" stroke-width="1.9"></line>
+                                    </svg>
+                                </button>
+
+                                <!-- Spinner -->
+                                <span id="search-spinner-desktop"
+                                      class="htmx-indicator absolute right-12 top-1/2 -translate-y-1/2 text-gray-500 hidden">
+                                    Loading...
+                                </span>
+                            </div>
+                            <!-- Predictions dropdown (sibling, not inside input box) -->
+                            <div id="search-predictions-desktop"
+                                 class="absolute top-full left-0 w-full max-h-80 overflow-y-auto rounded-b-2xl shadow-2xl bg-white text-black z-50 hidden"
+                                 hx-swap="innerHTML"
+                                 hx-on:htmx:afterSwap="this.classList.toggle('hidden', this.innerHTML.trim()==='')">
+                            </div>
+
+
+
+
                         </div>
                     </div>
-                </div>
+
+
                 <div class="flex gap-3">
                 <!-- Cart -->
                     <!-- Sepet -->
@@ -228,7 +241,6 @@
             </div>
         </nav>
 
-     
         <div class="h-20 hidden md:block"></div>
 
         <div class="bg-gray-800 text-white relative z-40 shadow-xl hidden md:block">

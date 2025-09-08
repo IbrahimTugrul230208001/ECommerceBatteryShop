@@ -56,36 +56,53 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
         }
         public async Task<List<Product>> ProductSearchResultAsync(string searchTerm)
         {
-            IQueryable<Product> query = _ctx.Products.AsNoTracking();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
+            try
             {
-                var term = searchTerm.ToLowerInvariant();
-                query = query.Where(b => b.Name.ToLower().Contains(term));
-            }
+                IQueryable<Product> query = _ctx.Products.AsNoTracking();
 
-            return await query
-                .Take(100) // or use paging parameters
-                .ToListAsync();
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var term = searchTerm.ToLowerInvariant();
+                    query = query.Where(b => b.Name.ToLower().Contains(term));
+                }
+
+                return await query
+                    .Take(100) // paging recommended in production
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ProductSearchResultAsync] searchTerm='{searchTerm}' failed: {ex}");
+                throw; // rethrow so you see it in logs/middleware
+            }
         }
 
         public async Task<List<string>> ProductSearchQueryResultAsync(string searchTerm)
         {
-            IQueryable<Product> query = _ctx.Products.AsNoTracking();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
+            try
             {
-                var term = searchTerm.ToLowerInvariant();
-                query = query.Where(b => b.Name.ToLower().Contains(term));
-            }
+                IQueryable<Product> query = _ctx.Products.AsNoTracking();
 
-            return await query
-                .Select(b => b.Name)
-                .Distinct()
-                .OrderBy(n => n)
-                .Take(20)
-                .ToListAsync();
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var term = searchTerm.ToLowerInvariant();
+                    query = query.Where(b => b.Name.ToLower().Contains(term));
+                }
+
+                return await query
+                    .Select(b => b.Name)
+                    .Distinct()
+                    .OrderBy(n => n)
+                    .Take(20)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ProductSearchQueryResultAsync] searchTerm='{searchTerm}' failed: {ex}");
+                throw;
+            }
         }
+
         public async Task<IReadOnlyList<Product>> BringProductsByCategoryIdAsync(
       int categoryId,
       int page = 1,
