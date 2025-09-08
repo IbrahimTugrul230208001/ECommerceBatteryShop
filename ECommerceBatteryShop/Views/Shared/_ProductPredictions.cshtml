@@ -8,7 +8,10 @@
     <ul class="divide-y divide-gray-200 m-0 p-0 z-100">
         @foreach (var name in Model!)
         {
-            <li class="px-4 py-2 hover:bg-gray-100 text-md cursor-pointer">@name</li>
+            <li>
+                <a class="block px-4 py-2 hover:bg-gray-100 text-md"
+                   href='@Url.Action("Index","Product", new { search = name })'>@name</a>
+            </li>
         }
     </ul>
 }
