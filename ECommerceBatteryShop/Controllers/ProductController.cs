@@ -66,7 +66,7 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> Search([FromQuery] string q, CancellationToken ct = default)
         {
             var names = await _repo.ProductSearchQueryResultAsync(q ?? string.Empty);
-            return PartialView("_ProductPredictions.cshtml", names);
+            return PartialView("_ProductPredictions", names);
         }
 
     }
