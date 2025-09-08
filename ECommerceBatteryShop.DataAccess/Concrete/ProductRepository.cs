@@ -93,7 +93,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                     .Select(b => b.Name)
                     .Distinct()
                     .OrderBy(n => n)
-                    .Take(20)
+                    .Take(10)
                     .ToListAsync();
             }
             catch (Exception ex)

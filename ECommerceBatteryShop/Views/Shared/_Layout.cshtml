@@ -110,7 +110,7 @@
                         <div class="relative">
 
                             <!-- Input box -->
-                            <div class="h-10 rounded-lg border border-gray-300 bg-white overflow-hidden
+                            <div class="h-10 rounded-md border border-gray-300 bg-white overflow-hidden
                 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
 
                                 <!-- Search icon -->
@@ -144,18 +144,16 @@
                                 <!-- Spinner -->
                                 <span id="search-spinner-desktop"
                                       class="htmx-indicator absolute right-12 top-1/2 -translate-y-1/2 text-gray-500 hidden">
-                                    Loading...
+                                    Yükleniyor...
                                 </span>
                             </div>
                             <!-- Predictions dropdown (sibling, not inside input box) -->
                             <div id="search-predictions-desktop"
-                                 class="absolute top-full left-0 w-full max-h-80 overflow-y-auto rounded-b-2xl shadow-2xl bg-white text-black z-50 hidden"
+                                 class="absolute top-full left-0 w-full max-h-104 overflow-y-auto
+            rounded-md shadow-2xl bg-white text-black z-50 hidden"
                                  hx-swap="innerHTML"
                                  hx-on:htmx:afterSwap="this.classList.toggle('hidden', this.innerHTML.trim()==='')">
                             </div>
-
-
-
 
                         </div>
                     </div>
@@ -469,6 +467,7 @@
     </footer>
 
     <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+    <script src="~/js/layout.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
