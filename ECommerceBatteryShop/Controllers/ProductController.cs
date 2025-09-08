@@ -2,6 +2,7 @@
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Mvc;
+using ECommerceBatteryShop.Domain.Entities;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -16,9 +17,18 @@ namespace ECommerceBatteryShop.Controllers
 
         }
 
-        public async Task<IActionResult> Index(CancellationToken ct)
+        public async Task<IActionResult> Index(int? categoryId, CancellationToken ct)
         {
-            var products = await _repo.GetMainPageProductsAsync(21, ct);
+            IReadOnlyList<Product> products;
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                products = await _repo.BringProductsByCategoryIdAsync(categoryId.Value, ct: ct);
+            }
+            else
+            {
+                products = await _repo.GetMainPageProductsAsync(21, ct);
+            }
+
             const decimal KdvRate = 0.20m;
 
             var rate = await _currency.GetCachedUsdTryAsync(ct);
