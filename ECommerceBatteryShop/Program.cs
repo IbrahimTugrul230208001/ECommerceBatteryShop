@@ -16,11 +16,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<BatteryShopContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddMemoryCache();
+  builder.Services.AddScoped<IProductRepository, ProductRepository>();
+  builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+  builder.Services.AddScoped<ICartRepository, CartRepository>();
+  builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+  builder.Services.AddScoped<IUserService, UserService>();
+  builder.Services.AddMemoryCache();
 
 // Options
 builder.Services.AddOptions<CurrencyOptions>()
