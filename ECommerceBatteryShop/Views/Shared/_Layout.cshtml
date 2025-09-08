@@ -1,3 +1,8 @@
+@using ECommerceBatteryShop.Domain.Entities
+@inject ECommerceBatteryShop.DataAccess.Abstract.ICategoryRepository CategoryRepository
+@{
+    var categories = await CategoryRepository.GetCategoriesWithChildrenAsync();
+}
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -244,149 +249,41 @@
         <div class="bg-gray-800 text-white relative z-40 shadow-xl hidden md:block">
             <div class="mx-auto max-w-7xl px-4">
                 <ul class="h-12 flex items-center gap-8 whitespace-nowrap overflow-x-auto md:overflow-visible overflow-y-visible max-h-12">
-
-                    <!-- Perakende Pil -->
-                    <!-- Perakende Pil -->
-                    <!-- Perakende Pil (2-column flyout) -->
-                    <!-- Perakende Pil -->
-                    <!-- Perakende Pil -->
-                    <li class="relative group">
-                        <a class="relative z-30 font-semibold flex items-center gap-1
+                    @foreach (var parent in categories)
+                    {
+                        if (parent.SubCategories != null && parent.SubCategories.Any())
+                        {
+                            <li class="relative group">
+                                <a class="relative z-30 font-semibold flex items-center gap-1
       after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
       after:origin-left after:scale-x-0 after:transition-transform after:duration-300
       hover:after:scale-x-100 group-hover:after:scale-x-100 group-focus-within:after:scale-x-100 cursor-pointer">
-                            Perakende Pil
-                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                        </a>
-                        <ul class="absolute left-0 top-full z-20 mt-2 min-w-56 w-max bg-white/95 p-3 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
-      flex flex-col gap-2 invisible opacity-0 translate-y-1 transition group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
-
-                            <!-- Group: Alkaline Pil (Şarj Olmayan) -->
-                            <li class="px-2 py-1">
-                                <a href="https://pilmagazasi.com/18-alkaline-pil-şarj-olmayan" class="block font-semibold hover:text-amber-600">
-                                    Alkaline Pil (Şarj Olmayan)
+                                    @parent.Name
+                                    <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                 </a>
-                                <ul class="mt-1 pl-3 space-y-1 text-[13px]">
-                                    <li><a href="https://pilmagazasi.com/27-kalem-pil-aa" class="block rounded hover:bg-gray-100 px-2 py-1">Kalem Pil (AA)</a></li>
-                                    <li><a href="https://pilmagazasi.com/28-ince-kalem-pil-aaa" class="block rounded hover:bg-gray-100 px-2 py-1">İnce Kalem Pil (AAA)</a></li>
-                                    <li><a href="https://pilmagazasi.com/30-orta-boy-pil-c" class="block rounded hover:bg-gray-100 px-2 py-1">Orta Boy Pil (C)</a></li>
-                                    <li><a href="https://pilmagazasi.com/31-bueyuek-boy-pil-d" class="block rounded hover:bg-gray-100 px-2 py-1">Büyük Boy Pil (D)</a></li>
-                                    <li><a href="https://pilmagazasi.com/32-9-volt-pil" class="block rounded hover:bg-gray-100 px-2 py-1">9 Volt Pil</a></li>
+                                <ul class="absolute left-0 top-full z-20 mt-2 min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
+      flex flex-col gap-1 invisible opacity-0 translate-y-1 transition group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
+                                    @foreach (var child in parent.SubCategories.OrderBy(c => c.Name))
+                                    {
+                                        <li>
+                                            <a href="@Url.Action("Index", "Product", new { categoryId = child.Id })" class="block rounded-lg px-3 py-2 hover:bg-gray-100">@child.Name</a>
+                                        </li>
+                                    }
                                 </ul>
                             </li>
-
-                            <!-- Group: Kumanda Pili -->
-                            <li class="px-2 py-1">
-                                <a href="https://pilmagazasi.com/19-kumanda-pili" class="block font-semibold hover:text-amber-600">
-                                    Kumanda Pili
-                                </a>
-                                <ul class="mt-1 pl-3 space-y-1 text-[13px]">
-                                    <li><a href="https://pilmagazasi.com/34-23a" class="block rounded hover:bg-gray-100 px-2 py-1">23A</a></li>
-                                    <li><a href="https://pilmagazasi.com/35-27a" class="block rounded hover:bg-gray-100 px-2 py-1">27A</a></li>
-                                </ul>
-                            </li>
-
-                            <!-- Group: Şarjlı Pil -->
-                            <li class="px-2 py-1">
-                                <a href="https://pilmagazasi.com/20-sarjli-pil-rechargeable" class="block font-semibold hover:text-amber-600">
-                                    Şarjlı Pil (Rechargeable)
-                                </a>
-                                <ul class="mt-1 pl-3 space-y-1 text-[13px]">
-                                    <li><a href="https://pilmagazasi.com/38-kalem-pil-aa" class="block rounded hover:bg-gray-100 px-2 py-1">Kalem Pil (AA)</a></li>
-                                    <li><a href="https://pilmagazasi.com/39-ince-kalem-pil-aaa" class="block rounded hover:bg-gray-100 px-2 py-1">İnce Kalem Pil (AAA)</a></li>
-                                    <li><a href="https://pilmagazasi.com/40-orta-boy-pil-c" class="block rounded hover:bg-gray-100 px-2 py-1">Orta Boy Pil (C)</a></li>
-                                    <li><a href="https://pilmagazasi.com/42-9-volt-şarjli-pil" class="block rounded hover:bg-gray-100 px-2 py-1">9 Volt Şarjlı Pil</a></li>
-                                </ul>
-                            </li>
-
-                            <!-- Singles -->
-                            <li><a href="https://pilmagazasi.com/21-lithium-pil-primary" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Lithium Pil (Primary)</a></li>
-                            <li><a href="https://pilmagazasi.com/23-telsiz-telefon-pili" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Telsiz Telefon Pili</a></li>
-                            <li><a href="https://pilmagazasi.com/24-hafiza-duegme-pili" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Hafıza (Düğme) Pili</a></li>
-                        </ul>
-                    </li>
-
-
-                    <!-- Endüstriyel Pil -->
-                    <li class="relative group">
-                        <a class="relative z-30 font-semibold flex items-center gap-1
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
-      after:origin-left after:scale-x-0 after:transition-transform after:duration-300
-      hover:after:scale-x-100 group-hover:after:scale-x-100 group-focus-within:after:scale-x-100 cursor-pointer">
-                            Endüstriyel Pil
-                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                        </a>
-                        <ul class="absolute left-0 top-full z-20 mt-2 min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
-      flex flex-col gap-1 invisible opacity-0 translate-y-1 transition group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
-                            <li><a href="https://pilmagazasi.com/43-lithium-ion" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Lithium-ion Pil</a></li>
-                            <li><a href="https://pilmagazasi.com/44-lithium-polymer" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Lithium Polymer Pil</a></li>
-                            <li><a href="https://pilmagazasi.com/45-lifepo4-silindirik" class="block rounded-lg px-3 py-2 hover:bg-gray-100">LiFePO4 - Silindirik Pil</a></li>
-                            <li><a href="https://pilmagazasi.com/50-li-soci2" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Li-SOCl₂ Pil</a></li>
-                            <li><a href="https://pilmagazasi.com/47-ni-cd" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Ni-Cd Pil</a></li>
-                            <li><a href="https://pilmagazasi.com/48-ni-mh" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Ni-MH Pil</a></li>
-                            <li><a href="https://pilmagazasi.com/75-cnc-plc-pilleri" class="block rounded-lg px-3 py-2 hover:bg-gray-100">CNC-PLC Pilleri</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- Pil Paketleri (Özel Pil Paketleri) -->
-                    <li class="relative group">
-                        <a class="relative z-30 font-semibold flex items-center gap-1
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
-      after:origin-left after:scale-x-0 after:transition-transform after:duration-300
-      hover:after:scale-x-100 group-hover:after:scale-x-100 group-focus-within:after:scale-x-100 cursor-pointer">
-                            Pil Paketleri
-                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                        </a>
-                        <ul class="absolute left-0 top-full z-20 mt-2 min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
-      flex flex-col gap-1 invisible opacity-0 translate-y-1 transition group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
-                            <li><a href="https://pilmagazasi.com/55-scooter-bataryalari" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Scooter Bataryaları</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- Elektronik -->
-                    <li class="relative group">
-                        <a class="relative z-30 font-semibold flex items-center gap-1
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
-      after:origin-left after:scale-x-0 after:transition-transform after:duration-300
-      hover:after:scale-x-100 group-hover:after:scale-x-100 group-focus-within:after:scale-x-100 cursor-pointer">
-                            Elektronik
-                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                        </a>
-                        <ul class="absolute left-0 top-full z-20 mt-2 min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
-      flex flex-col gap-1 invisible opacity-0 translate-y-1 transition group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
-                            <li><a href="https://pilmagazasi.com/68-dc-dc-donusturucu" class="block rounded-lg px-3 py-2 hover:bg-gray-100">DC-DC Dönüştürücü</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- Pil Gruplama -->
-                    <li class="relative group">
-                        <a class="relative z-30 font-semibold flex items-center gap-1
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
-      after:origin-left after:scale-x-0 after:transition-transform after:duration-300
-      hover:after:scale-x-100 group-hover:after:scale-x-100 group-focus-within:after:scale-x-100 cursor-pointer">
-                            Pil Gruplama
-                            <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                        </a>
-                        <ul class="absolute left-0 top-full z-20 mt-2 min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
-      flex flex-col gap-1 invisible opacity-0 translate-y-1 transition group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
-                            <li><a href="https://pilmagazasi.com/61-soketler" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Soketler</a></li>
-                            <li><a href="https://pilmagazasi.com/62-bms-pil-koruma-devresi" class="block rounded-lg px-3 py-2 hover:bg-gray-100">BMS - Pil Koruma Devresi</a></li>
-                            <li><a href="https://pilmagazasi.com/64-gosterge" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Gösterge</a></li>
-                            <li><a href="https://pilmagazasi.com/76-punta-cihazi" class="block rounded-lg px-3 py-2 hover:bg-gray-100">Punta Cihazı</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- Aküler (taxonomy: no children => simple link) -->
-                    <li>
-                        <a href="https://pilmagazasi.com/17-akueler"
-                           class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
+                        }
+                        else
+                        {
+                            <li>
+                                <a href="@Url.Action("Index", "Product", new { categoryId = parent.Id })"
+                                   class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
        after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-       hover:after:scale-x-100">Aküler</a>
-                    </li>
-
-                    <!-- İletişim (no dropdown) -->
+       hover:after:scale-x-100">@parent.Name</a>
+                            </li>
+                        }
+                    }
                     <li>
-                        <a href="https://pilmagazasi.com/bize-ulasin"
+                        <a href="/Home/Contact"
                            class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
        after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
        hover:after:scale-x-100">İletişim</a>
