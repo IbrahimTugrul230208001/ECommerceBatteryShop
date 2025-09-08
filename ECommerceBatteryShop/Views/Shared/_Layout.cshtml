@@ -44,7 +44,11 @@
                                class="flex-1 pl-10 pr-10 text-black placeholder-gray-500 focus:outline-none w-full" />
 
                         <!-- Submit button -->
-                        <button type="submit" aria-label="Search"
+                        <button type="button" aria-label="Search"
+                                hx-get="/Product/Search"
+                                hx-include="[name='q']"
+                                hx-target="#search-predictions-mobile"
+                                hx-indicator="#search-spinner"
                                 class="absolute right-0 top-0 h-full px-3 bg-amber-300 hover:bg-amber-400 grid place-items-center">
                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
                                 <circle cx="9.14" cy="9.14" r="7.64" stroke="#020202" stroke-width="1.9"></circle>
@@ -138,7 +142,11 @@
                                        class="w-full pl-10 pr-10 text-black placeholder-gray-500 focus:outline-none h-10" />
 
                                 <!-- Submit button -->
-                                <button type="submit" aria-label="Search"
+                                <button type="button" aria-label="Search"
+                                        hx-get="/Product/Search"
+                                        hx-include="[name='q']"
+                                        hx-target="#search-predictions-desktop"
+                                        hx-indicator="#search-spinner-desktop"
                                         class="absolute cursor-pointer right-0 top-0 rounded-r-lg h-10 px-3 bg-amber-300 hover:bg-amber-400 grid place-items-center">
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
                                         <circle cx="9.14" cy="9.14" r="7.64" stroke="#020202" stroke-width="1.9"></circle>
