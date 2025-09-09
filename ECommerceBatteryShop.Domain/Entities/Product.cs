@@ -7,7 +7,7 @@ public class Product
     public string? Description { get; set; }
     public decimal Price { get; set; }
     public float Rating { get; set; }
-    public string ImageUrl { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; } = string.Empty;
 
     public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();

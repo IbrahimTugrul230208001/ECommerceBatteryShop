@@ -67,7 +67,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 }
 
                 return await query
-                    .Take(100) // paging recommended in production
+                    .Take(20) // paging recommended in production
                     .ToListAsync();
             }
             catch (Exception ex)
