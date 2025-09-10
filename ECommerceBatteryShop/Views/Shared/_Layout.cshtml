@@ -1,7 +1,16 @@
 @using ECommerceBatteryShop.Domain.Entities
+@using System.Linq
 @inject ECommerceBatteryShop.DataAccess.Abstract.ICategoryRepository CategoryRepository
 @{
     var categories = await CategoryRepository.GetCategoriesWithChildrenAsync();
+    categories = categories
+        .Where(c => c.ProductCategories.Any() || c.SubCategories.Any(sc => sc.ProductCategories.Any()))
+        .Select(c =>
+        {
+            c.SubCategories = c.SubCategories.Where(sc => sc.ProductCategories.Any()).ToList();
+            return c;
+        })
+        .ToList();
 }
 ﻿<!DOCTYPE html>
 <html lang="en">
