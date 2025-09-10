@@ -18,7 +18,9 @@ public sealed class CategoryRepository : ICategoryRepository
         return await _ctx.Categories
             .AsNoTracking()
             .Where(c => c.ParentCategoryId == null)
+            .Include(c => c.ProductCategories)
             .Include(c => c.SubCategories)
+                .ThenInclude(sc => sc.ProductCategories)
             .OrderBy(c => c.Name)
             .ToListAsync(ct);
     }
