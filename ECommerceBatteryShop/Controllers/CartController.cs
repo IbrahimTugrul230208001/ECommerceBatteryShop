@@ -21,6 +21,12 @@ namespace ECommerceBatteryShop.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Checkout()
+        {
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(int productId, int quantity = 1, CancellationToken ct = default)
