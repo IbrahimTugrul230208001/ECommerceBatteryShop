@@ -1,6 +1,7 @@
 @using ECommerceBatteryShop.Domain.Entities
 @using System.Linq
 @inject ECommerceBatteryShop.DataAccess.Abstract.ICategoryRepository CategoryRepository
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var categories = await CategoryRepository.GetCategoriesWithChildrenAsync();
     categories = categories
@@ -17,6 +18,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="request-verification-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
     <title>@ViewData["Title"] - ECommerceBatteryShop</title>
     <link rel="stylesheet" href="~/css/output.css"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
