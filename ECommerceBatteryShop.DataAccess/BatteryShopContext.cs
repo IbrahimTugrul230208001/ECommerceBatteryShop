@@ -11,8 +11,23 @@ public class BatteryShopContext : DbContext
     {
         const string trCollation = "tr_icu_det";
         modelBuilder.Entity<Product>(e => e.Property(p => p.Name).UseCollation(trCollation));
+
+        modelBuilder.Entity<Cart>(b =>
+        {
+            b.HasIndex(c => c.UserId).IsUnique().HasFilter("[UserId] IS NOT NULL");
+            b.HasIndex(c => c.AnonId).IsUnique().HasFilter("[AnonId] IS NOT NULL");
+        });
+
+        // NEW API (EF Core 9+): put check constraint on the table builder
+        modelBuilder.Entity<Cart>()
+            .ToTable(tb => tb.HasCheckConstraint(
+                "CK_Cart_Owner",
+                "([UserId] IS NOT NULL AND [AnonId] IS NULL) OR ([UserId] IS NULL AND [AnonId] IS NOT NULL)"
+            ));
+
         base.OnModelCreating(modelBuilder);
     }
+
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
