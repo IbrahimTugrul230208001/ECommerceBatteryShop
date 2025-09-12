@@ -1,4 +1,11 @@
 ﻿
+document.body.addEventListener('htmx:configRequest', e => {
+  const tokenEl = document.querySelector('meta[name="request-verification-token"]');
+  if (tokenEl) {
+    e.detail.headers['RequestVerificationToken'] = tokenEl.content;
+  }
+});
+
 document.body.addEventListener('htmx:afterSwap', e => {
   const el = e.target;
     if (!el.id) return;
