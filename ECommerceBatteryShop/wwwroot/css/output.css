@@ -15,7 +15,6 @@
     --color-amber-300: oklch(87.9% 0.169 91.605);
     --color-amber-400: oklch(82.8% 0.189 84.429);
     --color-amber-500: oklch(76.9% 0.188 70.08);
-    --color-amber-600: oklch(66.6% 0.179 58.318);
     --color-yellow-400: oklch(85.2% 0.199 91.936);
     --color-yellow-500: oklch(79.5% 0.184 86.047);
     --color-green-500: oklch(72.3% 0.219 149.579);
@@ -705,6 +704,9 @@
   .table-row {
     display: table-row;
   }
+  .aspect-\[4\/3\] {
+    aspect-ratio: 4/3;
+  }
   .h-2 {
     height: calc(var(--spacing) * 2);
   }
@@ -801,6 +803,9 @@
   .max-h-full {
     max-height: 100%;
   }
+  .min-h-\[2\.5rem\] {
+    min-height: 2.5rem;
+  }
   .min-h-\[2\.75rem\] {
     min-height: 2.75rem;
   }
@@ -890,6 +895,9 @@
   }
   .min-w-\[1\.25rem\] {
     min-width: 1.25rem;
+  }
+  .min-w-\[8rem\] {
+    min-width: 8rem;
   }
   .flex-1 {
     flex: 1;
@@ -1070,6 +1078,13 @@
       margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
     }
   }
+  .space-y-3 {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));
+      margin-block-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)));
+    }
+  }
   .space-y-4 {
     :where(& > :not(:last-child)) {
       --tw-space-y-reverse: 0;
@@ -1190,6 +1205,14 @@
     border-top-style: var(--tw-border-style);
     border-top-width: 1px;
   }
+  .border-b {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 1px;
+  }
+  .border-dashed {
+    --tw-border-style: dashed;
+    border-style: dashed;
+  }
   .border-gray-200 {
     border-color: var(--color-gray-200);
   }
@@ -1232,6 +1255,9 @@
   .bg-gray-50 {
     background-color: var(--color-gray-50);
   }
+  .bg-gray-100 {
+    background-color: var(--color-gray-100);
+  }
   .bg-gray-200 {
     background-color: var(--color-gray-200);
   }
@@ -1253,9 +1279,6 @@
   .bg-orange-500 {
     background-color: var(--color-orange-500);
   }
-  .bg-pink-500 {
-    background-color: var(--color-pink-500);
-  }
   .bg-red-600 {
     background-color: var(--color-red-600);
   }
@@ -1273,12 +1296,6 @@
   }
   .bg-transparent {
     background-color: transparent;
-  }
-  .bg-violet-500 {
-    background-color: var(--color-violet-500);
-  }
-  .bg-violet-600 {
-    background-color: var(--color-violet-600);
   }
   .bg-white {
     background-color: var(--color-white);
@@ -1580,9 +1597,6 @@
   .text-blue-600 {
     color: var(--color-blue-600);
   }
-  .text-gray-100 {
-    color: var(--color-gray-100);
-  }
   .text-gray-300 {
     color: var(--color-gray-300);
   }
@@ -1603,6 +1617,9 @@
   }
   .text-gray-900 {
     color: var(--color-gray-900);
+  }
+  .text-red-600 {
+    color: var(--color-red-600);
   }
   .text-slate-300 {
     color: var(--color-slate-300);
@@ -1877,20 +1894,6 @@
       }
     }
   }
-  .group-hover\:text-pink-400 {
-    &:is(:where(.group):hover *) {
-      @media (hover: hover) {
-        color: var(--color-pink-400);
-      }
-    }
-  }
-  .group-hover\:text-violet-400 {
-    &:is(:where(.group):hover *) {
-      @media (hover: hover) {
-        color: var(--color-violet-400);
-      }
-    }
-  }
   .group-hover\:opacity-100 {
     &:is(:where(.group):hover *) {
       @media (hover: hover) {
@@ -1939,18 +1942,6 @@
       content: var(--tw-content);
       --tw-scale-x: 0%;
       scale: var(--tw-scale-x) var(--tw-scale-y);
-    }
-  }
-  .after\:bg-pink-500 {
-    &::after {
-      content: var(--tw-content);
-      background-color: var(--color-pink-500);
-    }
-  }
-  .after\:bg-violet-500 {
-    &::after {
-      content: var(--tw-content);
-      background-color: var(--color-violet-500);
     }
   }
   .after\:bg-white {
@@ -2006,16 +1997,6 @@
       border-color: var(--color-amber-400);
     }
   }
-  .focus-within\:border-pink-500 {
-    &:focus-within {
-      border-color: var(--color-pink-500);
-    }
-  }
-  .focus-within\:border-violet-500 {
-    &:focus-within {
-      border-color: var(--color-violet-500);
-    }
-  }
   .focus-within\:ring-2 {
     &:focus-within {
       --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
@@ -2025,16 +2006,6 @@
   .focus-within\:ring-amber-400 {
     &:focus-within {
       --tw-ring-color: var(--color-amber-400);
-    }
-  }
-  .focus-within\:ring-pink-500 {
-    &:focus-within {
-      --tw-ring-color: var(--color-pink-500);
-    }
-  }
-  .focus-within\:ring-violet-500 {
-    &:focus-within {
-      --tw-ring-color: var(--color-violet-500);
     }
   }
   .hover\:scale-105 {
@@ -2100,34 +2071,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-orange-600);
-      }
-    }
-  }
-  .hover\:bg-pink-100 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-pink-100);
-      }
-    }
-  }
-  .hover\:bg-pink-600 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-pink-600);
-      }
-    }
-  }
-  .hover\:bg-violet-100 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-violet-100);
-      }
-    }
-  }
-  .hover\:bg-violet-600 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-violet-600);
       }
     }
   }
@@ -2265,11 +2208,6 @@
       box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
     }
   }
-  .focus\:ring-amber-100 {
-    &:focus {
-      --tw-ring-color: var(--color-amber-100);
-    }
-  }
   .focus\:ring-orange-200 {
     &:focus {
       --tw-ring-color: var(--color-orange-200);
@@ -2307,16 +2245,6 @@
       --tw-ring-color: var(--color-amber-400);
     }
   }
-  .focus-visible\:ring-pink-500 {
-    &:focus-visible {
-      --tw-ring-color: var(--color-pink-500);
-    }
-  }
-  .focus-visible\:ring-violet-500 {
-    &:focus-visible {
-      --tw-ring-color: var(--color-violet-500);
-    }
-  }
   .focus-visible\:ring-yellow-400 {
     &:focus-visible {
       --tw-ring-color: var(--color-yellow-400);
@@ -2331,6 +2259,16 @@
   .active\:bg-amber-500 {
     &:active {
       background-color: var(--color-amber-500);
+    }
+  }
+  .disabled\:cursor-not-allowed {
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+  .disabled\:opacity-50 {
+    &:disabled {
+      opacity: 50%;
     }
   }
   .sm\:top-6 {
