@@ -7,7 +7,7 @@
     <div class="mx-auto max-w-7xl px-4">
 
         <!-- Grid: image left, info right -->
-        <div x-data="productPage()" class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div x-data="{ qty:1, added:false, inc(){ this.qty++; }, dec(){ if(this.qty>1) this.qty--; }, sanitize(){ this.qty=parseInt(this.qty||1,10); if(this.qty<1) this.qty=1; } }" class="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
             <!-- Left: Image / gallery -->
             <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
@@ -62,18 +62,28 @@
                     </div>
 
                     <!-- CTA buttons -->
-                    <button type="button"
-                            hx-post='@Url.Action("Add","Cart")'
-                            hx-vals='js:{ productId: @Model.Id, quantity: qty }'
-                            hx-swap="none"
-                            @@click="addToCart(false)"
-                            class="h-11 px-5 cursor-pointer rounded-xl bg-amber-300 text-slate-900 font-semibold shadow-sm hover:bg-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-100">
-                        Sepete Ekle
+                    <button
+                        hx-post='@Url.Action("Add","Cart")'
+                        hx-vals='js:{ productId: @Model.Id, quantity: qty }'
+                        hx-swap="none"
+                        @@click='if(added) return; added=true; setTimeout(()=>added=false,1600)'
+                        class="relative h-11 px-5 cursor-pointer rounded-xl text-sm font-semibold shadow-sm transition-colors duration-200 overflow-hidden"
+                        :class="added ? 'bg-green-500 text-white' : 'bg-amber-300 text-slate-900 hover:bg-amber-400'">
+                        <span x-show="!added" x-transition.opacity.duration.150ms class="block">Sepete Ekle</span>
+                        <span x-show="added" x-transition.opacity.duration.150ms class="absolute inset-0 flex items-center justify-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                            Sepete eklendi
+                        </span>
                     </button>
 
-                    <button type="button"
-                            @@click="addToCart(true)"
-                            class="h-11 px-5 rounded-xl cursor-pointer bg-orange-500 text-white font-semibold shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-1 focus:ring-orange-200">
+                    <button
+                        hx-post='@Url.Action("Add","Cart")'
+                        hx-vals='js:{ productId: @Model.Id, quantity: qty }'
+                        hx-swap="none"
+                        hx-on:htmx:afterRequest="window.location='/Cart/Index'"
+                        class="h-11 px-5 rounded-xl cursor-pointer bg-orange-500 text-white font-semibold shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-1 focus:ring-orange-200">
                         Hemen Al
                     </button>
                 </div>
@@ -87,50 +97,7 @@
         </div>
     </div>
 
-    <!-- Toast (inline) -->
-    <div x-show="toast.show" x-cloak x-transition.opacity.duration.200ms class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-        <div class="rounded-lg px-4 py-2 text-sm shadow-lg"
-             :class="{ 'bg-slate-900 text-white': toast.type==='info', 'bg-emerald-600 text-white': toast.type==='success', 'bg-red-600 text-white': toast.type==='error' }">
-            <span x-text="toast.text"></span>
-        </div>
-    </div>
-</main>
-
-<script>
-    function productPage(){
-      return {
-        qty: 1,
-        toast: { show:false, text:'', type:'success', t:null },
-        inc(){ this.qty++; this.sanitize(); },
-        dec(){ if(this.qty>1) this.qty--; this.sanitize(); },
-        sanitize(){ this.qty = parseInt(this.qty || 1, 10); if(this.qty<1) this.qty = 1; },
-        addToCart(buyNow){
-          try{
-            const item = {
-              id: @Model.Id,
-              name: '@Model.Name'.trim(),
-              variant: 'Standart',
-              price: @Model.Price.ToString(System.Globalization.CultureInfo.InvariantCulture),
-              qty: this.qty,
-              image: '/img/@Model.ImageUrl'
-            };
-            const raw = localStorage.getItem('cart');
-            const cart = raw ? JSON.parse(raw) : [];
-            const idx = cart.findIndex(i => i.id === item.id && i.variant === item.variant);
-            if(idx>-1) cart[idx].qty += item.qty; else cart.push(item);
-            localStorage.setItem('cart', JSON.stringify(cart));
-
-            if(buyNow){ window.location.href = '/Cart'; return; }
-            this.notify('Sepete eklendi');
-          }catch(e){ console.error(e); this.notify('Hata oluştu','error'); }
-        },
-        notify(text,type='success',timeout=2000){
-          clearTimeout(this.toast.t); this.toast={ show:true, text, type, t:null };
-          this.toast.t = setTimeout(()=> this.toast.show=false, timeout);
-        }
-      }
-    }
-</script>
+    </main>
 <style>
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
