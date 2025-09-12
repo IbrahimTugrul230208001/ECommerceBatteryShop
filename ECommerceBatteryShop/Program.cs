@@ -21,6 +21,7 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
   builder.Services.AddScoped<ICartRepository, CartRepository>();
   builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
   builder.Services.AddScoped<IUserService, UserService>();
+  builder.Services.AddScoped<ICartService, CartService>();
   builder.Services.AddMemoryCache();
 
 // Options
@@ -72,6 +73,19 @@ app.UseRouting();
 // ⬇️ AUTH MIDDLEWARE ORDER
 app.UseAuthentication();
 app.UseAuthorization();
+// Program.cs (middleware)
+app.Use(async (ctx, next) =>
+{
+    const string Cookie = "ANON_ID";
+    if (!(ctx.User?.Identity?.IsAuthenticated ?? false) &&
+        !ctx.Request.Cookies.ContainsKey(Cookie))
+    {
+        ctx.Response.Cookies.Append(
+            Cookie, Guid.NewGuid().ToString(),
+            new CookieOptions { HttpOnly = true, IsEssential = true, Expires = DateTimeOffset.UtcNow.AddMonths(3) });
+    }
+    await next();
+});
 
 // Debug endpoint you had
 app.MapPost("/debug/currency/refresh", async (ICurrencyService svc, CancellationToken ct) =>
