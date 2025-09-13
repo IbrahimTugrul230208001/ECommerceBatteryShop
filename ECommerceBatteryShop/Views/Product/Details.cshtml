@@ -70,10 +70,10 @@
                             :class="added
                                     ? 'bg-green-500 text-white'
                                     : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
-                            class="h-9 min-w-[8rem] rounded-md text-sm font-semibold shadow
+                            class="h-11 min-w-[8rem] rounded-md text-sm font-semibold shadow
            transition-colors duration-300 relative overflow-hidden
-           focus-visible:outline-none focus-visible:ring-2
-           focus-visible:ring-yellow-400 cursor-pointer py-2">
+           rounded-xl
+           focus-visible:ring-yellow-400 cursor-pointer ">
                         <span x-show="!added"
                               x-transition:enter="transition transform ease-out duration-250"
                               x-transition:enter-start="-translate-y-3 opacity-0"
