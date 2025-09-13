@@ -2,16 +2,158 @@
     ViewBag.Title = "Checkout";
 }
 
-<main class="bg-white min-h-screen pt-28 pb-24">
-    <div class="mx-auto max-w-3xl px-4">
-        <h1 class="text-2xl font-semibold text-slate-900 mb-6">Ödeme</h1>
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-slate-700 mb-4">
-                Siparişinizi tamamlamak için aşağıdaki butonu kullanabilirsiniz.
-            </p>
-            <a href="#" class="mt-2 inline-flex h-12 w-full items-center justify-center rounded-xl bg-amber-300 font-semibold text-gray-900 shadow-sm hover:bg-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-100 transition">
-                Ödemeye Devam Et
-            </a>
+<main class="bg-white min-h-screen pt-10 pb-24">
+    <div class="mx-auto max-w-5xl px-4">
+        <!-- Başlık + adım göstergesi -->
+        <header class="mb-8">
+            <h1 class="text-2xl font-bold text-slate-900">Ödeme</h1>
+            <p class="text-sm text-slate-600 mt-1">Teslimat • Ödeme • Onay</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Sol sütun -->
+            <div class="lg:col-span-2 space-y-8">
+
+                <!-- Adres -->
+                <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-slate-900">Teslimat Adresi</h2>
+                        <span class="text-xs text-slate-500">Zorunlu alanlar *</span>
+                    </div>
+
+                    <form class="space-y-5" id="address-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="ad" class="block text-sm font-medium text-slate-700">Ad Soyad *</label>
+                                <input id="ad" name="ad" type="text" required
+                                       class="mt-1 border w-full rounded-lg border-slate-300 focus:border-amber-300 focus:ring-amber-300">
+                            </div>
+                            <div>
+                                <label for="telefon" class="block text-sm font-medium text-slate-700">Telefon *</label>
+                                <input id="telefon" name="telefon" type="tel" required
+                                       class="mt-1 border w-full rounded-lg border-slate-300 focus:border-amber-300 focus:ring-amber-300"
+                                       placeholder="+90 5XX XXX XX XX">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="adres" class="block text-sm font-medium text-slate-700">Adres *</label>
+                            <textarea id="adres" name="adres" rows="3" required
+                                      class="mt-1 w-full border rounded-lg border-slate-300 focus:border-amber-300 focus:ring-amber-300"
+                                      placeholder="Mahalle, cadde, no, daire..."></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="il" class="block text-sm font-medium text-slate-700">İl *</label>
+                                <input id="il" name="il" type="text" required
+                                       class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
+                            </div>
+                            <div>
+                                <label for="ilce" class="block text-sm font-medium text-slate-700">İlçe *</label>
+                                <input id="ilce" name="ilce" type="text" required
+                                       class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
+                            </div>
+                            <div>
+                                <label for="posta" class="block text-sm font-medium text-slate-700">Posta Kodu *</label>
+                                <input id="posta" name="posta" type="text" required
+                                       class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
+                            </div>
+                        </div>
+                        <p class="text-slate-700 mb-3">Kart/online ödeme ile hızlıca tamamlayın.</p>
+
+                        <!-- Online/Kart -->
+                        <div class="mb-6 flex flex-2 gap-5">
+                            <a href="#"
+                               class="inline-flex h-12 w-full items-center justify-center rounded-xl bg-amber-300 font-semibold text-gray-900 shadow-sm hover:bg-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-100 transition">
+                                Adresi kaydet
+                            </a>
+                            <a href="#"
+                               class="inline-flex h-12 w-full items-center justify-center rounded-xl bg-orange-600 font-semibold text-gray-100 shadow-sm hover:bg-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-100 transition">
+                                Ödemeye Devam Et
+                            </a>
+                        </div>
+                    </form>
+                </section>
+
+
+
+
+                <!-- IBAN Havale/EFT (açılır/kapanır) -->
+                <details class="group rounded-xl border border-slate-200 bg-gray-50 p-4 open:bg-gray-50">
+                    <summary class="flex cursor-pointer list-none items-center justify-between">
+                        <span class="text-slate-900 font-medium">IBAN ile Havale/EFT</span>
+                        <svg class="h-5 w-5 text-slate-500 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.17l3.71-2.94a.75.75 0 111.06 1.06l-4.24 3.36a.75.75 0 01-.94 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd" /></svg>
+                    </summary>
+
+                    <div class="mt-4 space-y-3">
+                        <p class="text-slate-700 text-sm">
+                            Aşağıdaki IBAN’a transfer yapabilirsiniz. Açıklamaya <span class="font-semibold">sipariş numaranızı</span> yazmayı unutmayın.
+                        </p>
+
+                        <div class="flex items-center gap-2">
+                            <code id="ibanText" class="flex-1 bg-white border border-slate-200 rounded-lg p-3 font-mono text-slate-800 text-sm">
+                                TR12 3456 7890 1234 5678 9012 34
+                            </code>
+                            <button type="button" id="copyIban"
+                                    class="shrink-0 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-200">
+                                Kopyala
+                            </button>
+                        </div>
+
+                        <ul class="text-slate-600 text-sm list-disc pl-5">
+                            <li>Alıcı: Battery Shop A.Ş.</li>
+                            <li>Banka: Örnek Bankası (Şube 123)</li>
+                            <li>Tutar: Sipariş toplamı</li>
+                        </ul>
+                    </div>
+                </details>
+
+            </div>
+
+            <!-- Sağ sütun: Sipariş Özeti (sticky) -->
+            <aside class="lg:col-span-1">
+                <div class="lg:sticky lg:top-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h3 class="text-base font-semibold text-slate-900 mb-4">Sipariş Özeti</h3>
+                    <dl class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <dt class="text-slate-600">Ara Toplam</dt>
+                            <dd class="text-slate-900 font-medium">₺0,00</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-slate-600">Kargo</dt>
+                            <dd class="text-slate-900 font-medium">₺0,00</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-slate-600">KDV</dt>
+                            <dd class="text-slate-900 font-medium">₺0,00</dd>
+                        </div>
+                        <div class="h-px bg-slate-200 my-2"></div>
+                        <div class="flex justify-between text-base">
+                            <dt class="text-slate-900 font-semibold">Genel Toplam</dt>
+                            <dd class="text-slate-900 font-semibold">₺0,00</dd>
+                        </div>
+                    </dl>
+                    <p class="text-xs text-slate-500 mt-4">Adres ve ödeme bilgilerinizi doğrulamadan sipariş oluşturulmaz.</p>
+                </div>
+            </aside>
         </div>
     </div>
 </main>
+
+<script>
+    // Basit IBAN kopyalama
+    (function () {
+      const btn = document.getElementById('copyIban');
+      const node = document.getElementById('ibanText');
+      if (!btn || !node) return;
+      btn.addEventListener('click', async () => {
+        const text = node.innerText.replace(/\s+/g, ' ').trim();
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = 'Kopyalandı';
+          setTimeout(() => btn.textContent = 'Kopyala', 1500);
+        } catch { /* sessizce geç */ }
+      });
+    })();
+</script>
