@@ -7,6 +7,6 @@ namespace ECommerceBatteryShop.Models
         public decimal Price { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public float Rating { get; set; }   
+        public float Rating { get; set; }
     }
 }
