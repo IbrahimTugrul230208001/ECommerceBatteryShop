@@ -72,6 +72,9 @@ namespace ECommerceBatteryShop.Controllers
             return View(sections);
 
         }
-
+        public IActionResult Contact()
+        {
+            return View();
+        }
     }
 }
