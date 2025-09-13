@@ -16,7 +16,7 @@
     <button type="submit" class="px-4 py-2 rounded-xl bg-amber-300 text-gray-900 font-semibold shadow hover:bg-amber-400 transition">Filter</button>
 </form>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
     @foreach (var product in products)
     {
         var href = Url.Action("Details", "Product", new { id = product.Id });
