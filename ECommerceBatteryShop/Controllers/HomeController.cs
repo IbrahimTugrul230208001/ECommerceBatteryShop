@@ -35,7 +35,6 @@ namespace ECommerceBatteryShop.Controllers
             var fx = rate ?? 1m;
 
             // Ensure this includes ProductCategories (CategoryId is enough; Category.Include not required)
-            var products = await _repo.GetMainPageProductsAsync(perSection * 3, ct);
 
             ProductViewModel Map(Product p) => new()
             {
@@ -46,10 +45,6 @@ namespace ECommerceBatteryShop.Controllers
                 ImageUrl = p.ImageUrl ?? string.Empty,
                 Description = p.Description ?? string.Empty
             };
-
-            bool InCat(Product p, int catId) =>
-                p.ProductCategories?.Any(pc => pc.CategoryId == catId) == true;
-
             var plan = new[]
             {
     new { Title = "Lithium-ion Pil",          CatId = LiIonId },
@@ -62,7 +57,7 @@ namespace ECommerceBatteryShop.Controllers
 
             foreach (var def in plan)
             {
-                var raw = await _repo.BringProductsByCategoryIdAsync(def.CatId, perSection * 2); // küçük buffer
+                var raw = await _repo.BringProductsByCategoryIdAsync(def.CatId, 1, perSection * 2); // kk buffer
                 var ps = raw.Where(p => !used.Contains(p.Id)).Take(perSection).ToList();
                 foreach (var p in ps) used.Add(p.Id);
 
