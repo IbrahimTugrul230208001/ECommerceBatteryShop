@@ -1,13 +1,9 @@
 @model ECommerceBatteryShop.Models.CartViewModel
 @using System.Text.Json
+@using System.Linq
 @{
     ViewBag.Title = "Sepetim";
 }
-<style>
-    [x-cloak] {
-        display: none !important
-    }
-</style>
 
 <main class="bg-white min-h-screen pt-28 pb-24">
     <div x-data='cartPage(@Html.Raw(JsonSerializer.Serialize(Model.Items.Select(i => new { id = i.ProductId, name = i.Name, variant = "", priceCents = (int)(i.UnitPrice * 100), qty = i.Quantity, image = i.ImageUrl }))))' x-init="init()" class="mx-auto max-w-7xl px-4">
@@ -239,3 +235,42 @@
       }
     }
 </script>
+
+    <div class="mx-auto max-w-7xl px-4">
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900 mb-6">Sepetim</h1>
+        @if (!Model.Items.Any())
+        {
+            <p>Sepetiniz boş.</p>
+        }
+        else
+        {
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr>
+                        <th class="p-2 border-b">Ürün</th>
+                        <th class="p-2 border-b">Adet</th>
+                        <th class="p-2 border-b">Birim Fiyat</th>
+                        <th class="p-2 border-b">Ara Toplam</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td class="p-2 border-b">@item.Name</td>
+                        <td class="p-2 border-b">@item.Quantity</td>
+                        <td class="p-2 border-b">@item.UnitPrice.ToString("C")</td>
+                        <td class="p-2 border-b">@item.LineTotal.ToString("C")</td>
+                    </tr>
+                }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="p-2 text-right font-semibold">Toplam</td>
+                        <td class="p-2 font-semibold">@Model.SubTotal.ToString("C")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        }
+    </div>
+</main>
