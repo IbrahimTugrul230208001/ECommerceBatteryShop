@@ -1,15 +1,10 @@
 using ECommerceBatteryShop.DataAccess.Abstract;
-using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MimeKit;
-using System.Configuration;
-using System.Net.Http;
-using System.Net.Mail;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ECommerceBatteryShop.Controllers;
@@ -160,7 +155,7 @@ public class AccountController : Controller
             await client.ConnectAsync("smtp-relay.brevo.com", 587, SecureSocketOptions.StartTls);
             Console.WriteLine("Connected to SMTP server.");
 
-            await client.AuthenticateAsync("879650001@smtp-brevo.com", key);
+            await client.AuthenticateAsync("96729b001@smtp-brevo.com", key);
             Console.WriteLine("Authenticated successfully.");
 
             // Send the email

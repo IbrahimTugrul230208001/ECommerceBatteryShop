@@ -14,7 +14,6 @@ namespace ECommerceBatteryShop.Controllers
         public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log)
         {
             _repo = repo; _currency = currency; _log = log;
-
         }
 
         public async Task<IActionResult> Index(string? search, string? q, int? categoryId, CancellationToken ct)
