@@ -94,5 +94,30 @@ namespace ECommerceBatteryShop.Controllers
             return PartialView("_CartCount", count);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int productId, CancellationToken ct = default)
+        {
+            CartOwner owner;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                owner = CartOwner.FromUser(userId);
+            }
+            else
+            {
+                var anonId = Request.Cookies["ANON_ID"];
+                if (string.IsNullOrEmpty(anonId))
+                {
+                    return PartialView("_CartCount", 0);
+                }
+                owner = CartOwner.FromAnon(anonId);
+            }
+
+            var count = await _cartService.RemoveAsync(owner, productId, ct);
+
+            return PartialView("_CartCount", count);
+        }
+
     }
 }
