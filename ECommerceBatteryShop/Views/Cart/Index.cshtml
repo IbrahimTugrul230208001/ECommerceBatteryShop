@@ -64,7 +64,7 @@
                                     </div>
                                     <button
                                         hx-post="/Cart/Delete"
-                                        hx-vals='js:{ productId: item.id }'
+                                        :hx-vals="JSON.stringify({ productId: item.id })"
                                         hx-swap="none"
                                         hx-on:htmx:afterRequest="remove(item.id)"
                                         class="text-slate-400 hover:text-slate-700" aria-label="Kaldır" title="Kaldır">
