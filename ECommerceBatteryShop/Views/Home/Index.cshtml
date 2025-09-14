@@ -5,7 +5,11 @@
 @model IEnumerable<ECommerceBatteryShop.Models.ProductSectionViewModel>
 
 
-<section class="mb-12" x-data="heroCarousel()" x-init="init()" @@keydown.arrow-left.prevent ="prev()" @@keydown.arrow-right.prevent ="next()">
+<section class="mb-12"
+         x-data="heroCarousel()"
+         x-init="init($el)"
+         @@keydown.window.arrow-left.prevent="prev()"
+         @@keydown.window.arrow-right.prevent="next()">
     <div class="relative rounded-xl overflow-hidden bg-gray-900 text-white h-80 sm:h-[26rem]">
         <!-- Slides -->
         <template x-for="(slide, i) in slides" :key="i">
@@ -20,13 +24,13 @@
                 </div>
             </div>
         </template>
-
+        
         <!-- Prev/Next -->
-        <button @@click ="prev()" class="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 hover:bg-black/60 focus:outline-none">
+        <button @@click ="prev()" class="absolute cursor-pointer left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 hover:bg-black/60 focus:outline-none">
             <span class="sr-only">Önceki</span>
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M15 19l-7-7 7-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </button>
-        <button @@click ="next()" class="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 hover:bg-black/60 focus:outline-none">
+        <button @@click="next()" class="absolute right-3 top-1/2 cursor-pointer -translate-y-1/2 rounded-full bg-black/40 p-2 hover:bg-black/60 focus:outline-none">
             <span class="sr-only">Sonraki</span>
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </button>
@@ -43,8 +47,38 @@
     </div>
 </section>
 
-
-
+<script>
+    function heroCarousel(){
+      return {
+        slides: [
+          { src:'/img/herobanner.png',  alt:'Batteries',        title:'Her an için güç',       text:'Premium bataryalar ve enerji çözümleri kapýnýza getirilir.', ctaText:'Ürünler',            ctaHref:'/Product/Index' },
+          { src:'/img/alkaline.png',    alt:'Alkalin piller',   title:'Uzun ömürlü alkalin',   text:'Günlük cihazlar için maksimum performans.',                 ctaText:'Alýþveriþe baþla', ctaHref:'/Product/Index?cat=alkaline' },
+          { src:'/img/herobanner2.jpeg',alt:'Þarjlý piller',    title:'Þarj edilebilir güç',   text:'Daha az atýk, daha fazla tasarruf.',                        ctaText:'Þimdi keþfet',      ctaHref:'/Product/Index?cat=rechargeable' }
+        ],
+        current: 0,
+        timer: null,
+        intervalMs: 6000,
+        init(el){
+          this.start();
+          // basic swipe
+          let startX = 0;
+          el.addEventListener('touchstart', e => startX = e.touches[0].clientX, { passive:true });
+          el.addEventListener('touchend',   e => {
+            const dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 40) (dx < 0 ? this.next() : this.prev());
+          }, { passive:true });
+          // pause on hover (desktop)
+          el.addEventListener('mouseenter', () => this.stop());
+          el.addEventListener('mouseleave', () => this.start());
+        },
+        start(){ this.stop(); this.timer = setInterval(() => this.next(), this.intervalMs); },
+        stop(){ if (this.timer) clearInterval(this.timer); this.timer = null; },
+        next(){ this.current = (this.current + 1) % this.slides.length; },
+        prev(){ this.current = (this.current - 1 + this.slides.length) % this.slides.length; },
+        go(i){ this.current = i; this.start(); }
+      }
+    }
+</script>
 
 <!-- Features -->
 <section class="mb-16 grid grid-cols-1 md:grid-cols-3 gap-6">

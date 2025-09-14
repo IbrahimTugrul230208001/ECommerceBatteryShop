@@ -94,8 +94,8 @@ namespace ECommerceBatteryShop.Controllers
             return PartialView("_CartCount", count);
         }
 
-        [HttpPost]
         [ValidateAntiForgeryToken]
+        [HttpPost]
         public async Task<IActionResult> Delete(int productId, CancellationToken ct = default)
         {
             CartOwner owner;
