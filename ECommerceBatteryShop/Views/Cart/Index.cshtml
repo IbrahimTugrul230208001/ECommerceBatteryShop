@@ -54,7 +54,10 @@
             <section class="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
                 <ul class="divide-y divide-slate-200">
                     <template x-for="item in items" :key="item.id">
-                        <li class="py-4 sm:py-5 flex gap-4 sm:gap-6" x-transition>
+                        <li class="py-4 sm:py-5 flex gap-4 sm:gap-6" x-show="!item.removing"
+                            x-transition:leave="transition ease-in duration-200"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95">
                             <img :src="item.img" :alt="item.name" class="h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover bg-slate-50">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-start justify-between gap-3">
@@ -204,7 +207,8 @@
           this.items = this.items.map(i => ({
             ...i,
             priceCents: i.priceCents ?? this.toCents(i.price ?? 0),
-            qty: parseInt(i.qty || 1, 10)
+            qty: parseInt(i.qty || 1, 10),
+            removing: false
           }));
         },
 
@@ -212,7 +216,16 @@
         clearCart(){ this.items = []; this.persist(); this.notify('Sepet boşaltıldı','warn'); },
         remove(id){
           const idx = this.items.findIndex(i=>i.id===id);
-          if(idx>-1){ this.lastRemoved = this.items[idx]; this.items.splice(idx,1); this.persist(); this.notify('Ürün kaldırıldı','warn'); }
+          if(idx>-1){
+            const removed = { ...this.items[idx] };
+            this.items[idx].removing = true;
+            setTimeout(() => {
+              this.items.splice(idx,1);
+              this.lastRemoved = removed;
+              this.persist();
+              this.notify('Ürün kaldırıldı','warn');
+            }, 200);
+          }
         },
         undoRemove(){ if(this.lastRemoved){ this.items.push(this.lastRemoved); this.lastRemoved=null; this.persist(); this.notify('Geri alındı','success'); } },
         inc(i){ i.qty++; this.sanitize(i); },
