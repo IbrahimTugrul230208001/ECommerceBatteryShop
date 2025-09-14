@@ -1,7 +1,9 @@
 @using ECommerceBatteryShop.Domain.Entities
+@using ECommerceBatteryShop.Services
 @using System.Linq
 @inject ECommerceBatteryShop.DataAccess.Abstract.ICategoryRepository CategoryRepository
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject ICartService CartService
 @{
     var categories = await CategoryRepository.GetCategoriesWithChildrenAsync();
     categories = categories
@@ -12,6 +14,25 @@
             return c;
         })
         .ToList();
+
+    var cartCount = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        if (int.TryParse(userIdClaim, out var userId))
+        {
+            cartCount = await CartService.CountAsync(CartOwner.FromUser(userId));
+        }
+    }
+    else
+    {
+        var anonId = Context.Request.Cookies["ANON_ID"];
+        if (!string.IsNullOrEmpty(anonId))
+        {
+            cartCount = await CartService.CountAsync(CartOwner.FromAnon(anonId));
+        }
+    }
+    var cartText = cartCount > 99 ? "99+" : cartCount.ToString();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -80,7 +101,7 @@
                     </svg>
                     <span id="cart-count-mobile" class="absolute -top-1 -right-1 min-w-[1.1rem] h-5 px-1 rounded-full text-[10px] font-medium
                    bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10">
-                    0
+                    @cartText
                </span>
                 </a>
 
@@ -176,7 +197,7 @@
                 <div class="flex gap-3">
                 <!-- Cart -->
                     <!-- Sepet -->
-                    <a href="/Cart/Index"aria-label="Sepet (0 ürün)"
+                    <a href="/Cart/Index" aria-label="Sepet (@cartText ürün)"
                        class="group relative inline-flex items-center gap-2 h-16 px-4 shrink-0 rounded-md
    transition duration-150 cursor-pointer hover:bg-white/5 hover:scale-105
    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
@@ -192,7 +213,7 @@
                             <span id="cart-count-desktop" class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs font-medium
             bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10
             transition duration-150">
-                                    0
+                                    @cartText
                             </span>
                         </span>
 
