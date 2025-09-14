@@ -6,7 +6,29 @@
 }
 
 <main class="bg-white min-h-screen pt-28 pb-24">
-    <div x-data='cartPage(@Html.Raw(JsonSerializer.Serialize(Model.Items.Select(i => new { id = i.ProductId, name = i.Name, variant = "", priceCents = (int)(i.UnitPrice * 100), qty = i.Quantity, image = i.ImageUrl }))))' x-init="init()" class="mx-auto max-w-7xl px-4">
+    @using System.Text.Json
+    @{
+        const decimal USDTRY = 41.32m;
+        const decimal KDV = 0.20m;
+
+        var itemsJson = JsonSerializer.Serialize(
+        Model.Items.Select(i => new
+        {
+            id = i.ProductId,
+            name = i.Name,
+            variant = "",
+            // prepend /img/ to path
+            img = "/img/" + i.ImageUrl,
+            priceCents = (int)decimal.Round(
+        i.UnitPrice * USDTRY * (1m + KDV) * 100m,
+        0,
+        MidpointRounding.AwayFromZero),
+            qty = i.Quantity
+        }),
+        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
+    }
+    <div x-data='cartPage(@Html.Raw(itemsJson))' x-init="init()" class="mx-auto max-w-7xl px-4">
 
         <!-- Header -->
         <div class="mb-6 flex items-center justify-between">
@@ -34,7 +56,7 @@
                 <ul class="divide-y divide-slate-200">
                     <template x-for="item in items" :key="item.id">
                         <li class="py-4 sm:py-5 flex gap-4 sm:gap-6" x-transition>
-                            <img :src="item.image" :alt="item.name" class="h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover bg-slate-50">
+                            <img :src="item.img" :alt="item.name" class="h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover bg-slate-50">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
@@ -130,22 +152,6 @@
             <a href="#pay" class="inline-flex h-10 items-center rounded-lg bg-slate-900 px-4 font-semibold text-white hover:bg-black">Ödeme</a>
         </div>
     </div>
-
-    <!-- Toast -->
-    <div x-cloak x-show="toast.show" x-transition.opacity.duration.200ms class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50" role="status" aria-live="polite">
-        <div class="rounded-lg px-4 py-2 text-sm shadow-lg"
-             :class="{
-            'bg-slate-900 text-white': toast.type==='info',
-            'bg-emerald-600 text-white': toast.type==='success',
-            'bg-amber-500 text-slate-900': toast.type==='warn',
-            'bg-red-600 text-white': toast.type==='error'
-          }">
-            <div class="flex items-center gap-3">
-                <span x-text="toast.text"></span>
-                <button x-show="lastRemoved" @@click="undoRemove" class="underline">Geri Al</button>
-            </div>
-        </div>
-    </div>
 </main>
 
 <script>
@@ -235,42 +241,3 @@
       }
     }
 </script>
-
-    <div class="mx-auto max-w-7xl px-4">
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900 mb-6">Sepetim</h1>
-        @if (!Model.Items.Any())
-        {
-            <p>Sepetiniz boş.</p>
-        }
-        else
-        {
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr>
-                        <th class="p-2 border-b">Ürün</th>
-                        <th class="p-2 border-b">Adet</th>
-                        <th class="p-2 border-b">Birim Fiyat</th>
-                        <th class="p-2 border-b">Ara Toplam</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var item in Model.Items)
-                {
-                    <tr>
-                        <td class="p-2 border-b">@item.Name</td>
-                        <td class="p-2 border-b">@item.Quantity</td>
-                        <td class="p-2 border-b">@item.UnitPrice.ToString("C")</td>
-                        <td class="p-2 border-b">@item.LineTotal.ToString("C")</td>
-                    </tr>
-                }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" class="p-2 text-right font-semibold">Toplam</td>
-                        <td class="p-2 font-semibold">@Model.SubTotal.ToString("C")</td>
-                    </tr>
-                </tfoot>
-            </table>
-        }
-    </div>
-</main>
