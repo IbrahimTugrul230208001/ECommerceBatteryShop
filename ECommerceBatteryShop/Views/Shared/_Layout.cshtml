@@ -45,7 +45,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header class="relative z-40">
+    <header x-data="{ overlay:false }" @@keydown.escape.window="overlay=false" class="relative z-40">
 
        
         <!-- MOBILE BAR -->
@@ -73,7 +73,7 @@
                                    placeholder="Ara..."
                                    hx-get="/Product/Search"
                                    hx-trigger="keyup changed delay:300ms"
-                                   hx-target="#search-predictions-desktop"
+                                   hx-target="#search-predictions-mobile"
                                    hx-indicator="#search-spinner-mobile"
                                    autocomplete="off"
                                    @@focus="overlay=true" @@blur="overlay=false"
@@ -128,7 +128,6 @@
                 </a>
             </div>
         </div>
-        <div x-data="{ overlay:false }" @@keydown.escape.window="overlay=false">
 
             <div id="overlay"
                  class="fixed inset-0 z-40 bg-black/70 transition-opacity duration-200
