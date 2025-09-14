@@ -8,8 +8,7 @@
 <main class="bg-white min-h-screen pt-28 pb-24">
     @using System.Text.Json
     @{
-        const decimal USDTRY = 41.32m;
-        const decimal KDV = 0.20m;
+
 
         var itemsJson = JsonSerializer.Serialize(
         Model.Items.Select(i => new
@@ -20,7 +19,7 @@
             // prepend /img/ to path
             img = "/img/" + i.ImageUrl,
             priceCents = (int)decimal.Round(
-        i.UnitPrice * USDTRY * (1m + KDV) * 100m,
+        i.UnitPrice * 100m,
         0,
         MidpointRounding.AwayFromZero),
             qty = i.Quantity
@@ -77,9 +76,9 @@
                                     <!-- Qty -->
                                     <label class="sr-only" :for="'qty-'+item.id">Adet</label>
                                     <div class="inline-flex h-10 items-center rounded-xl border border-slate-300 bg-white shadow-xs">
-                                        <button @@click="dec(item)" class="px-3 h-full text-slate-700 hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Azalt">−</button>
+                                        <button @@click="dec(item)" class="px-3 hover:bg-gray-200 cursor-pointer h-full text-slate-700 hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Azalt">−</button>
                                         <input :id="'qty-'+item.id" type="number" min="1" inputmode="numeric" x-model.number="item.qty" class="w-16 bg-transparent text-center text-slate-900 outline-none" @@change="sanitize(item)" aria-live="polite" aria-label="Adet">
-                                        <button @@click="inc(item)" class="px-3 h-full text-slate-700 hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
+                                        <button @@click="inc(item)" class="px-3 hover:bg-gray-200 cursor-pointer  h-full text-slate-700 hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
                                     </div>
 
                                     <!-- Unit price / line total -->
@@ -147,16 +146,6 @@
         </div>
     </div>
 
-    <!-- Mobile sticky checkout -->
-    <div x-show="items.length>0" x-cloak class="md:hidden fixed bottom-4 left-4 right-4 z-40">
-        <div class="backdrop-blur rounded-xl border border-slate-200 bg-white/95 shadow-lg px-4 py-3 flex items-center justify-between">
-            <div>
-                <div class="text-xs text-slate-600">Toplam</div>
-                <div class="font-semibold text-slate-900" x-text="formatCents(totalCents)"></div>
-            </div>
-            <a href="#pay" class="inline-flex h-10 items-center rounded-lg bg-slate-900 px-4 font-semibold text-white hover:bg-black">Ödeme</a>
-        </div>
-    </div>
 </main>
 
 <script>
@@ -246,3 +235,14 @@
       }
     }
 </script>
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
