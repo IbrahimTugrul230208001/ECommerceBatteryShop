@@ -69,9 +69,12 @@ namespace ECommerceBatteryShop.Services
                 .SumAsync(i => (int?)i.Quantity, ct) ?? 0;
 
         public async Task<Cart?> TryGetAsync(CartOwner owner, CancellationToken ct)
-            => await _db.Carts.Include(c => c.Items).FirstOrDefaultAsync(c =>
-                   (owner.IsUser && c.UserId == owner.UserId) ||
-                   (!owner.IsUser && c.AnonId == owner.AnonId), ct);
+            => await _db.Carts
+                .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(c =>
+                    (owner.IsUser && c.UserId == owner.UserId) ||
+                    (!owner.IsUser && c.AnonId == owner.AnonId), ct);
 
         public async Task<Cart> GetAsync(CartOwner owner, bool createIfMissing = false, CancellationToken ct = default)
         {
