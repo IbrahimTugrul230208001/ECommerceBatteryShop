@@ -1,4 +1,6 @@
-﻿@{
+@model ECommerceBatteryShop.Models.CartViewModel
+@using System.Text.Json
+@{
     ViewBag.Title = "Sepetim";
 }
 <style>
@@ -8,7 +10,7 @@
 </style>
 
 <main class="bg-white min-h-screen pt-28 pb-24">
-    <div x-data="cartPage()" x-init="init()" class="mx-auto max-w-7xl px-4">
+    <div x-data='cartPage(@Html.Raw(JsonSerializer.Serialize(Model.Items.Select(i => new { id = i.ProductId, name = i.Name, variant = "", priceCents = (int)(i.UnitPrice * 100), qty = i.Quantity, image = i.ImageUrl }))))' x-init="init()" class="mx-auto max-w-7xl px-4">
 
         <!-- Header -->
         <div class="mb-6 flex items-center justify-between">
@@ -114,7 +116,6 @@
                     </div>
                 </dl>
 
-
                 <a href="/Cart/Checkout" class="mt-4 w-full h-12 inline-flex items-center justify-center rounded-xl bg-amber-300 font-semibold hover:bg-amber-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-slate-200 transition hover:shadow-md">
                     Alışverişi tamamla
                 </a>
@@ -152,14 +153,14 @@
 </main>
 
 <script>
-    function cartPage(){
+    function cartPage(initialItems){
       return {
         // config
         vatRate: 0.18,
         pricesIncludeVAT: true,
 
         // state
-        items: [],
+        items: initialItems,
         coupon: '',
         activeCoupon: null,
         freeShipOverride: false,
@@ -170,19 +171,7 @@
 
         // lifecycle
         init(){
-          const saved = localStorage.getItem('cart');
-          if(saved){
-            try { this.items = JSON.parse(saved) || []; } catch { this.items = []; }
-          }
-          if(this.items.length === 0){
-            this.items = [
-              { id: 1, name: 'Kalem Pil (AA)', variant: '2’li Paket', price: 39.90, qty: 2, image: '/img/demo/aa.jpg' },
-              { id: 2, name: '9 Volt Pil',     variant: 'Tekli',      price: 54.50, qty: 1, image: '/img/demo/9v.jpg' }
-            ];
-          }
           this.normalizeItems();
-          // auto persist on changes
-          this.$watch('items', () => this.persist());
         },
 
         // computed (cents)
@@ -210,7 +199,7 @@
           try { return (c/100).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 }); }
           catch { return `${(c/100).toFixed(2)} TL`; }
         },
-        persist(){ localStorage.setItem('cart', JSON.stringify(this.items)); },
+        persist(){},
         notify(text,type='info',timeout=2500){
           clearTimeout(this.toast.t); this.toast={ show:true, text, type, t:null };
           this.toast.t = setTimeout(()=> this.toast.show=false, timeout);
