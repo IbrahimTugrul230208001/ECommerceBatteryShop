@@ -5,5 +5,5 @@
     var text = (count > 99) ? "99+" : count.ToString();
 }
 
-<span id="cart-count-desktop" hx-swap-oob="true">@text</span>
-<span id="cart-count-mobile" hx-swap-oob="true">@text</span>
+<span id="cart-count-desktop" hx-swap-oob="innerHTML">@text</span>
+<span id="cart-count-mobile" hx-swap-oob="innerHTML">@text</span>
