@@ -46,7 +46,7 @@ namespace ECommerceBatteryShop.Controllers
                     ProductId = i.ProductId,
                     Name = i.Product?.Name ?? string.Empty,
                     ImageUrl = i.Product?.ImageUrl,
-                    UnitPrice = i.UnitPrice,
+                    UnitPrice = i.UnitPrice*1.2m*41m,
                     Quantity = i.Quantity
                 }).ToList();
             }
