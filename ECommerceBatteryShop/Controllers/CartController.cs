@@ -1,9 +1,11 @@
 ﻿
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Services;
+using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -17,9 +19,39 @@ namespace ECommerceBatteryShop.Controllers
             _cartService = cartService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            return View();
+            CartOwner owner;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                owner = CartOwner.FromUser(userId);
+            }
+            else
+            {
+                var anonId = Request.Cookies["ANON_ID"];
+                if (string.IsNullOrEmpty(anonId))
+                {
+                    return View(new CartViewModel());
+                }
+                owner = CartOwner.FromAnon(anonId);
+            }
+
+            var cart = await _cartService.GetAsync(owner, createIfMissing: false, ct);
+            var model = new CartViewModel();
+            if (cart is not null)
+            {
+                model.Items = cart.Items.Select(i => new CartItemViewModel
+                {
+                    ProductId = i.ProductId,
+                    Name = i.Product?.Name ?? string.Empty,
+                    ImageUrl = i.Product?.ImageUrl,
+                    UnitPrice = i.UnitPrice,
+                    Quantity = i.Quantity
+                }).ToList();
+            }
+
+            return View(model);
         }
 
         [HttpGet]
