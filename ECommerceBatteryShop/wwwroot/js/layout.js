@@ -8,16 +8,17 @@ document.body.addEventListener('htmx:configRequest', e => {
 
 document.body.addEventListener('htmx:afterSwap', e => {
   const el = e.target;
-    if (!el.id) return;
+  if (!el.id) return;
 
-    if (el.id === 'search-predictions-desktop' || el.id === 'search-predictions-mobile') {
+  const ids = ['search-predictions-desktop', 'search-predictions-mobile', 'search-predictions-tablet'];
+  if (ids.includes(el.id)) {
     const empty = el.innerHTML.trim() === '';
     el.classList.toggle('hidden', empty);
   }
 });
 
 (function () {
-    const ids = ['search-predictions-desktop', 'search-predictions-mobile'];
+    const ids = ['search-predictions-desktop', 'search-predictions-mobile', 'search-predictions-tablet'];
     const dd = () => ids.map(id => document.getElementById(id)).filter(Boolean);
     const hide = () => dd().forEach(el => el.classList.add('hidden'));
     const showIfNotEmpty = el => el.classList.toggle('hidden', el.innerHTML.trim() === '');
@@ -32,9 +33,9 @@ document.body.addEventListener('htmx:afterSwap', e => {
     if (overlay) overlay.addEventListener('click', hide);
 
     // 3) Hide on click outside navbar
-    const navbar = document.querySelector('nav'); // your main navbar
+    const navbars = document.querySelectorAll('nav');
     document.addEventListener('click', ev => {
-        if (!navbar || !navbar.contains(ev.target)) hide();
+        if (![...navbars].some(nav => nav.contains(ev.target))) hide();
     });
 
     // 4) Hide on ESC
@@ -48,7 +49,7 @@ document.body.addEventListener('htmx:afterSwap', e => {
 
 
 (function () {
-    const ids = ['search-predictions-desktop', 'search-predictions-mobile'];
+    const ids = ['search-predictions-desktop', 'search-predictions-mobile', 'search-predictions-tablet'];
     const dd = () => ids.map(id => document.getElementById(id)).filter(Boolean);
     const hide = () => dd().forEach(el => el.classList.add('hidden'));
     const showIfNotEmpty = el => el.classList.toggle('hidden', el.innerHTML.trim() === '');
@@ -93,7 +94,9 @@ document.body.addEventListener('htmx:afterSwap', e => {
     const overlay = document.getElementById('overlay');
     if (overlay) overlay.addEventListener('click', hide);
 
-    const navbar = document.querySelector('nav');
-    document.addEventListener('click', ev => { if (!navbar || !navbar.contains(ev.target)) hide(); });
+    const navbars = document.querySelectorAll('nav');
+    document.addEventListener('click', ev => {
+        if (![...navbars].some(nav => nav.contains(ev.target))) hide();
+    });
     document.addEventListener('keydown', ev => { if (ev.key === 'Escape') hide(); });
 })();
