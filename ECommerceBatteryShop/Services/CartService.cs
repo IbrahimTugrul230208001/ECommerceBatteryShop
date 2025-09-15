@@ -61,6 +61,16 @@ namespace ECommerceBatteryShop.Services
             await _db.SaveChangesAsync(ct);
             return cart.Items.Sum(i => i.Quantity);
         }
+        public async Task<int> RemoveAllAsync(CartOwner owner, CancellationToken ct = default)
+        {
+            var cart = await GetAsync(owner, createIfMissing: false, ct);
+            if (cart is null) return 0;
+
+            cart.Items.Clear(); // removes all items at once
+
+            await _db.SaveChangesAsync(ct);
+            return 0; // since all products are removed, total quantity is always zero
+        }
 
         public async Task<int> CountAsync(CartOwner owner, CancellationToken ct = default)
             => await _db.Carts

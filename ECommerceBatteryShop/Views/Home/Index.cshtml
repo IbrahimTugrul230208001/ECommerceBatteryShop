@@ -34,7 +34,7 @@
             <span class="sr-only">Sonraki</span>
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </button>
-
+  
         <!-- Dots -->
         <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
             <template x-for="(s, i) in slides" :key="'dot-'+i">
@@ -53,7 +53,7 @@
         slides: [
           { src:'/img/herobanner.png',  alt:'Batteries',        title:'Her an için güç',       text:'Premium bataryalar ve enerji çözümleri kapýnýza getirilir.', ctaText:'Ürünler',            ctaHref:'/Product/Index' },
           { src:'/img/alkaline.png',    alt:'Alkalin piller',   title:'Uzun ömürlü alkalin',   text:'Günlük cihazlar için maksimum performans.',                 ctaText:'Alýþveriþe baþla', ctaHref:'/Product/Index?cat=alkaline' },
-          { src:'/img/herobanner2.jpeg',alt:'Þarjlý piller',    title:'Þarj edilebilir güç',   text:'Daha az atýk, daha fazla tasarruf.',                        ctaText:'Þimdi keþfet',      ctaHref:'/Product/Index?cat=rechargeable' }
+          { src:'/img/herobanner_2.jpeg',alt:'Þarjlý piller',    title:'Þarj edilebilir güç',   text:'Daha az atýk, daha fazla tasarruf.',                        ctaText:'Þimdi keþfet',      ctaHref:'/Product/Index?cat=rechargeable' }
         ],
         current: 0,
         timer: null,

@@ -209,33 +209,30 @@
                 <div class="flex gap-3">
                 <!-- Cart -->
                     <!-- Sepet -->
-                    <a href="/Cart/Index" aria-label="Sepet (@cartText ürün)"
-                       class="group relative inline-flex items-center gap-2 h-16 px-4 shrink-0 rounded-md
-   transition duration-150 cursor-pointer hover:bg-white/5 hover:scale-105
-   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                  
 
-                        <span class="relative inline-flex">
+                  
+                <!-- Account / Profile -->
+                    <a href="/Account/Register" aria-label="Profil"
+                       class="group inline-flex items-center justify-center px-4 h-16 cursor-pointer rounded-md
+   transition hover:bg-white/10 hover:scale-105 focus-visible:outline-none
+   focus-visible:ring-2 focus-visible:ring-amber-400">
+                        <div class="relative inline-flex transition-transform duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="h-8 w-8 text-white transition-colors duration-150 group-hover:text-amber-300"
+                                 class="h-8 w-8 text-white transition-colors duration-200 group-hover:text-amber-300"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" />
+                                <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+                                <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
                             </svg>
-
-                            <span id="cart-count-desktop" class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs font-medium
-            bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10
-            transition duration-150">
-                                    @cartText
-                            </span>
-                        </span>
-
-                        <span class="text-white text-md font-semibold transition-colors duration-150 group-hover:text-amber-300">
-                            Sepetim
+                        </div>
+                        <span class="ml-2 text-white text-md font-semibold transition-colors duration-200 group-hover:text-amber-300">
+                            Üye ol
                         </span>
                     </a>
 
                     <!-- Favoriler -->
-                    <a href="/Favorites/Index"aria-label="Favoriler"
+                    <a href="/Favorites/Index" aria-label="Favoriler"
                        class="group relative inline-flex items-center gap-2 h-16 px-4 shrink-0 rounded-md
    transition duration-150 cursor-pointer hover:bg-white/5 hover:scale-105
    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
@@ -258,27 +255,30 @@
                             Favoriler
                         </span>
                     </a>
+                    <a href="/Cart/Index" aria-label="Sepet (@cartText ürün)"
+                       class="group relative inline-flex items-center gap-2 h-16 px-4 shrink-0 rounded-md
+   transition duration-150 cursor-pointer hover:bg-white/5 hover:scale-105
+   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
 
-                <!-- Account / Profile -->
-                    <a href="/Account/Register" aria-label="Profil"
-                       class="group inline-flex items-center justify-center px-4 h-16 cursor-pointer rounded-md
-   transition hover:bg-white/10 hover:scale-105 focus-visible:outline-none
-   focus-visible:ring-2 focus-visible:ring-amber-400">
-                        <div class="relative inline-flex transition-transform duration-200">
+                        <span class="relative inline-flex">
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="h-8 w-8 text-white transition-colors duration-200 group-hover:text-amber-300"
+                                 class="h-8 w-8 text-white transition-colors duration-150 group-hover:text-amber-300"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
-                                <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
+                                <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" />
                             </svg>
-                        </div>
-                        <span class="ml-2 text-white text-md font-semibold transition-colors duration-200 group-hover:text-amber-300">
-                            Üye ol
+
+                            <span id="cart-count-desktop" class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs font-medium
+            bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10
+            transition duration-150">
+                                @cartText
+                            </span>
+                        </span>
+
+                        <span class="text-white text-md font-semibold transition-colors duration-150 group-hover:text-amber-300">
+                            Sepetim
                         </span>
                     </a>
-                   
-
 
             </div>
                 <!-- Favorites -->
