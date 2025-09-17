@@ -134,7 +134,6 @@
               opacity-0 pointer-events-none"
                  :class="overlay ? 'opacity-100 pointer-events-auto' : ''"
                  @@click="overlay=false"></div>
-
         <!-- add this -->
         <!-- TABLET NAVBAR -->
         <nav x-data="{ scrolled:false }"
@@ -227,10 +226,6 @@
                                     @cartText
                             </span>
                         </span>
-
-                        <span class="text-white text-md font-semibold transition-colors duration-150 group-hover:text-amber-300">
-                            Sepetim
-                        </span>
                     </a>
 
                     <!-- Favoriler -->
@@ -252,10 +247,6 @@
                                 @((ViewBag.FavoriteCount is int f && f > 99) ? "99+" : (ViewBag.FavoriteCount ?? 0).ToString())
                             </span>
                         </span>
-
-                        <span class="text-white text-md font-semibold transition-colors duration-150 group-hover:text-amber-300">
-                            Favoriler
-                        </span>
                     </a>
 
                 <!-- Account / Profile -->
@@ -272,16 +263,8 @@
                                 <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
                             </svg>
                         </div>
-                        <span class="ml-2 text-white text-md font-semibold transition-colors duration-200 group-hover:text-amber-300">
-                            Üye ol
-                        </span>
                     </a>
-
-
-
             </div>
-                <!-- Favorites -->
-
             </div>
         </nav>
 
@@ -395,7 +378,7 @@
                             <span class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full text-xs font-medium
             bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10
             transition duration-150">
-                                @((ViewBag.FavoriteCount is int f && f > 99) ? "99+" : (ViewBag.FavoriteCount ?? 0).ToString())
+                                @((ViewBag.FavoriteCount is int f1 && f1 > 99) ? "99+" : (ViewBag.FavoriteCount ?? 0).ToString())
                             </span>
                         </span>
 
