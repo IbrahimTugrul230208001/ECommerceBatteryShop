@@ -56,9 +56,9 @@
                     <!-- Qty input -->
                     <label class="sr-only" for="qty">Adet</label>
                     <div class="inline-flex h-11 items-center rounded-xl border border-slate-300 bg-white shadow-xs">
-                        <button type="button" @@click="dec()" class="px-2 h-full text-slate-700 hover:text-slate-900 cursor-pointer" aria-controls="qty" aria-label="Azalt">−</button>
+                        <button type="button" @@click="dec()" class="px-3 h-full text-slate-700 rounded-l-xl hover:bg-slate-200 hover:text-slate-900 cursor-pointer" aria-controls="qty" aria-label="Azalt">−</button>
                         <input id="qty" type="number" min="1" x-model.number="qty" class="w-16 bg-transparent text-center text-slate-900 outline-none" @@change="sanitize()" aria-live="polite" aria-label="Adet">
-                        <button type="button" @@click="inc()" class="px-2 h-full text-slate-700 hover:text-slate-900 cursor-pointer" aria-controls="qty" aria-label="Arttır">+</button>
+                        <button type="button" @@click="inc()" class="px-3 h-full text-slate-700 rounded-r-xl hover:bg-slate-200 hover:text-slate-900 cursor-pointer" aria-controls="qty" aria-label="Arttır">+</button>
                     </div>
 
                     <!-- CTA buttons -->
@@ -120,3 +120,14 @@
     </div>
 
     </main>
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>

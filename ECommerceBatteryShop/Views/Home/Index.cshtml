@@ -48,36 +48,7 @@
 </section>
 
 <script>
-    function heroCarousel(){
-      return {
-        slides: [
-          { src:'/img/herobanner.png',  alt:'Batteries',        title:'Her an için güç',       text:'Premium bataryalar ve enerji çözümleri kapýnýza getirilir.', ctaText:'Ürünler',            ctaHref:'/Product/Index' },
-          { src:'/img/alkaline.png',    alt:'Alkalin piller',   title:'Uzun ömürlü alkalin',   text:'Günlük cihazlar için maksimum performans.',                 ctaText:'Alýþveriþe baþla', ctaHref:'/Product/Index?cat=alkaline' },
-          { src:'/img/herobanner_2.jpeg',alt:'Þarjlý piller',    title:'Þarj edilebilir güç',   text:'Daha az atýk, daha fazla tasarruf.',                        ctaText:'Þimdi keþfet',      ctaHref:'/Product/Index?cat=rechargeable' }
-        ],
-        current: 0,
-        timer: null,
-        intervalMs: 6000,
-        init(el){
-          this.start();
-          // basic swipe
-          let startX = 0;
-          el.addEventListener('touchstart', e => startX = e.touches[0].clientX, { passive:true });
-          el.addEventListener('touchend',   e => {
-            const dx = e.changedTouches[0].clientX - startX;
-            if (Math.abs(dx) > 40) (dx < 0 ? this.next() : this.prev());
-          }, { passive:true });
-          // pause on hover (desktop)
-          el.addEventListener('mouseenter', () => this.stop());
-          el.addEventListener('mouseleave', () => this.start());
-        },
-        start(){ this.stop(); this.timer = setInterval(() => this.next(), this.intervalMs); },
-        stop(){ if (this.timer) clearInterval(this.timer); this.timer = null; },
-        next(){ this.current = (this.current + 1) % this.slides.length; },
-        prev(){ this.current = (this.current - 1 + this.slides.length) % this.slides.length; },
-        go(i){ this.current = i; this.start(); }
-      }
-    }
+ 
 </script>
 
 <!-- Features -->
@@ -242,11 +213,51 @@
                                             </span>
                                         </button>
 
-                                        <button type="button" class="h-9 w-9 grid place-items-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
-                                            </svg>
-                                        </button>
+                                   <!-- Favorite (Heart) -->
+        <button
+          type="button"
+          x-data="{ fav: false, busy: false }"
+          @@click="
+            if (busy) return;
+            busy = true;
+            fav = !fav;
+            setTimeout(() => busy = false, 300);
+          "
+          hx-post="/Favorites/Toggle"
+          :hx-vals="JSON.stringify({ productId: item.id, favorite: fav })"
+          :aria-pressed="fav.toString()"
+          :class="fav ? 'text-rose-600 border-rose-300 bg-rose-50' : 'text-gray-700 border-gray-300 hover:bg-gray-100'"
+          class="relative h-9 w-9 grid place-items-center rounded-md border cursor-pointer
+                 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">
+          <span class="sr-only" x-text="fav ? 'Favorilerden çýkar' : 'Favorilere ekle'"></span>
+
+          <!-- Stack both icons; animate opacity/scale only (no x-show) -->
+          <div class="relative h-5 w-5">
+            <!-- Outline -->
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="absolute inset-0 h-5 w-5 transition-all duration-200 ease-out"
+                 :class="fav ? 'opacity-0 scale-90' : 'opacity-100 scale-100'"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+
+            <!-- Filled -->
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="absolute inset-0 h-5 w-5 transition-all duration-220 ease-out"
+                 :class="fav ? 'opacity-100 scale-100' : 'opacity-0 scale-110'"
+                 viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </div>
+        </button>
+
+
+
+
+
+
+
                                     </div>
                                 </div>
                             </article>
