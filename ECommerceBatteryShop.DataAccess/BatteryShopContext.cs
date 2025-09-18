@@ -42,8 +42,8 @@ public class BatteryShopContext : DbContext
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<User> Users => Set<User>();
-    public DbSet<FavoriteList> Favorites => Set<FavoriteList>();
-    public DbSet<FavoriteListItem> FavoriteItems => Set<FavoriteListItem>();
+    public DbSet<FavoriteList> FavoriteLists => Set<FavoriteList>();
+    public DbSet<FavoriteListItem> FavoriteListItems => Set<FavoriteListItem>();
 
 }
 
