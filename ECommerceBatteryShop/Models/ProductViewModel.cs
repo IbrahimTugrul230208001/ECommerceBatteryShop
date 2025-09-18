@@ -8,5 +8,6 @@ namespace ECommerceBatteryShop.Models
         public string ImageUrl { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public float Rating { get; set; }
+        public bool IsFavorite { get; set; }
     }
 }

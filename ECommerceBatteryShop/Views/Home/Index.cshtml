@@ -26,7 +26,7 @@
         
         <!-- Prev/Next -->
         <button @@click ="prev()" class="absolute cursor-pointer left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 hover:bg-black/60 focus:outline-none">
-            <span class="sr-only">Önceki</span>
+            <span class="sr-only">Ã–nceki</span>
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M15 19l-7-7 7-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </button>
         <button @@click="next()" class="absolute right-3 top-1/2 cursor-pointer -translate-y-1/2 rounded-full bg-black/40 p-2 hover:bg-black/60 focus:outline-none">
@@ -59,8 +59,8 @@
             <path d="M5 21a2 2 0 100-4 2 2 0 000 4zM17 21a2 2 0 100-4 2 2 0 000 4z" />
         </svg>
         <div>
-            <h3 class="text-lg font-semibold text-gray-900">Hızlı Teslimat</h3>
-            <p class="text-sm text-gray-600">Siparişlerde güvenli teslimat.</p>
+            <h3 class="text-lg font-semibold text-gray-900">HÄ±zlÄ± Teslimat</h3>
+            <p class="text-sm text-gray-600">SipariÅŸlerde gÃ¼venli teslimat.</p>
         </div>
     </div>
 
@@ -71,7 +71,7 @@
         </svg>
         <div>
             <h3 class="text-lg font-semibold text-gray-900">Premium Kalite</h3>
-            <p class="text-sm text-gray-600">Birçok çeşit türden kaliteli bataryalar.</p>
+            <p class="text-sm text-gray-600">BirÃ§ok Ã§eÅŸit tÃ¼rden kaliteli bataryalar.</p>
         </div>
     </div>
 
@@ -80,8 +80,8 @@
             <path d="M12 1a9 9 0 00-9 9v5a3 3 0 003 3h1a1 1 0 001-1v-7a1 1 0 00-1-1H6a1 1 0 00-1 1v4m13-4a1 1 0 00-1-1h-1a1 1 0 00-1 1v7a1 1 0 001 1h1a3 3 0 003-3v-5a9 9 0 00-9-9z" />
         </svg>
         <div>
-            <h3 class="text-lg font-semibold text-gray-900">İletişim Hattı</h3>
-            <p class="text-sm text-gray-600">Whatsapp veya telefon üzerinden ulaşabilirsiniz.</p>
+            <h3 class="text-lg font-semibold text-gray-900">Ä°letiÅŸim HattÄ±</h3>
+            <p class="text-sm text-gray-600">Whatsapp veya telefon Ã¼zerinden ulaÅŸabilirsiniz.</p>
         </div>
     </div>
 </section>
@@ -97,7 +97,7 @@
 
             <a href="@s.AllLink"
                class="group inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800 hover:text-amber-500">
-                Tüm Ürünler
+                TÃ¼m ÃœrÃ¼nler
                 <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                      viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -117,7 +117,7 @@
             <!-- Controls -->
             <button type="button" @@click="prev" :class="{'opacity-40 pointer-events-none': atStart}"
                                     class="absolute left-2 top-1/2 hover:bg-amber-400 hover:text-white cursor-pointer -translate-y-1/2 z-10 h-10 w-10 grid place-items-center border border-slate-300 rounded-full bg-white shadow-xl"
-                    aria-label="Önceki">
+                    aria-label="Ã–nceki">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(180)">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M8.29289 4.29289C8.68342 3.90237 9.31658 3.90237 9.70711 4.29289L16.7071 11.2929C17.0976 11.6834 17.0976 12.3166 16.7071 12.7071L9.70711 19.7071C9.31658 20.0976 8.68342 20.0976 8.29289 19.7071C7.90237 19.3166 7.90237 18.6834 8.29289 18.2929L14.5858 12L8.29289 5.70711C7.90237 5.31658 7.90237 4.68342 8.29289 4.29289Z" fill="currentColor"/>
                 </svg>
@@ -215,7 +215,7 @@
                                    <!-- Favorite (Heart) -->
         <button
           type="button"
-          x-data="{ fav: false, busy: false }"
+          x-data="{ fav: @(product.IsFavorite ? "true" : "false"), busy: false }"
           @@click="
             if (busy) return;
             busy = true;
@@ -229,7 +229,7 @@
           :class="fav ? 'text-rose-600 border-rose-300 bg-rose-50' : 'text-gray-700 border-gray-300 hover:bg-gray-100'"
           class="relative h-9 w-9 grid place-items-center rounded-md border cursor-pointer
                  transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">
-          <span class="sr-only" x-text="fav ? 'Favorilerden çıkar' : 'Favorilere ekle'"></span>
+          <span class="sr-only" x-text="fav ? 'Favorilerden Ã§Ä±kar' : 'Favorilere ekle'"></span>
 
           <!-- Stack both icons; animate opacity/scale only (no x-show) -->
           <div class="relative h-5 w-5">
