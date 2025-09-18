@@ -3,7 +3,6 @@ using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -12,9 +11,18 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IProductRepository _repo;
         private readonly ICurrencyService _currency;
+        private readonly IFavoritesService _favorites;
 
-        public HomeController(IProductRepository repo, ICurrencyService currency, ILogger<HomeController> log)
-        { _repo = repo; _currency = currency; _logger = log; }
+        public HomeController(IProductRepository repo,
+                              ICurrencyService currency,
+                              IFavoritesService favorites,
+                              ILogger<HomeController> log)
+        {
+            _repo = repo;
+            _currency = currency;
+            _favorites = favorites;
+            _logger = log;
+        }
 
         public async Task<IActionResult> Index(CancellationToken ct)
         {
@@ -36,6 +44,8 @@ namespace ECommerceBatteryShop.Controllers
 
             // Ensure this includes ProductCategories (CategoryId is enough; Category.Include not required)
 
+            var favoriteIds = await LoadFavoriteIdsAsync(ct);
+
             ProductViewModel Map(Product p) => new()
             {
                 Id = p.Id,
@@ -43,7 +53,8 @@ namespace ECommerceBatteryShop.Controllers
                 Price = _currency.ConvertUsdToTry(p.Price, fx) * (1 + KdvRate),
                 Rating = p.Rating,
                 ImageUrl = p.ImageUrl ?? string.Empty,
-                Description = p.Description ?? string.Empty
+                Description = p.Description ?? string.Empty,
+                IsFavorite = favoriteIds.Contains(p.Id)
             };
             var plan = new[]
             {
@@ -70,6 +81,39 @@ namespace ECommerceBatteryShop.Controllers
                     });
             }
             return View(sections);
+
+            async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
+            {
+                FavoriteOwner? owner = null;
+
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    var sub = User.FindFirst("sub")?.Value;
+                    if (int.TryParse(sub, out var userId))
+                    {
+                        owner = FavoriteOwner.FromUser(userId);
+                    }
+                }
+                else
+                {
+                    var anonId = Request.Cookies["ANON_ID"];
+                    if (!string.IsNullOrWhiteSpace(anonId))
+                    {
+                        owner = FavoriteOwner.FromAnon(anonId);
+                    }
+                }
+
+                if (owner is null)
+                {
+                    return new HashSet<int>();
+                }
+
+                var list = await _favorites.GetAsync(owner, createIfMissing: false, token);
+
+                return list is null
+                    ? new HashSet<int>()
+                    : new HashSet<int>(list.Items.Select(i => i.ProductId));
+            }
 
         }
         public IActionResult Contact()
