@@ -4,7 +4,6 @@
 }
 @model IEnumerable<ECommerceBatteryShop.Models.ProductSectionViewModel>
 
-
 <section class="mb-12"
          x-data="heroCarousel()"
          x-init="init($el)"
@@ -224,7 +223,8 @@
             setTimeout(() => busy = false, 300);
           "
           hx-post="/Favorites/Toggle"
-          :hx-vals="JSON.stringify({ productId: item.id, favorite: fav })"
+          :hx-vals="JSON.stringify({ productId: @product.Id})"
+           hx-swap="none"
           :aria-pressed="fav.toString()"
           :class="fav ? 'text-rose-600 border-rose-300 bg-rose-50' : 'text-gray-700 border-gray-300 hover:bg-gray-100'"
           class="relative h-9 w-9 grid place-items-center rounded-md border cursor-pointer

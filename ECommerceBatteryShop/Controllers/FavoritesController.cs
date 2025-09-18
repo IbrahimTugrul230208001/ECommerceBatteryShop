@@ -12,10 +12,38 @@ namespace ECommerceBatteryShop.Controllers
         {
             _favoritesService = favoritesService;
         }
-
-        // POST /favorites/toggle/123
-        [HttpPost("toggle/{productId:int}")]
-        [Produces("application/json")]
+        [HttpGet]
+        public async Task<IActionResult> Index(CancellationToken ct)
+        {
+            FavoriteOwner owner;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                owner = FavoriteOwner.FromUser(userId);
+            }
+            else
+            {
+                var anonId = Request.Cookies["ANON_ID"];
+                if (string.IsNullOrEmpty(anonId))
+                {
+                    return View(new CartViewModel());
+                }
+                owner = FavoriteOwner.FromAnon(anonId);
+            }
+            var list = await _favoritesService.GetAsync(owner, createIfMissing: false, ct);
+            var model = new FavoriteViewModel();
+            if (list is not null)
+            {
+                model.Items = list.Items.Select(i => new FavoriteItemViewModel
+                {
+                    ProductId = i.ProductId,
+                    Name = i.Product?.Name ?? string.Empty,
+                    ImageUrl = i.Product?.ImageUrl,
+                }).ToList();
+            }
+            return View(model);
+        }
+        [HttpPost]
         public async Task<IActionResult> Toggle(int productId, CancellationToken ct)
         {
             // owner resolution (user or anon)
