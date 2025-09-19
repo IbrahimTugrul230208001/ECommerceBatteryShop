@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using MimeKit;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Claims;
@@ -72,7 +73,7 @@ public class AccountController : Controller
 
     public IActionResult LogIn()
     {
-        return View();
+        return View(new LoginViewModel());
     }
     public IActionResult Register()
     {
@@ -80,12 +81,38 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> LogIn(LoginViewModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
 
         {
             return View(model);
+        }
+
+        var adminSection = _configuration.GetSection("Admin");
+        var adminEmail = adminSection["Email"];
+        var adminPassword = adminSection["Password"];
+
+        if (!string.IsNullOrWhiteSpace(adminEmail) &&
+            !string.IsNullOrWhiteSpace(adminPassword) &&
+            string.Equals(model.Email, adminEmail, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(model.Password, adminPassword, StringComparison.Ordinal))
+        {
+            var adminClaims = new List<Claim>
+            {
+                new Claim("sub", "admin"),
+                new Claim(ClaimTypes.NameIdentifier, adminEmail),
+                new Claim(ClaimTypes.Email, adminEmail),
+                new Claim(ClaimTypes.Name, "Yönetici"),
+                new Claim(ClaimTypes.Role, "Admin")
+            };
+
+            var adminIdentity = new ClaimsIdentity(adminClaims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var adminPrincipal = new ClaimsPrincipal(adminIdentity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, adminPrincipal);
+
+            return RedirectToAction("Index", "Admin");
         }
 
         var user = await _accountRepository.LogInAsync(model.Email, model.Password, ct);
