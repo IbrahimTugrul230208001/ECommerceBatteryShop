@@ -7,26 +7,31 @@
 
 <main class="bg-white min-h-screen pt-28 pb-24">
     @using System.Text.Json
+    @functions {
+        public static string NormalizeImg(string? u)
+        {
+            if (string.IsNullOrWhiteSpace(u)) return "/img/temsili.png";
+            u = u.Replace("\\", "/").Trim();
+            if (u.StartsWith("/img/", StringComparison.OrdinalIgnoreCase)) return u;
+            if (u.StartsWith("img/", StringComparison.OrdinalIgnoreCase)) return "/" + u;
+            return "/img/" + u.TrimStart('/');
+        }
+    }
     @{
-
-
-        var itemsJson = JsonSerializer.Serialize(
+        var itemsJson = System.Text.Json.JsonSerializer.Serialize(
         Model.Items.Select(i => new
         {
             id = i.ProductId,
             name = i.Name,
             variant = "",
-            // prepend /img/ to path
-            img = "/img/" + i.ImageUrl,
-            priceCents = (int)decimal.Round(
-        i.UnitPrice * 100m,
-        0,
-        MidpointRounding.AwayFromZero),
+            img = NormalizeImg(i.ImageUrl), // ← kritik düzeltme
+            priceCents = (int)decimal.Round(i.UnitPrice * 100m, 0, MidpointRounding.AwayFromZero),
             qty = i.Quantity
         }),
-        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
         );
     }
+
     <div x-data='cartPage(@Html.Raw(itemsJson))' x-init="init()" class="mx-auto max-w-7xl px-4">
 
         <!-- Header -->
@@ -78,7 +83,7 @@
                             x-transition:leave-start="opacity-100 scale-100"
                             x-transition:leave-end="opacity-0 scale-95">
                             <a :href="`/Product/Details/${item.id}`" class="block p-3 pb-0">
-                                <img :src="item.img" :alt="item.name" class="h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover bg-slate-50">
+                                <img :src="item.img" :alt="item.name" class="h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover">
                             </a>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-start justify-between gap-3">
