@@ -106,6 +106,8 @@ builder.Services.AddAuthentication(o =>
             identity.AddClaim(new Claim("sub", user.Id.ToString(CultureInfo.InvariantCulture)));
         }
     };
+    o.Backchannel = new HttpClient(new HttpLogHandler(new HttpClientHandler()));
+
 });
 
 var app = builder.Build();
