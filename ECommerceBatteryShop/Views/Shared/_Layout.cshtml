@@ -33,6 +33,11 @@
         }
     }
     var cartText = cartCount > 99 ? "99+" : cartCount.ToString();
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var accountUrl = isAuthenticated
+        ? Url.Action("Profile", "Account") ?? "/Account/Profile"
+        : Url.Action("Register", "Account") ?? "/Account/Register";
+    var accountText = isAuthenticated ? "Hesabım" : "Üye Ol";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -119,7 +124,7 @@
                 </a>
 
                 <!-- Profile -->
-                <a href="/Account/Register" aria-label="Profil" class="inline-flex items-center justify-center h-9 px-3 rounded-md cursor-pointer hover:bg-white/10">
+                <a href="@accountUrl" aria-label="@accountText" class="inline-flex items-center justify-center h-9 px-3 rounded-md cursor-pointer hover:bg-white/10">
                     <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
@@ -244,7 +249,7 @@
                     </a>
 
                 <!-- Account / Profile -->
-                    <a href="/Account/Register" aria-label="Profil"
+                    <a href="@accountUrl" aria-label="@accountText"
                        class="group inline-flex items-center justify-center px-4 h-16 cursor-pointer rounded-md
    transition hover:bg-white/10 hover:scale-105 focus-visible:outline-none
    focus-visible:ring-2 focus-visible:ring-amber-400">
@@ -338,7 +343,7 @@
 
                   
                 <!-- Account / Profile -->
-                    <a href="/Account/Register" aria-label="Profil"
+                    <a href="@accountUrl" aria-label="@accountText"
                        class="group inline-flex items-center justify-center px-4 h-16 cursor-pointer rounded-md
    transition hover:bg-white/10 hover:scale-105 focus-visible:outline-none
    focus-visible:ring-2 focus-visible:ring-amber-400">
@@ -352,7 +357,7 @@
                             </svg>
                         </div>
                         <span class="ml-2 text-white text-md font-semibold transition-colors duration-200 group-hover:text-amber-300">
-                            Üye ol
+                            @accountText
                         </span>
                     </a>
 
