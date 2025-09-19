@@ -7,14 +7,26 @@
 <!-- Include once globally (Layout). Safe if duplicated) -->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<h1 class="text-2xl font-bold mb-4">Products</h1>
+<h1 class="text-2xl font-bold mb-4">Ürünler</h1>
 
-<form method="get" class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-    <input type="number" step="0.01" name="minPrice"  placeholder="Min Price" class="border border-gray-200 focus:border-gray-400 focus:ring-0 p-2 rounded-lg" />
-    <input type="number" step="0.01" name="maxPrice" placeholder="Max Price" class="border border-gray-200 focus:border-gray-400 focus:ring-0 p-2 rounded-lg" />
-    <input type="number" step="0.1" name="minRating"  placeholder="Min Rating" class="border border-gray-200 focus:border-gray-400 focus:ring-0 p-2 rounded-lg" />
-    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-300 text-gray-900 font-semibold shadow hover:bg-amber-400 transition">Filter</button>
-</form>
+<div class="mx-auto max-w-screen-lg px-4 sm:px-2 md:px-4">
+    <!-- page padding -->
+    <form method="get"
+          class="mb-6 flex flex-wrap items-center gap-x-3 gap-y-3">
+
+        <input type="number" step="0.01" name="minPrice" placeholder="Min Fiyat"
+               class="w-full sm:w-auto flex-1 min-w-[140px] sm:min-w-[200px]
+                  border border-gray-200 focus:border-gray-400 focus:ring-0
+                  rounded-lg px-3 py-2 text-base" />
+        <input type="number" step="0.01" name="maxPrice" placeholder="Max Fiyat"
+               class="w-full sm:w-auto flex-1 min-w-[140px] sm:min-w-[200px]
+                  border border-gray-200 focus:border-gray-400 focus:ring-0
+                  rounded-lg px-3 py-2 text-base" />
+        <button type="submit" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-300 text-gray-900 font-semibold shadow hover:bg-amber-400 transition"> Filtrele <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3 4.6C3 4.03995 3 3.75992 3.10899 3.54601C3.20487 3.35785 3.35785 3.20487 3.54601 3.10899C3.75992 3 4.03995 3 4.6 3H19.4C19.9601 3 20.2401 3 20.454 3.10899C20.6422 3.20487 20.7951 3.35785 20.891 3.54601C21 3.75992 21 4.03995 21 4.6V6.33726C21 6.58185 21 6.70414 20.9724 6.81923C20.9479 6.92127 20.9075 7.01881 20.8526 7.10828C20.7908 7.2092 20.7043 7.29568 20.5314 7.46863L14.4686 13.5314C14.2957 13.7043 14.2092 13.7908 14.1474 13.8917C14.0925 13.9812 14.0521 14.0787 14.0276 14.1808C14 14.2959 14 14.4182 14 14.6627V17L10 21V14.6627C10 14.4182 10 14.2959 9.97237 14.1808C9.94787 14.0787 9.90747 13.9812 9.85264 13.8917C9.7908 13.7908 9.70432 13.7043 9.53137 13.5314L3.46863 7.46863C3.29568 7.29568 3.2092 7.2092 3.14736 7.10828C3.09253 7.01881 3.05213 6.92127 3.02763 6.81923C3 6.70414 3 6.58185 3 6.33726V4.6Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> </svg> </button>
+    </form>
+</div>
+
+
 
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
     @foreach (var product in products)
@@ -29,9 +41,9 @@
             <!-- Product card link -->
             <a href="@href" class="block p-4">
                 <div class="rounded-xl h-40 flex items-center justify-center overflow-hidden">
-                    <img src="~/img/@product.ImageUrl"
-                         alt="@product.Name"
-                         class="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]" />
+                    <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
+                         alt="@(string.IsNullOrWhiteSpace(product.Name) ? "Görsel yok" : product.Name)"
+                         class="h-28 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]" />
                 </div>
 
                 <div class="mt-4 space-y-2">
@@ -57,43 +69,94 @@
                 </div>
             </a>
 
-            <!-- Add to cart button (outside anchor) -->
-            <div class="px-4 pb-4 pt-0">
-                <div x-data="{ added:false }">
-                    <button type="button"
-                            hx-post='@Url.Action("Add","Cart", new { productId = product.Id })'
-                            hx-swap="none"
-                            @@click ="if (added) return; added = true; setTimeout(()=>added=false,1600)"
-                            class="relative w-full h-10 rounded-xl text-sm font-semibold shadow
-                                   transition-colors duration-200 overflow-hidden cursor-pointer"
-                            :class="added
-                                ? 'bg-green-500 text-white'
-                                : 'bg-amber-300 text-gray-900 hover:bg-amber-400'">
+            <div class="mt-3 mb-3 flex items-center gap-2 px-3">
+                <button hx-post="/Cart/Add"
+                        hx-vals='{"productId": @product.Id, "quantity": 1}'
+                        hx-swap="none"
+                        x-data="{ added: false }"
+                        @@click="if (added) return; added = true; setTimeout(() => added = false, 1600);"
+                        :class="added ? 'bg-green-500 text-white' : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
+                        class="flex-1 h-9 rounded-md text-sm font-semibold shadow transition-colors duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 cursor-pointer">
+                    <span x-show="!added"
+                          x-transition:enter="transition transform ease-out duration-250"
+                          x-transition:enter-start="-translate-y-3 opacity-0"
+                          x-transition:enter-end="translate-y-0 opacity-100"
+                          x-transition:leave="transition transform ease-in duration-200"
+                          x-transition:leave-start="translate-y-0 opacity-100"
+                          x-transition:leave-end="translate-y-3 opacity-0"
+                          class="block">
+                        Sepete ekle
+                    </span>
 
-                        <!-- default label -->
-                        <span class="absolute inset-0 grid place-items-center leading-none"
-                              x-show="!added"
-                              x-transition.opacity.duration.150ms>
-                            Sepete ekle
-                        </span>
+                    <span x-show="added"
+                          x-transition:enter="transition transform ease-out duration-250"
+                          x-transition:enter-start="translate-y-3 opacity-0"
+                          x-transition:enter-end="translate-y-0 opacity-100"
+                          x-transition:leave="transition transform ease-in duration-200"
+                          x-transition:leave-start="translate-y-0 opacity-100"
+                          x-transition:leave-end="-translate-y-3 opacity-0"
+                          class="absolute inset-0 flex items-center justify-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                        <span class="align-middle text-white">Sepete eklendi</span>
+                    </span>
+                </button>
 
-                        <!-- success label -->
-                        <span class="absolute inset-0 grid place-items-center leading-none"
-                              x-show="added"
-                              x-transition.opacity.duration.150ms>
-                            <span class="inline-flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                                     fill="none" viewBox="0 0 24 24"
-                                     stroke="currentColor" stroke-width="2">
-                                    <path d="M20 6L9 17l-5-5" />
-                                </svg>
-                                Sepete eklendi
-                            </span>
-                        </span>
-                    </button>
-                </div>
+                <!-- Favorite (Heart) -->
+                <button type="button"
+                        x-data="{ fav: @(product.IsFavorite ? "true" : "false"), busy: false }"
+                        @@click="
+                        if (busy) return;
+                        busy=true;
+                        fav=!fav;
+                        setTimeout(()=>
+                    busy = false, 300);
+                    "
+                    hx-post="/Favorites/Toggle"
+                    :hx-vals="JSON.stringify({ productId: @product.Id})"
+                    hx-swap="none"
+                    :aria-pressed="fav.toString()"
+                    :class="fav ? 'text-rose-600 border-rose-300 bg-rose-50' : 'text-gray-700 border-gray-300 hover:bg-gray-100'"
+                    class="relative h-9 w-9 grid place-items-center rounded-md border cursor-pointer
+                    transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">
+                    <span class="sr-only" x-text="fav ? 'Favorilerden çıkar' : 'Favorilere ekle'"></span>
+
+                    <!-- Stack both icons; animate opacity/scale only (no x-show) -->
+                    <div class="relative h-5 w-5">
+                        <!-- Outline -->
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="absolute inset-0 h-5 w-5 transition-all duration-200 ease-out"
+                             :class="fav ? 'opacity-0 scale-90' : 'opacity-100 scale-100'"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+
+                        <!-- Filled -->
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="absolute inset-0 h-5 w-5 transition-all duration-220 ease-out"
+                             :class="fav ? 'opacity-100 scale-100' : 'opacity-0 scale-110'"
+                             viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                    </div>
+                </button>
             </div>
+
         </div>
+
     }
 
 </div>
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>

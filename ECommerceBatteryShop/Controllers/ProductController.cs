@@ -11,13 +11,17 @@ namespace ECommerceBatteryShop.Controllers
         private readonly IProductRepository _repo;
         private readonly ICurrencyService _currency;
         private readonly ILogger<ProductController> _log;
-        public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log)
+        private readonly IFavoritesService _favorites;
+
+        public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log, IFavoritesService favorites)
         {
-            _repo = repo; _currency = currency; _log = log;
+            _repo = repo; _currency = currency; _log = log; _favorites = favorites;
+
         }
 
         public async Task<IActionResult> Index(string? search, string? q, int? categoryId, CancellationToken ct)
         {
+
             var term = search ?? q;
 
             IReadOnlyList<Product> products;
@@ -35,6 +39,7 @@ namespace ECommerceBatteryShop.Controllers
             }
 
             const decimal KdvRate = 0.20m;
+            var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
             var rate = await _currency.GetCachedUsdTryAsync(ct);
             if (rate is null)
@@ -50,10 +55,45 @@ namespace ECommerceBatteryShop.Controllers
                 Name = p.Name,
                 Price = _currency.ConvertUsdToTry(p.Price /*USD*/, fx) * (1 + KdvRate),
                 Rating = p.Rating,
-                ImageUrl = p.ImageUrl
+                ImageUrl = p.ImageUrl,
+                IsFavorite = favoriteIds.Contains(p.Id)
             }).ToList();
 
             return View(vm);
+
+            async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
+            {
+                FavoriteOwner? owner = null;
+
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    var sub = User.FindFirst("sub")?.Value;
+                    if (int.TryParse(sub, out var userId))
+                    {
+                        owner = FavoriteOwner.FromUser(userId);
+                    }
+                }
+                else
+                {
+                    var anonId = Request.Cookies["ANON_ID"];
+                    if (!string.IsNullOrWhiteSpace(anonId))
+                    {
+                        owner = FavoriteOwner.FromAnon(anonId);
+                    }
+                }
+
+                if (owner is null)
+                {
+                    return new HashSet<int>();
+                }
+
+                var list = await _favorites.GetAsync(owner, createIfMissing: false, token);
+
+                return list is null
+                    ? new HashSet<int>()
+                    : new HashSet<int>(list.Items.Select(i => i.ProductId));
+            }
+
         }
         [HttpGet] // optional
         public async Task<IActionResult> Details(int id, CancellationToken ct = default)
