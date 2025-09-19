@@ -69,5 +69,19 @@ namespace ECommerceBatteryShop.Services
 
             return new ToggleResult(added, total);
         }
+        public async Task<int> CountAsync(FavoriteOwner owner, CancellationToken ct)
+        {
+            var list = await GetAsync(owner, createIfMissing: false, ct);
+            if (list is null)
+            {
+                return 0;
+            }
+
+            var count = await _db.Set<FavoriteListItem>()
+                .CountAsync(i => i.FavoriteId == list.Id, ct);
+
+            return count;
+        }
+
     }
 }

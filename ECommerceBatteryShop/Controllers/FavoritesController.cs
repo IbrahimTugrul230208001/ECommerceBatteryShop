@@ -44,9 +44,10 @@ namespace ECommerceBatteryShop.Controllers
             return View(model);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Toggle(int productId, CancellationToken ct)
         {
-            // owner resolution (user or anon)
+            // 1) Owner çöz
             FavoriteOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
@@ -70,8 +71,21 @@ namespace ECommerceBatteryShop.Controllers
                 owner = FavoriteOwner.FromAnon(anonId);
             }
 
+            // 2) Toggle et → sonuçtan toplamı öğren
             var result = await _favoritesService.ToggleAsync(owner, productId, ct);
+            // result.Added : eklendi mi?
+            // result.TotalCount : toggle sonrası toplam
+
+            // 3) Son ürün de silindiyse tüm sayfayı yenile
+            if (result.TotalCount == 0)
+            {
+                Response.Headers["HX-Refresh"] = "true";  // veya HX-Redirect
+                return NoContent(); // 204, HTMX için yeterli
+            }
+
+            // 4) Aksi halde küçük bir JSON dön (badge vs. güncellemek için)
             return Ok(new { added = result.Added, total = result.TotalCount });
         }
+
     }
 }
