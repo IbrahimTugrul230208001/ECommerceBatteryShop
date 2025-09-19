@@ -3,8 +3,14 @@ using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using MimeKit;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Security.Claims;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ECommerceBatteryShop.Controllers;
@@ -33,17 +39,17 @@ public class AccountController : Controller
 
             if (password != confirmPassword)
             {
-                return Json(new { success = false, message = "Þifreler eþleþmiyor." });
+                return Json(new { success = false, message = "Åžifreler eÅŸleÅŸmiyor." });
             }
 
             if (await _accountRepository.ValidateEmailAsync(email) == false)
             {
-                return Json(new { success = false, message = "Email zaten kayýtlý." });
+                return Json(new { success = false, message = "Email zaten kayÄ±tlÄ±." });
             }
 
             if (await _accountRepository.ValidateUserNameAsync(email) == false)
             {
-                return Json(new { success = false, message = "Kullanýcý adý mevcut Baþka bir isim deneyiniz." });
+                return Json(new { success = false, message = "KullanÄ±cÄ± adÄ± mevcut BaÅŸka bir isim deneyiniz." });
             }
 
             string verificationCode = new Random().Next(100000, 999999).ToString();
@@ -89,6 +95,18 @@ public class AccountController : Controller
             return View(model);
         }
 
+        var claims = new List<Claim>
+        {
+            new Claim("sub", user.Id.ToString(CultureInfo.InvariantCulture)),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Name, string.IsNullOrWhiteSpace(user.UserName) ? user.Email : user.UserName)
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
         return RedirectToAction(nameof(Profile));
     }
 
@@ -111,5 +129,44 @@ public class AccountController : Controller
     public IActionResult VerifyAccount()
     {
         return View();
+    }
+
+    [HttpGet]
+    public IActionResult GoogleLogin(string? returnUrl = null)
+    {
+        var redirectUrl = Url.Action(nameof(GoogleCallback), "Account", new { returnUrl });
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = redirectUrl ?? Url.Content("~/")
+        };
+
+        return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GoogleCallback(string? returnUrl = null, string? remoteError = null)
+    {
+        returnUrl ??= Url.Content("~/");
+
+        if (!string.IsNullOrWhiteSpace(remoteError))
+        {
+            TempData["ErrorMessage"] = $"Google ile oturum aÃ§ma sÄ±rasÄ±nda hata oluÅŸtu: {remoteError}";
+            return RedirectToAction(nameof(LogIn));
+        }
+
+        var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        if (!authenticateResult.Succeeded || authenticateResult.Principal is null)
+        {
+            var externalResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!externalResult.Succeeded || externalResult.Principal is null)
+            {
+                TempData["ErrorMessage"] = "Google ile oturum aÃ§ma tamamlanamadÄ±.";
+                return RedirectToAction(nameof(LogIn));
+            }
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, externalResult.Principal, externalResult.Properties);
+        }
+
+        return LocalRedirect(returnUrl);
     }
 }
