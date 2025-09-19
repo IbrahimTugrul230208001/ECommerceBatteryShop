@@ -62,7 +62,7 @@ namespace ECommerceBatteryShop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(int productId, int quantity = 1, CancellationToken ct = default)
+        public async Task<IActionResult> Add(int productId, int quantity, CancellationToken ct = default)
         {
             // resolve owner: account vs guest
             CartOwner owner;

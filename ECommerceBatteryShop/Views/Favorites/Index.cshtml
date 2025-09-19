@@ -19,15 +19,8 @@
                 <form method="post" action="/Favorites/AddAllToCart" class="inline">
                     @Html.AntiForgeryToken()
                     <button type="submit"
-                            class="h-10 px-4 rounded-md bg-amber-300 hover:bg-amber-400 text-gray-900 font-semibold ring-1 ring-black/10 transition">
+                            class="h-10 px-4 cursor-pointer rounded-md bg-amber-300 hover:bg-amber-400 text-gray-900 font-semibold ring-1 ring-black/10 transition">
                         Tümünü Sepete Ekle
-                    </button>
-                </form>
-                <form method="post" action="/Favorites/Clear" class="inline">
-                    @Html.AntiForgeryToken()
-                    <button type="submit"
-                            class="h-10 px-4 rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700 transition">
-                        Temizle
                     </button>
                 </form>
             </div>
