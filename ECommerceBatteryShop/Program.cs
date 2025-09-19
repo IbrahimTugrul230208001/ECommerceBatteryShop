@@ -3,10 +3,14 @@ using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Concrete;
 using ECommerceBatteryShop.Options;
 using ECommerceBatteryShop.Services;
+using ECommerceBatteryShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,10 +57,55 @@ builder.Services.AddAuthentication(o =>
 {
     o.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
     o.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     o.SaveTokens = true;
     o.Scope.Add("email");
     o.Scope.Add("profile");
     o.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
+    o.Events.OnCreatingTicket = async ctx =>
+    {
+        var services = ctx.HttpContext.RequestServices;
+        var db = services.GetRequiredService<BatteryShopContext>();
+        var cancellationToken = ctx.HttpContext.RequestAborted;
+
+        var email = ctx.Identity?.FindFirst(ClaimTypes.Email)?.Value;
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return;
+        }
+
+        var user = await db.Users.SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
+        var displayName = ctx.Identity?.FindFirst(ClaimTypes.Name)?.Value;
+
+        if (user is null)
+        {
+            user = new User
+            {
+                Email = email,
+                UserName = string.IsNullOrWhiteSpace(displayName) ? email : displayName,
+                PasswordHash = string.Empty,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            db.Users.Add(user);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        else if (!string.IsNullOrWhiteSpace(displayName) && string.IsNullOrWhiteSpace(user.UserName))
+        {
+            user.UserName = displayName;
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        if (ctx.Identity is ClaimsIdentity identity)
+        {
+            foreach (var existing in identity.FindAll("sub").ToList())
+            {
+                identity.RemoveClaim(existing);
+            }
+
+            identity.AddClaim(new Claim("sub", user.Id.ToString(CultureInfo.InvariantCulture)));
+        }
+    };
 });
 
 var app = builder.Build();

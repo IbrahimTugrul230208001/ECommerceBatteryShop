@@ -4,10 +4,12 @@
 
 
                 <!-- Google -->
-                <button type="button"
-                        class="cursor-pointer mb-5 flex w-full items-center justify-center gap-3 rounded-lg
+                <a asp-action="GoogleLogin"
+                   asp-controller="Account"
+                   class="cursor-pointer mb-5 flex w-full items-center justify-center gap-3 rounded-lg
                  border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900
-                 shadow-sm ring-1 ring-black/5 transition hover:bg-gray-50 hover:shadow-md">
+                 shadow-sm ring-1 ring-black/5 transition hover:bg-gray-50 hover:shadow-md"
+                   role="button">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 533.5 544.3" class="h-5 w-5">
                         <path fill="#4285f4" d="M533.5 278.4c0-17.4-1.5-34.2-4.4-50.4H272.1v95.4h146.9c-6.3 34.2-25 63.3-53.6 82.7v68.7h86.6c50.7-46.7 80-115.3 80-196.4z" />
                         <path fill="#34a853" d="M272.1 544.3c72.4 0 133-23.9 177.3-64.9l-86.6-68.7c-24.1 16.2-55 25.7-90.7 25.7-69.7 0-128.7-47-149.7-110.2H36.5v69.3c44 86.6 134.8 148.8 235.6 148.8z" />
@@ -15,7 +17,7 @@
                         <path fill="#ea4335" d="M272.1 108.7c39.4 0 74.9 13.6 102.8 40.4l77.3-77.3C405.6 25.2 344.9 0 272.1 0 171.3 0 80.5 62.2 36.5 148.8l85.9 69.8c21-63.2 80-110.2 149.7-110.2z" />
                     </svg>
                     Google ile devam et
-                </button>
+                </a>
 
                 <!-- Divider -->
                 <div class="my-4 flex items-center gap-3 text-gray-400">
