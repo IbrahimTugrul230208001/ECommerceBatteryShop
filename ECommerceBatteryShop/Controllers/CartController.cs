@@ -3,9 +3,13 @@ using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Services;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text.Json;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -13,10 +17,34 @@ namespace ECommerceBatteryShop.Controllers
     {
         private readonly ICartRepository _repo;
         private readonly ICartService _cartService;
+        private const string CookieConsentCookieName = "COOKIE_CONSENT";
+        private const string CookieConsentRejectedValue = "rejected";
+        private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
         public CartController(ICartRepository repo, ICartService cartService)
         {
             _repo = repo;
             _cartService = cartService;
+        }
+
+        private bool IsCookieConsentRejected()
+        {
+            if (!Request.Cookies.TryGetValue(CookieConsentCookieName, out var consent))
+            {
+                return false;
+            }
+
+            return string.Equals(consent, CookieConsentRejectedValue, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private IActionResult CookieConsentRequired(string message)
+        {
+            var payload = JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                ["cookie-consent-required"] = message
+            });
+
+            Response.Headers["HX-Trigger"] = payload;
+            return StatusCode(StatusCodes.Status409Conflict, new { message });
         }
 
         public async Task<IActionResult> Index(CancellationToken ct)
@@ -29,6 +57,15 @@ namespace ECommerceBatteryShop.Controllers
             }
             else
             {
+                if (IsCookieConsentRejected())
+                {
+                    return View(new CartViewModel
+                    {
+                        CookiesDisabled = true,
+                        CookieMessage = CartConsentMessage
+                    });
+                }
+
                 var anonId = Request.Cookies["ANON_ID"];
                 if (string.IsNullOrEmpty(anonId))
                 {
@@ -74,6 +111,11 @@ namespace ECommerceBatteryShop.Controllers
             }
             else
             {
+                if (IsCookieConsentRejected())
+                {
+                    return CookieConsentRequired(CartConsentMessage);
+                }
+
                 var anonId = Request.Cookies["ANON_ID"];
                 if (string.IsNullOrEmpty(anonId))
                 {
@@ -106,6 +148,11 @@ namespace ECommerceBatteryShop.Controllers
             }
             else
             {
+                if (IsCookieConsentRejected())
+                {
+                    return CookieConsentRequired(CartConsentMessage);
+                }
+
                 var anonId = Request.Cookies["ANON_ID"];
                 if (string.IsNullOrEmpty(anonId))
                 {
@@ -130,6 +177,11 @@ namespace ECommerceBatteryShop.Controllers
             }
             else
             {
+                if (IsCookieConsentRejected())
+                {
+                    return CookieConsentRequired(CartConsentMessage);
+                }
+
                 var anonId = Request.Cookies["ANON_ID"];
                 if (string.IsNullOrEmpty(anonId))
                 {
