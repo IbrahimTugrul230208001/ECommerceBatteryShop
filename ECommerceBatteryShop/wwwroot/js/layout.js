@@ -100,3 +100,74 @@ document.body.addEventListener('htmx:afterSwap', e => {
     });
     document.addEventListener('keydown', ev => { if (ev.key === 'Escape') hide(); });
 })();
+
+window.cookieBanner = function () {
+  const cookieName = 'COOKIE_CONSENT';
+  const acceptedValue = 'accepted';
+  const rejectedValue = 'rejected';
+  const defaultMessage = 'Çerezleri kabul ediyor musunuz?';
+
+  const readConsent = () => {
+    const match = document.cookie.match(new RegExp('(?:^|; )' + cookieName + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+  };
+
+  const writeConsent = (value) => {
+    const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    document.cookie = `${cookieName}=${value}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+  };
+
+  const clearAnonId = () => {
+    document.cookie = 'ANON_ID=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';
+  };
+
+  return {
+    visible: false,
+    message: defaultMessage,
+    defaultMessage,
+    init() {
+      const consent = readConsent();
+      this.visible = !consent;
+      this.message = this.defaultMessage;
+
+      window.addEventListener('open-cookie-banner', (event) => {
+        const detail = typeof event.detail === 'string' ? event.detail : this.defaultMessage;
+        this.message = detail || this.defaultMessage;
+        this.visible = true;
+      });
+    },
+    accept() {
+      writeConsent(acceptedValue);
+      this.message = this.defaultMessage;
+      this.visible = false;
+      window.dispatchEvent(new CustomEvent('cookie-consent-updated', { detail: acceptedValue }));
+    },
+    reject() {
+      writeConsent(rejectedValue);
+      clearAnonId();
+      this.message = this.defaultMessage;
+      this.visible = false;
+      window.dispatchEvent(new CustomEvent('cookie-consent-updated', { detail: rejectedValue }));
+    },
+    close() {
+      this.visible = false;
+      this.message = this.defaultMessage;
+    }
+  };
+};
+
+document.body.addEventListener('cookie-consent-required', (event) => {
+  const detail = typeof event.detail === 'string'
+    ? event.detail
+    : (event.detail && event.detail.message) || '';
+  window.dispatchEvent(new CustomEvent('open-cookie-banner', { detail }));
+});
+
+window.addEventListener('cookie-consent-updated', (event) => {
+  if (event.detail === 'rejected') {
+    ['cart-count-mobile', 'cart-count-tablet', 'cart-count-desktop'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '0';
+    });
+  }
+});
