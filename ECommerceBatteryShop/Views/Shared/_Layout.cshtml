@@ -4,7 +4,7 @@
 @inject ECommerceBatteryShop.DataAccess.Abstract.ICategoryRepository CategoryRepository
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @inject ICartService CartService
-@{
+@{ 
     var categories = await CategoryRepository.GetCategoriesWithChildrenAsync();
     categories = categories
         .Where(c => c.ProductCategories.Any() || c.SubCategories.Any(sc => sc.ProductCategories.Any()))
@@ -16,6 +16,8 @@
         .ToList();
 
     var cartCount = 0;
+    var cookieConsent = Context.Request.Cookies["COOKIE_CONSENT"];
+    var cookiesRejected = string.Equals(cookieConsent, "rejected", System.StringComparison.OrdinalIgnoreCase);
     if (User.Identity?.IsAuthenticated == true)
     {
         var userIdClaim = User.FindFirst("sub")?.Value;
@@ -26,7 +28,7 @@
     }
     else
     {
-        var anonId = Context.Request.Cookies["ANON_ID"];
+        var anonId = cookiesRejected ? null : Context.Request.Cookies["ANON_ID"];
         if (!string.IsNullOrEmpty(anonId))
         {
             cartCount = await CartService.CountAsync(CartOwner.FromAnon(anonId));
@@ -50,63 +52,111 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header x-data="{ overlay:false }" @@keydown.escape.window="overlay=false" class="relative z-40">
+    <header x-data="{ overlay:false, mobileCategories:false }" @@keydown.escape.window="overlay=false; mobileCategories=false" class="relative z-40">
 
        
         <!-- MOBILE BAR -->
         <div class="md:hidden bg-gray-900 text-white relative z-50">
             <div class="mx-auto max-w-7xl px-4 h-14 flex items-center gap-3 py-6">
-                <!-- Search -->
-           
-                <div class="flex-1">
-                    <!-- wrapper controls positioning -->
-                    <div class="relative">
-
-                        <!-- Input box -->
-                        <form method="get" action="/Product/Index" class="h-10 rounded-md border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
-
-                            <!-- Search icon -->
-                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none"
-                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <circle cx="11" cy="11" r="7" stroke-width="2" />
-                                <path d="M21 21l-4.3-4.3" stroke-width="2" />
+                <!-- Category toggle & Search -->
+                <div class="flex-1 relative">
+                    <div class="flex items-center gap-2">
+                        <button type="button"
+                                aria-controls="mobile-category-menu"
+                                :aria-expanded="mobileCategories"
+                                @@click="mobileCategories = !mobileCategories; overlay = mobileCategories"
+                                class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/20 bg-white/5 text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="4" y1="6" x2="20" y2="6" />
+                                <line x1="4" y1="12" x2="20" y2="12" />
+                                <line x1="4" y1="18" x2="16" y2="18" />
                             </svg>
+                            <span class="sr-only">Kategorileri aç</span>
+                        </button>
 
-                            <!-- Input -->
-                            <input name="q"
-                                   type="search"
-                                   placeholder="Ara..."
-                                   hx-get="/Product/Search"
-                                   hx-trigger="keyup changed delay:300ms"
-                                   hx-target="#search-predictions-mobile"
-                                   hx-indicator="#search-spinner-mobile"
-                                   autocomplete="off"
-                                   @@focus="overlay=true" @@blur="overlay=false"
-                                   class="w-full pl-10 pr-10 text-black placeholder-gray-500 focus:outline-none h-10" />
+                        <div class="flex-1 relative">
+                            <form method="get" action="/Product/Index" class="h-10 rounded-md border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
 
-                            <!-- Submit button -->
-                            <button type="submit" aria-label="Search"
-                                    class="absolute cursor-pointer right-0 top-0 rounded-r-lg h-10 px-3 bg-amber-300 hover:bg-amber-400 grid place-items-center">
-                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                                    <circle cx="9.14" cy="9.14" r="7.64" stroke="#020202" stroke-width="1.9"></circle>
-                                    <line x1="22.5" y1="22.5" x2="14.39" y2="14.39" stroke="#020202" stroke-width="1.9"></line>
+                                <!-- Search icon -->
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none"
+                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <circle cx="11" cy="11" r="7" stroke-width="2" />
+                                    <path d="M21 21l-4.3-4.3" stroke-width="2" />
                                 </svg>
-                            </button>
 
-                            <!-- Spinner -->
-                            <span id="search-spinner-mobile"
-                                  class="htmx-indicator absolute right-12 top-1/2 -translate-y-1/2 text-gray-500 hidden">
-                                Yükleniyor...
-                            </span>
-                        </form>
-                        <!-- Predictions dropdown (sibling, not inside input box) -->
-                        <div id="search-predictions-mobile"
-                             class="absolute top-full left-0 w-full max-h-104 overflow-y-auto
-            rounded-md shadow-2xl bg-white text-black z-50 hidden"
-                             hx-swap="innerHTML"
-                             hx-on:htmx:afterSwap="this.classList.toggle('hidden', this.innerHTML.trim()==='')">
+                                <!-- Input -->
+                                <input name="q"
+                                       type="search"
+                                       placeholder="Ara..."
+                                       hx-get="/Product/Search"
+                                       hx-trigger="keyup changed delay:300ms"
+                                       hx-target="#search-predictions-mobile"
+                                       hx-indicator="#search-spinner-mobile"
+                                       autocomplete="off"
+                                       @@focus="overlay=true" @@blur="overlay=false"
+                                       class="w-full pl-10 pr-10 text-black placeholder-gray-500 focus:outline-none h-10" />
+
+                                <!-- Submit button -->
+                                <button type="submit" aria-label="Search"
+                                        class="absolute cursor-pointer right-0 top-0 rounded-r-lg h-10 px-3 bg-amber-300 hover:bg-amber-400 grid place-items-center">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                                        <circle cx="9.14" cy="9.14" r="7.64" stroke="#020202" stroke-width="1.9"></circle>
+                                        <line x1="22.5" y1="22.5" x2="14.39" y2="14.39" stroke="#020202" stroke-width="1.9"></line>
+                                    </svg>
+                                </button>
+
+                                <!-- Spinner -->
+                                <span id="search-spinner-mobile"
+                                      class="htmx-indicator absolute right-12 top-1/2 -translate-y-1/2 text-gray-500 hidden">
+                                    Yükleniyor...
+                                </span>
+                            </form>
+                            <div id="search-predictions-mobile"
+                                 class="absolute top-full left-0 w-full max-h-104 overflow-y-auto rounded-md shadow-2xl bg-white text-black z-50 hidden"
+                                 hx-swap="innerHTML"
+                                 hx-on:htmx:afterSwap="this.classList.toggle('hidden', this.innerHTML.trim()==='')">
+                            </div>
                         </div>
+                    </div>
 
+                    <div id="mobile-category-menu"
+                         x-cloak
+                         x-show="mobileCategories"
+                         x-transition.origin.top.left
+                         class="absolute left-0 right-0 top-full z-50 mt-3 max-h-96 overflow-y-auto rounded-2xl border border-gray-200 bg-white text-gray-900 shadow-2xl"
+                         @@click.outside="mobileCategories=false; overlay=false">
+                        <nav aria-label="Mobil kategoriler" class="p-4">
+                            <ul class="space-y-4">
+                                @foreach (var parent in categories)
+                                {
+                                    <li class="space-y-3">
+                                        <a href="@Url.Action("Index", "Product", new { categoryId = parent.Id })"
+                                           class="flex items-center justify-between text-base font-semibold text-gray-900 hover:text-amber-500">
+                                            <span>@parent.Name</span>
+                                            @if (parent.SubCategories != null && parent.SubCategories.Any())
+                                            {
+                                                <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.062l-4.24 4.24a.75.75 0 01-1.06 0l-4.24-4.24a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+                                            }
+                                        </a>
+                                        @if (parent.SubCategories != null && parent.SubCategories.Any())
+                                        {
+                                            <ul class="space-y-2 pl-3 text-sm text-gray-600">
+                                                @foreach (var child in parent.SubCategories)
+                                                {
+                                                    <li>
+                                                        <a href="@Url.Action("Index", "Product", new { categoryId = child.Id })"
+                                                           class="block rounded-md px-2 py-1.5 hover:bg-gray-100 hover:text-gray-900">@child.Name</a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                    </li>
+                                }
+                                <li>
+                                    <a href="/Home/Contact" class="block text-base font-semibold text-gray-900 hover:text-amber-500">İletişim</a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
 
@@ -137,8 +187,8 @@
             <div id="overlay"
                  class="fixed inset-0 z-40 bg-black/70 transition-opacity duration-200
               opacity-0 pointer-events-none"
-                 :class="overlay ? 'opacity-100 pointer-events-auto' : ''"
-                 @@click="overlay=false"></div>
+                 :class="(overlay || mobileCategories) ? 'opacity-100 pointer-events-auto' : ''"
+                 @@click="overlay=false; mobileCategories=false"></div>
         <!-- add this -->
         <!-- TABLET NAVBAR -->
         <nav x-data="{ scrolled:false }"
@@ -533,6 +583,48 @@
             </div>
         </div>
     </footer>
+
+    <div x-data="cookieBanner()"
+         x-init="init()"
+         x-cloak
+         x-show="visible"
+         x-transition.opacity.scale
+         role="dialog"
+         aria-live="assertive"
+         aria-label="Çerez bildirimi"
+         class="fixed bottom-4 left-4 right-4 z-50 max-w-lg rounded-2xl border border-gray-200 bg-white/95 p-5 shadow-2xl backdrop-blur md:left-auto md:right-6">
+        <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M11 3.055A9 9 0 1 0 21 12h-9V3.055Z" />
+                    <path d="M13 3.055V9h5.945A9 9 0 0 0 13 3.055Z" />
+                </svg>
+            </div>
+            <div class="flex-1 space-y-3 text-sm text-gray-700">
+                <h2 class="text-lg font-semibold text-gray-900">Çerez tercihleriniz</h2>
+                <p x-text="message"></p>
+                <p class="text-xs text-gray-500">Sepet ve favoriler gibi özellikleri kaydedebilmek için çerezleri kullanıyoruz.</p>
+            </div>
+            <button type="button" aria-label="Kapat" class="text-gray-400 transition hover:text-gray-600" @@click="close()">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                    <line x1="6" y1="18" x2="18" y2="6" />
+                </svg>
+            </button>
+        </div>
+        <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <button type="button"
+                    class="inline-flex h-10 items-center justify-center rounded-md bg-amber-300 px-5 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/60"
+                    @@click="accept()">
+                Çerezleri kabul et
+            </button>
+            <button type="button"
+                    class="inline-flex h-10 items-center justify-center rounded-md border border-gray-200 px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
+                    @@click="reject()">
+                Çerezleri reddet
+            </button>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
     <script src="~/js/layout.js"></script>
