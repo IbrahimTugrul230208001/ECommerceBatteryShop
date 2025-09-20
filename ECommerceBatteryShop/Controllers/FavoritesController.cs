@@ -1,16 +1,44 @@
-﻿using ECommerceBatteryShop.Models;
+using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
 
 namespace ECommerceBatteryShop.Controllers
 {
     public class FavoritesController : Controller
     {
         private readonly IFavoritesService _favoritesService;
+        private const string CookieConsentCookieName = "COOKIE_CONSENT";
+        private const string CookieConsentRejectedValue = "rejected";
+        private const string FavoritesConsentMessage = "Çerezleri reddettiniz. Favoriler özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
 
         public FavoritesController(IFavoritesService favoritesService)
         {
             _favoritesService = favoritesService;
+        }
+
+        private bool IsCookieConsentRejected()
+        {
+            if (!Request.Cookies.TryGetValue(CookieConsentCookieName, out var consent))
+            {
+                return false;
+            }
+
+            return string.Equals(consent, CookieConsentRejectedValue, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private IActionResult CookieConsentRequired(string message)
+        {
+            var payload = JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                ["cookie-consent-required"] = message
+            });
+
+            Response.Headers["HX-Trigger"] = payload;
+            return StatusCode(StatusCodes.Status409Conflict, new { message });
         }
         [HttpGet]
         public async Task<IActionResult> Index(CancellationToken ct)
@@ -23,10 +51,19 @@ namespace ECommerceBatteryShop.Controllers
             }
             else
             {
+                if (IsCookieConsentRejected())
+                {
+                    return View(new FavoriteViewModel
+                    {
+                        CookiesDisabled = true,
+                        CookieMessage = FavoritesConsentMessage
+                    });
+                }
+
                 var anonId = Request.Cookies["ANON_ID"];
                 if (string.IsNullOrEmpty(anonId))
                 {
-                    return View(new CartViewModel());
+                    return View(new FavoriteViewModel());
                 }
                 owner = FavoriteOwner.FromAnon(anonId);
             }
@@ -56,6 +93,11 @@ namespace ECommerceBatteryShop.Controllers
             }
             else
             {
+                if (IsCookieConsentRejected())
+                {
+                    return CookieConsentRequired(FavoritesConsentMessage);
+                }
+
                 var anonId = Request.Cookies["ANON_ID"];
                 if (string.IsNullOrEmpty(anonId))
                 {
