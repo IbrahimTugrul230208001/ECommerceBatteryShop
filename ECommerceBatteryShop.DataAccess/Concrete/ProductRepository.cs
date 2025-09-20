@@ -77,31 +77,29 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             }
         }
 
-        public async Task<List<string>> ProductSearchQueryResultAsync(string searchTerm)
+        public async Task<List<(int Id, string Name)>> ProductSearchPairsAsync(
+      string searchTerm, CancellationToken ct = default)
         {
-            try
-            {
-                IQueryable<Product> query = _ctx.Products.AsNoTracking();
+            var q = _ctx.Products.AsNoTracking();
 
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    var term = searchTerm.ToLowerInvariant();
-                    query = query.Where(b => b.Name.ToLower().Contains(term));
-                }
-
-                return await query
-                    .Select(b => b.Name)
-                    .Distinct()
-                    .OrderBy(n => n)
-                    .Take(10)
-                    .ToListAsync();
-            }
-            catch (Exception ex)
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                Console.WriteLine($"[ProductSearchQueryResultAsync] searchTerm='{searchTerm}' failed: {ex}");
-                throw;
+                var term = searchTerm.Trim().ToLowerInvariant();
+                q = q.Where(p => p.Name.ToLower().Contains(term));
             }
+
+            var raw = await q
+                .GroupBy(p => p.Name)
+                .Select(g => new { Id = g.Min(p => p.Id), Name = g.Key })
+                .OrderBy(x => x.Name)
+                .Take(10)
+                .ToListAsync(ct);
+
+            return raw.Select(x => (x.Id, x.Name)).ToList();
         }
+
+
+
 
         public async Task<IReadOnlyList<Product>> BringProductsByCategoryIdAsync(
       int categoryId,
@@ -122,6 +120,5 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                           .Take(pageSize)
                           .ToListAsync(ct);
         }
-
     }
 }
