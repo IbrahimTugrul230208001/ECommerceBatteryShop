@@ -17,4 +17,6 @@ public class CartViewModel
 {
     public List<CartItemViewModel> Items { get; set; } = new();
     public decimal SubTotal => Items.Sum(i => i.LineTotal);
+    public bool CookiesDisabled { get; set; }
+    public string? CookieMessage { get; set; }
 }
