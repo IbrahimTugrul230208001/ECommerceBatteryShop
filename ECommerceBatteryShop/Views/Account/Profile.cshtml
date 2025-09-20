@@ -2,9 +2,12 @@
     Layout = "_Layout";
     ViewData["Title"] = "Profil";
 
-    var displayName = User?.Identity?.IsAuthenticated == true
-        ? (string.IsNullOrWhiteSpace(User.Identity?.Name) ? "Değerli Müşteri" : User.Identity!.Name)
-        : "Misafir Kullanıcı";
+    var rawName = User?.Identity?.IsAuthenticated == true
+       ? (string.IsNullOrWhiteSpace(User.Identity?.Name) ? "Değerli Müşteri" : User.Identity!.Name)
+       : "Misafir Kullanıcı";
+
+    var displayName = rawName.Replace("-", "").Trim();
+
 
     var orders = new[]
     {
@@ -118,27 +121,8 @@
                                 </svg>
                             </a>
                         </li>
-                        <li>
-                            <a href="#support" class="group flex items-center justify-between rounded-xl px-4 py-3 transition hover:bg-gray-50">
-                                <span class="flex items-center gap-3 text-gray-700 group-hover:text-gray-900">
-                                    <svg class="h-4 w-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M18 10a6 6 0 1 0-12 0v3a4 4 0 0 0 4 4h1v3l4-3h1a4 4 0 0 0 4-4v-3" />
-                                    </svg>
-                                    Destek Merkezi
-                                </span>
-                                <svg class="h-4 w-4 text-gray-400 group-hover:text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M9 5l7 7-7 7" />
-                                </svg>
-                            </a>
-                        </li>
                     </ul>
                 </nav>
-
-                <div class="rounded-2xl bg-gradient-to-br from-amber-100 via-orange-100 to-white p-6 shadow-sm">
-                    <h3 class="text-lg font-semibold text-gray-900">Sadakat Kulübü</h3>
-                    <p class="mt-2 text-sm text-gray-600">Her siparişinizde puan kazanın, özel kampanyalardan yararlanın.</p>
-                    <button type="button" class="mt-4 inline-flex items-center justify-center rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-amber-400">Puanları Kullan</button>
-                </div>
             </aside>
 
             <!-- Sağ içerik -->
