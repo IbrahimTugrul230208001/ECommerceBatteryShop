@@ -120,9 +120,14 @@ namespace ECommerceBatteryShop.Controllers
         [HttpGet("/Product/Search")]
         public async Task<IActionResult> Search([FromQuery] string q, CancellationToken ct = default)
         {
-            var names = await _repo.ProductSearchQueryResultAsync(q ?? string.Empty);
-            return PartialView("_ProductPredictions", names);
+            var productData = await _repo.ProductSearchPairsAsync(q ?? string.Empty, ct);
+            var vm = productData
+                .Select(p => new ProductPredictionDto(p.Id, p.Name))
+                .ToList();
+
+            return PartialView("_ProductPredictions", vm);
         }
+
 
     }
 
