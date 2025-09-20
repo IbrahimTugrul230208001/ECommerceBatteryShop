@@ -84,7 +84,7 @@ namespace ECommerceBatteryShop.Controllers
             }
 
             // 4) Aksi halde küçük bir JSON dön (badge vs. güncellemek için)
-            return Ok(new { added = result.Added, total = result.TotalCount });
+            return Ok();
         }
 
     }
