@@ -162,26 +162,6 @@
                 </div>
 
 
-                <!-- Cart -->
-                <a href="/Cart/Index" aria-label="Sepet" class="relative inline-flex items-center h-9 px-3 rounded-md hover:bg-white/10">
-                    <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" />
-                    </svg>
-                    <span id="cart-count-mobile" class="absolute -top-1 -right-1 min-w-[1.1rem] h-5 px-1 rounded-full text-[10px] font-medium
-                   bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10">
-                    @cartText
-               </span>
-                </a>
-
-                <!-- Profile -->
-                <a href="@accountUrl" aria-label="@accountText" class="inline-flex items-center justify-center h-9 px-3 rounded-md cursor-pointer hover:bg-white/10">
-                    <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
-                        <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
-                    </svg>
-                </a>
             </div>
         </div>
 
@@ -514,10 +494,52 @@
        
 
     </header>
-    <main class="max-w-7xl mx-auto px-4 py-6">
+    <main class="max-w-7xl mx-auto px-4 pt-6 pb-28 md:pb-6">
         @RenderBody()
     </main>
-    <footer class="bg-gray-900 text-gray-300" aria-labelledby="site-footer">
+    <nav class="md:hidden fixed inset-x-0 bottom-0 z-50 bg-gray-900 text-white border-t border-white/10" aria-label="Mobil gezinme">
+        <div class="max-w-7xl mx-auto px-4">
+            <ul class="grid grid-cols-4">
+                <li>
+                    <a href="/Cart/Index" aria-label="Sepet" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
+                        <span class="relative inline-flex items-center justify-center">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" />
+                            </svg>
+                            <span id="cart-count-mobile" class="absolute -top-1 -right-1 min-w-[1.1rem] h-5 px-1 rounded-full text-[10px] font-medium bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10">@cartText</span>
+                        </span>
+                        <span>Sepet</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/Home/Index" aria-label="Ana sayfa" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />
+                        </svg>
+                        <span>Ana sayfa</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/Favorites/Index" aria-label="Favoriler" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M11.993 5.09691C11.0387 4.25883 9.78328 3.75 8.40796 3.75C5.42122 3.75 3 6.1497 3 9.10988C3 10.473 3.50639 11.7242 4.35199 12.67L12 20.25L19.4216 12.8944L19.641 12.6631C20.4866 11.7172 21 10.473 21 9.10988C21 6.1497 18.5788 3.75 15.592 3.75C14.2167 3.75 12.9613 4.25883 12.007 5.09692L12 5.08998L11.993 5.09691ZM12 7.09938L12.0549 7.14755L12.9079 6.30208L12.9968 6.22399C13.6868 5.61806 14.5932 5.25 15.592 5.25C17.763 5.25 19.5 6.99073 19.5 9.10988C19.5 10.0813 19.1385 10.9674 18.5363 11.6481L18.3492 11.8453L12 18.1381L5.44274 11.6391C4.85393 10.9658 4.5 10.0809 4.5 9.10988C4.5 6.99073 6.23699 5.25 8.40796 5.25C9.40675 5.25 10.3132 5.61806 11.0032 6.22398L11.0921 6.30203L11.9452 7.14752L12 7.09938Z" />
+                        </svg>
+                        <span>Favoriler</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@accountUrl" aria-label="@accountText" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+                            <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
+                        </svg>
+                        <span>Profil</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <footer class="bg-gray-900 text-gray-300 pb-28 md:pb-0" aria-labelledby="site-footer">
         <h2 id="site-footer" class="sr-only">Site alt bilgisi</h2>
 
         <!-- Main Footer -->
