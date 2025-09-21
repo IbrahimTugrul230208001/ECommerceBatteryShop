@@ -82,6 +82,13 @@ namespace ECommerceBatteryShop.Services
 
             return count;
         }
+        public async Task<Dictionary<int, decimal>> GetPricesAsync(IEnumerable<int> productIds, CancellationToken ct)
+        {
+            return await _db.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.Price, ct);
+        }
+
 
     }
 }

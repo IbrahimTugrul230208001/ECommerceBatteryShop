@@ -16,7 +16,7 @@ public sealed class CurrencyService : ICurrencyService
 
     private const string CacheKeyRate = "USDTRY_RATE";
     private const string CacheKeyLkg = "USDTRY_LKG";
-    private const decimal HardFallbackRate = 41m; // fixed multiplier if nothing cached
+    private const decimal HardFallbackRate = 41.3m; // fixed multiplier if nothing cached
 
     public CurrencyService(HttpClient http, IMemoryCache cache, IOptions<CurrencyOptions> opt, ILogger<CurrencyService> log)
     {

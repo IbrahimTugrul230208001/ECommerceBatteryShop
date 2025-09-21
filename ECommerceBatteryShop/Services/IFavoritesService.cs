@@ -7,6 +7,7 @@ namespace ECommerceBatteryShop.Services
         Task<int> CountAsync(FavoriteOwner owner, CancellationToken ct);
         Task<FavoriteList?> GetAsync(FavoriteOwner owner, bool createIfMissing, CancellationToken ct);
         Task<ToggleResult> ToggleAsync(FavoriteOwner owner, int productId, CancellationToken ct);
+        Task<Dictionary<int, decimal>> GetPricesAsync(IEnumerable<int> productIds, CancellationToken ct);
     }
 
 
