@@ -2968,6 +2968,11 @@
       left: calc(var(--spacing) * 6);
     }
   }
+  .sm\:ml-auto {
+    @media (width >= 40rem) {
+      margin-left: auto;
+    }
+  }
   .sm\:block {
     @media (width >= 40rem) {
       display: block;
