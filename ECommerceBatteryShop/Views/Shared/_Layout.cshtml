@@ -503,23 +503,13 @@
         <div class="max-w-7xl mx-auto px-4">
             <ul class="grid grid-cols-4">
                 <li>
-                    <a href="/Cart/Index" aria-label="Sepet" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
-                        <span class="relative inline-flex items-center justify-center">
-                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" />
-                            </svg>
-                            <span id="cart-count-mobile" class="absolute -top-1 -right-1 min-w-[1.1rem] h-5 px-1 rounded-full text-[10px] font-medium bg-amber-300 text-gray-900 grid place-items-center ring-1 ring-black/10">@cartText</span>
-                        </span>
-                        <span>Sepet</span>
-                    </a>
-                </li>
-                <li>
                     <a href="/Home/Index" aria-label="Ana sayfa" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
                         <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />
                         </svg>
                         <span>Ana sayfa</span>
                     </a>
+                 
                 </li>
                 <li>
                     <a href="/Favorites/Index" aria-label="Favoriler" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
@@ -528,6 +518,23 @@
                         </svg>
                         <span>Favoriler</span>
                     </a>
+                </li>
+                <li>
+                    <a href="/Cart/Index" aria-label="Sepet" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
+                        <span class="relative inline-flex items-center justify-center">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" />
+                            </svg>
+                            <span id="cart-count-mobile"
+                                  class="absolute -top-0.5 -right-0.5 min-w-[0.9rem] h-3 px-[2px] rounded-full
+         text-[8px] font-medium bg-amber-300 text-gray-900
+         grid place-items-center ring-1 ring-black/10">
+                                @cartText
+                            </span>
+                        </span>
+                        <span>Sepet</span>
+                    </a>
+                   
                 </li>
                 <li>
                     <a href="@accountUrl" aria-label="@accountText" class="flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors duration-150 hover:text-amber-300">
