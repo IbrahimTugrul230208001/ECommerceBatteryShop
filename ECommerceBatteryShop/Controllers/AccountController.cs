@@ -11,6 +11,7 @@ using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
@@ -191,7 +192,24 @@ public class AccountController : Controller
                 return RedirectToAction(nameof(LogIn));
             }
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, externalResult.Principal, externalResult.Properties);
+            var claims = externalResult.Principal.Claims.ToList();
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            var authProperties = new AuthenticationProperties
+            {
+                AllowRefresh = true,
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+            };
+
+            var tokens = externalResult.Properties?.GetTokens();
+            if (tokens is not null)
+            {
+                authProperties.StoreTokens(tokens);
+            }
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
         }
 
         return LocalRedirect(returnUrl);
