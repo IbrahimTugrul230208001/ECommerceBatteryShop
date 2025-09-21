@@ -19,24 +19,19 @@ namespace ECommerceBatteryShop.Controllers
 
         }
 
-        public async Task<IActionResult> Index(string? search, string? q, int? categoryId, CancellationToken ct)
+        public async Task<IActionResult> Index(string? search, string? q, int? categoryId,
+                                        decimal? minPrice, decimal? maxPrice,
+                                        CancellationToken ct)
         {
-
             var term = search ?? q;
 
             IReadOnlyList<Product> products;
             if (!string.IsNullOrWhiteSpace(term))
-            {
                 products = await _repo.ProductSearchResultAsync(term);
-            }
             else if (categoryId.HasValue && categoryId > 0)
-            {
                 products = await _repo.BringProductsByCategoryIdAsync(categoryId.Value, ct: ct);
-            }
             else
-            {
-                products = await _repo.GetMainPageProductsAsync(21, ct);
-            }
+                products = await _repo.GetMainPageProductsAsync(40, ct);
 
             const decimal KdvRate = 0.20m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
@@ -47,17 +42,39 @@ namespace ECommerceBatteryShop.Controllers
                 TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
                 _log.LogWarning("USD→TRY unavailable; using USD display.");
             }
+            var fx = rate ?? 1m; // display currency factor (TRY if rate!=null, USD otherwise)
 
-            var fx = rate ?? 1m;
+            // --- PRICE FILTERING ---
+            // Inputs are given in the display currency -> convert back to USD for filtering source prices.
+            decimal? minUsd = minPrice.HasValue ? Math.Max(0, minPrice.Value / fx) : null;
+            decimal? maxUsd = maxPrice.HasValue ? Math.Max(0, maxPrice.Value / fx) : null;
+            if (minUsd.HasValue && maxUsd.HasValue && minUsd > maxUsd)
+                (minUsd, maxUsd) = (maxUsd, minUsd); // normalize swapped inputs
+
+            if (minUsd is not null || maxUsd is not null)
+            {
+                products = products
+                    .Where(p => (!minUsd.HasValue || p.Price >= minUsd.Value) &&
+                                (!maxUsd.HasValue || p.Price <= maxUsd.Value))
+                    .ToList();
+            }
+
             var vm = products.Select(p => new ProductViewModel
             {
                 Id = p.Id,
                 Name = p.Name,
-                Price = _currency.ConvertUsdToTry(p.Price /*USD*/, fx) * (1 + KdvRate),
+                Price = _currency.ConvertUsdToTry(p.Price /* USD */, fx) * (1 + KdvRate), // displayed in TRY or USD
                 Rating = p.Rating,
                 ImageUrl = p.ImageUrl,
                 IsFavorite = favoriteIds.Contains(p.Id)
             }).ToList();
+
+            // for the view to persist current filters & "clear" button state
+            ViewBag.MinPrice = minPrice;
+            ViewBag.MaxPrice = maxPrice;
+            ViewBag.HasFilter = !string.IsNullOrWhiteSpace(term)
+                                || (categoryId.HasValue && categoryId > 0)
+                                || minPrice.HasValue || maxPrice.HasValue;
 
             return View(vm);
 

@@ -11,13 +11,15 @@ namespace ECommerceBatteryShop.Controllers
     public class FavoritesController : Controller
     {
         private readonly IFavoritesService _favoritesService;
+        private readonly ICurrencyService _currency;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string FavoritesConsentMessage = "Çerezleri reddettiniz. Favoriler özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
 
-        public FavoritesController(IFavoritesService favoritesService)
+        public FavoritesController(IFavoritesService favoritesService, ICurrencyService currency)
         {
             _favoritesService = favoritesService;
+            _currency = currency;
         }
 
         private bool IsCookieConsentRejected()
@@ -68,16 +70,35 @@ namespace ECommerceBatteryShop.Controllers
                 owner = FavoriteOwner.FromAnon(anonId);
             }
             var list = await _favoritesService.GetAsync(owner, createIfMissing: false, ct);
-            var model = new FavoriteViewModel();
-            if (list is not null)
+            if (list is null || list.Items.Count == 0) return View(new FavoriteViewModel());
+
+            var ids = list.Items.Select(i => i.ProductId).Distinct().ToArray();
+            var rate = await _currency.GetCachedUsdTryAsync(ct);   // ensure this is decimal
+            const decimal kdvRate = 0.20m;
+
+            var priceMap = await _favoritesService.GetPricesAsync(ids, ct); // IReadOnlyDictionary<int, decimal>
+
+            var model = new FavoriteViewModel
             {
-                model.Items = list.Items.Select(i => new FavoriteItemViewModel
+                Items = list.Items.Select(i =>
                 {
-                    ProductId = i.ProductId,
-                    Name = i.Product?.Name ?? string.Empty,
-                    ImageUrl = i.Product?.ImageUrl,
-                }).ToList();
-            }
+                    priceMap.TryGetValue(i.ProductId, out decimal basePrice);   // <-- non-nullable
+                    var priceWithKdvAndRate = basePrice * (1 + kdvRate) * rate;
+
+                    return new FavoriteItemViewModel
+                    {
+                        ProductId = i.ProductId,
+                        UnitPrice = (decimal)priceWithKdvAndRate,
+                        Name = i.Product?.Name ?? string.Empty,
+                        ImageUrl = i.Product?.ImageUrl
+                    };
+                }).ToList()
+            };
+
+            return View(model);
+
+
+
             return View(model);
         }
         [HttpPost]
