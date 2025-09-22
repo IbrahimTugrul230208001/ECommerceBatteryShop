@@ -34,15 +34,12 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
 
             try
             {
-                var query = _ctx.Products
-                    .AsNoTracking()
-                    .Include(p => p.Variants)
-                    // Optional filters:
-                    //.Where(p => p.IsActive)
-                    //.Where(p => p.Stock > 0)
-                    // Deterministic order:
-                    .OrderBy(p => p.Id)  // “newest” if Id is identity/autoincrement
-                    .ThenBy(p => p.Name); // tie-breaker to keep stable plans
+                IQueryable<Product> query = _ctx.Products
+      .AsNoTracking()
+      .Include(p => p.Variants)
+      .OrderBy(p => p.Id)
+      .ThenBy(p => p.Name);
+                // tie-breaker to keep stable plans
 
                 if (minUsd.HasValue)
                 {
