@@ -212,8 +212,8 @@
                   hx-post="/Address/Upsert"
                   hx-target="#address-list"
                   hx-swap="outerHTML"
-                  @@htmx:afterOnLoad.window="$store.address.close()">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  x-on:htmx:afterOnLoad.window="$store.address.close()">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Ad Soyad *</label>
                         <input name="FullName" required
