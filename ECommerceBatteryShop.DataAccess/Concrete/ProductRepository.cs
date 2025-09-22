@@ -1,7 +1,8 @@
-﻿using ECommerceBatteryShop.DataAccess.Abstract;
+using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -10,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace ECommerceBatteryShop.DataAccess.Concrete
 {
-
     public sealed class ProductRepository : IProductRepository
     {
         private readonly BatteryShopContext _ctx;
@@ -22,8 +22,16 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             _log = log;
         }
 
-        public async Task<IReadOnlyList<Product>> GetMainPageProductsAsync(int count, CancellationToken ct = default)
+        public async Task<(IReadOnlyList<Product> Items, int TotalCount)> GetMainPageProductsAsync(
+            int page,
+            int pageSize,
+            decimal? minUsd = null,
+            decimal? maxUsd = null,
+            CancellationToken ct = default)
         {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 30;
+
             try
             {
                 var query = _ctx.Products
@@ -36,49 +44,97 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                     .OrderBy(p => p.Id)  // “newest” if Id is identity/autoincrement
                     .ThenBy(p => p.Name); // tie-breaker to keep stable plans
 
-                return await query.Take(count).ToListAsync(ct);
+                if (minUsd.HasValue)
+                {
+                    query = query.Where(p => p.Price >= minUsd.Value);
+                }
+
+                if (maxUsd.HasValue)
+                {
+                    query = query.Where(p => p.Price <= maxUsd.Value);
+                }
+
+                var totalCount = await query.CountAsync(ct);
+
+                var items = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(ct);
+
+                return (items, totalCount);
             }
             catch (DbException dbEx)
             {
                 _log.LogError(dbEx, "DB error while fetching main page products");
-                return Array.Empty<Product>();
+                return (Array.Empty<Product>(), 0);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 _log.LogError(ex, "Unexpected error while fetching main page products");
                 throw; // don’t hide coding errors
             }
         }
+
         public async Task<Product?> GetProductAsync(int id, CancellationToken ct)
         {
             return await _ctx.Products
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
         }
-        public async Task<List<Product>> ProductSearchResultAsync(string searchTerm)
+
+        public async Task<(IReadOnlyList<Product> Items, int TotalCount)> ProductSearchResultAsync(
+            string searchTerm,
+            int page,
+            int pageSize,
+            decimal? minUsd = null,
+            decimal? maxUsd = null,
+            CancellationToken ct = default)
         {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 30;
+
             try
             {
                 IQueryable<Product> query = _ctx.Products.AsNoTracking();
 
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    var term = searchTerm.ToLowerInvariant();
-                    query = query.Where(b => b.Name.ToLower().Contains(term));
+                    var term = searchTerm.Trim().ToLowerInvariant();
+                    query = query.Where(p => p.Name.ToLower().Contains(term));
                 }
 
-                return await query
-                    .Take(20) // paging recommended in production
-                    .ToListAsync();
+                if (minUsd.HasValue)
+                {
+                    query = query.Where(p => p.Price >= minUsd.Value);
+                }
+
+                if (maxUsd.HasValue)
+                {
+                    query = query.Where(p => p.Price <= maxUsd.Value);
+                }
+
+                query = query
+                    .OrderBy(p => p.Name)
+                    .ThenBy(p => p.Id);
+
+                var totalCount = await query.CountAsync(ct);
+
+                var items = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(ct);
+
+                return (items, totalCount);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ProductSearchResultAsync] searchTerm='{searchTerm}' failed: {ex}");
+                _log.LogError(ex, "[ProductSearchResultAsync] searchTerm='{SearchTerm}' failed", searchTerm);
                 throw; // rethrow so you see it in logs/middleware
             }
         }
 
         public async Task<List<(int Id, string Name)>> ProductSearchPairsAsync(
-      string searchTerm, CancellationToken ct = default)
+            string searchTerm,
+            CancellationToken ct = default)
         {
             var q = _ctx.Products.AsNoTracking();
 
@@ -98,27 +154,53 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             return raw.Select(x => (x.Id, x.Name)).ToList();
         }
 
-
-
-
-        public async Task<IReadOnlyList<Product>> BringProductsByCategoryIdAsync(
-      int categoryId,
-      int page = 1,
-      int pageSize = 24,
-      CancellationToken ct = default)
+        public async Task<(IReadOnlyList<Product> Items, int TotalCount)> BringProductsByCategoryIdAsync(
+            int categoryId,
+            int page = 1,
+            int pageSize = 24,
+            decimal? minUsd = null,
+            decimal? maxUsd = null,
+            CancellationToken ct = default)
         {
-            if (categoryId <= 0) return Array.Empty<Product>();
+            if (categoryId <= 0)
+            {
+                return (Array.Empty<Product>(), 0);
+            }
 
-            var q =
-                from pc in _ctx.ProductCategories.AsNoTracking()
-                where pc.CategoryId == categoryId
-                select pc.Product!;
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 30;
 
-            return await q.Where(p => p != null)
-                          .OrderBy(p => p.Name)               // or CreatedAt/Popularity
-                          .Skip((page - 1) * pageSize)
-                          .Take(pageSize)
-                          .ToListAsync(ct);
+            var baseQuery = _ctx.ProductCategories
+                .AsNoTracking()
+                .Where(pc => pc.CategoryId == categoryId)
+                .Select(pc => pc.Product);
+
+            var query = baseQuery
+                .Where(p => p != null)
+                .Select(p => p!);
+
+            if (minUsd.HasValue)
+            {
+                query = query.Where(p => p.Price >= minUsd.Value);
+            }
+
+            if (maxUsd.HasValue)
+            {
+                query = query.Where(p => p.Price <= maxUsd.Value);
+            }
+
+            query = query
+                .OrderBy(p => p.Name)
+                .ThenBy(p => p.Id);
+
+            var totalCount = await query.CountAsync(ct);
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            return (items, totalCount);
         }
     }
 }
