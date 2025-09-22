@@ -2,7 +2,7 @@
     ViewBag.Title = "Checkout";
 }
 
-<main class="bg-white min-h-screen pt-10 pb-24">
+<main x-data class="bg-white min-h-screen pt-10 pb-24">
     <div class="mx-auto max-w-5xl px-4">
         <!-- Başlık + adım göstergesi -->
         <header class="mb-8">
@@ -13,67 +13,123 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Sol sütun -->
             <div class="lg:col-span-2 space-y-8">
+                <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">Adresler & Fatura Bilgileri</h2>
+                            <p class="text-sm text-gray-500">Teslimat adreslerinizi ve fatura bilgilerinizi yönetin.</p>
+                        </div>
+                        <button type="button"
+                                @@click="$store.address.openNew()"
+                                class="inline-flex items-center gap-2 rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-600 cursor-pointer transition hover:border-amber-400 hover:text-amber-700">
+                            Yeni adres ekle
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 5v14" />
+                                <path d="M5 12h14" />
+                            </svg>
+                        </button>
 
-                <!-- Adres -->
-                <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-slate-900">Teslimat Adresi</h2>
-                        <span class="text-xs text-slate-500">Zorunlu alanlar *</span>
                     </div>
 
-                    <form class="space-y-5" id="address-form">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="ad" class="block text-sm font-medium text-slate-700">Ad Soyad *</label>
-                                <input id="ad" name="ad" type="text" required
-                                       class="mt-1 border w-full rounded-lg border-slate-300 focus:border-amber-300 focus:ring-amber-300">
-                            </div>
-                            <div>
-                                <label for="telefon" class="block text-sm font-medium text-slate-700">Telefon *</label>
-                                <input id="telefon" name="telefon" type="tel" required
-                                       class="mt-1 border w-full rounded-lg border-slate-300 focus:border-amber-300 focus:ring-amber-300"
-                                       placeholder="+90 5XX XXX XX XX">
+                    <div id="address-list" class="mt-6 grid gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-gray-100 p-4">
+                            <p class="text-sm font-semibold text-gray-900">Ev Adresi</p>
+                            <p class="mt-1 text-sm text-gray-600">Ataköy Mah./ İstanbul</p>
+                            <div class="mt-4 flex gap-2 text-xs">
+                                <button type="button" class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600">Düzenle</button>
+                                <button type="button" class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600">Varsayılan Yap</button>
                             </div>
                         </div>
+                        <div class="rounded-xl border border-gray-100 p-4">
+                            <p class="text-sm font-semibold text-gray-900">İş Adresi</p>
+                            <p class="mt-1 text-sm text-gray-600">Teknopark İstanbul</p>
+                            <div class="mt-4 flex gap-2 text-xs">
+                                <button type="button" class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600">Düzenle</button>
+                                <button type="button" class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600">Varsayılan Yap</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                        <div>
-                            <label for="adres" class="block text-sm font-medium text-slate-700">Adres *</label>
-                            <textarea id="adres" name="adres" rows="3" required
-                                      class="mt-1 w-full border rounded-lg border-slate-300 focus:border-amber-300 focus:ring-amber-300"
-                                      placeholder="Mahalle, cadde, no, daire..."></textarea>
-                        </div>
+                <section x-data="payUi()" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-slate-900">Ödeme Yöntemi</h2>
+                        <span class="text-xs text-slate-500">Güvenli ödeme</span>
+                    </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label for="il" class="block text-sm font-medium text-slate-700">İl *</label>
-                                <input id="il" name="il" type="text" required
-                                       class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
-                            </div>
-                            <div>
-                                <label for="ilce" class="block text-sm font-medium text-slate-700">İlçe *</label>
-                                <input id="ilce" name="ilce" type="text" required
-                                       class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
-                            </div>
-                            <div>
-                                <label for="posta" class="block text-sm font-medium text-slate-700">Posta Kodu *</label>
-                                <input id="posta" name="posta" type="text" required
-                                       class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
-                            </div>
-                        </div>
-                        <p class="text-slate-700 mb-3">Kart/online ödeme ile hızlıca tamamlayın.</p>
+                    <!-- Tabs / radios -->
+                    <fieldset class="space-y-3">
+                        <label class="flex items-center gap-3">
+                            <input type="radio" name="pm" value="card" x-model="method" class="text-amber-500">
+                            <span class="font-medium text-slate-800">Banka/Kredi Kartı</span>
+                        </label>
+                        <label class="flex items-center gap-3">
+                            <input type="radio" name="pm" value="iban" x-model="method" class="text-amber-500">
+                            <span class="font-medium text-slate-800">Havale/EFT (IBAN)</span>
+                        </label>
+                        <!-- optional -->
+                        <!-- <label class="flex items-center gap-3"><input type="radio" name="pm" value="cod" x-model="method">Kapıda Ödeme</label> -->
+                    </fieldset>
 
-                        <!-- Online/Kart -->
-                        <div class="mb-6 flex flex-2 gap-5">
-                            <a href="#"
-                               class="inline-flex h-12 w-full items-center justify-center rounded-xl bg-amber-300 font-semibold text-gray-900 shadow-sm hover:bg-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-100 transition">
-                                Adresi kaydet
-                            </a>
-                            <a href="#"
-                               class="inline-flex h-12 w-full items-center justify-center rounded-xl bg-orange-600 font-semibold text-gray-100 shadow-sm hover:bg-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-100 transition">
-                                Ödemeye Devam Et
-                            </a>
+                    <!-- CARD BLOCK -->
+                    <div x-show="method==='card'" x-transition class="mt-5 space-y-4">
+                        <!-- Saved cards -->
+                        <template x-if="saved.length">
+                            <div class="space-y-2">
+                                <p class="text-sm text-slate-700">Kayıtlı Kartlar</p>
+                                <template x-for="c in saved" :key="c.id">
+                                    <label class="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50">
+                                        <span class="flex items-center gap-3">
+                                            <input type="radio" name="cardSel" :value="c.id" x-model="selectedId">
+                                            <span class="text-sm text-slate-800" x-text="`${c.brand} •••• ${c.last4}`"></span>
+                                        </span>
+                                        <span class="text-xs text-slate-500" x-text="c.holder"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </template>
+
+                        <!-- New card form (collapsible if there are saved cards) -->
+                        <details :open="!saved.length" class="rounded-lg border p-3 bg-gray-50">
+                            <summary class="cursor-pointer text-sm font-medium text-slate-800">Yeni kart ekle</summary>
+                            <div class="mt-3 grid gap-3">
+                                <input x-model="newCard.name" placeholder="Kart üzerindeki isim" class="rounded-lg border px-3 py-2">
+                                <input x-model="newCard.number" @@input ="maskCard" inputmode="numeric" maxlength="19"
+                                       placeholder="XXXX XXXX XXXX XXXX" class="rounded-lg border px-3 py-2">
+                                <div class="grid grid-cols-3 gap-3">
+                                    <input x-model="newCard.exp" @@input ="maskExp" inputmode="numeric" maxlength="5"
+                                           placeholder="AA/YY" class="rounded-lg border px-3 py-2">
+                                    <input x-model="newCard.cvc" inputmode="numeric" maxlength="4"
+                                           placeholder="CVC" class="rounded-lg border px-3 py-2">
+                                    <label class="flex items-center gap-2 text-sm">
+                                        <input type="checkbox" x-model="newCard.save" class="rounded border-slate-300"> Kaydet
+                                    </label>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- IBAN BLOCK -->
+                    <div x-show="method==='iban'" x-transition class="mt-5 space-y-3">
+                        <p class="text-sm text-slate-700">Aşağıdaki IBAN’a transfer yapın. Açıklamaya sipariş numaranızı yazın.</p>
+                        <div class="flex items-center gap-2">
+                            <code id="ibanText" class="flex-1 bg-white border rounded-lg p-3 font-mono text-sm">TR12 3456 7890 1234 5678 9012 34</code>
+                            <button type="button" id="copyIban" class="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50">Kopyala</button>
                         </div>
-                    </form>
+                    </div>
+
+                    <div class="mt-6 flex items-center gap-2">
+                        <input id="sozlesme" type="checkbox" class="rounded border-slate-300">
+                        <label for="sozlesme" class="text-xs text-slate-600">
+                            Ön bilgilendirme formu ve Mesafeli satış sözleşmesini onaylıyorum.
+                        </label>
+                    </div>
+
+                    <button type="button"
+                            @@click ="placeOrder"
+                            class="mt-4 w-full h-12 rounded-xl bg-amber-300 font-semibold text-gray-900 hover:bg-amber-400 disabled:opacity-60">
+                        Siparişi onayla
+                    </button>
                 </section>
 
 
@@ -140,6 +196,67 @@
         </div>
     </div>
 </main>
+<!-- Address Add Modal -->
+<div x-cloak>
+    <div x-show="$store.address.open" x-transition.opacity
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40"
+         role="dialog" aria-modal="true" @@keydown.window.escape="$store.address.close()">
+        <div class="w-full max-w-lg rounded-2xl bg-white shadow-xl ring-1 ring-black/10"
+             @@click.outside="$store.address.close()">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-base font-semibold text-slate-900">Yeni Adres</h3>
+                <button class="p-2 rounded hover:bg-slate-100" @@click="$store.address.close()" aria-label="Kapat">✕</button>
+            </div>
+
+            <form class="p-4 space-y-4"
+                  hx-post="/Address/Upsert"
+                  hx-target="#address-list"
+                  hx-swap="outerHTML"
+                  @@htmx:afterOnLoad.window="$store.address.close()">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Ad Soyad *</label>
+                        <input name="FullName" required
+                               class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Telefon *</label>
+                        <input name="Phone" required placeholder="+90 5XX XXX XX XX"
+                               class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Adres *</label>
+                    <textarea name="Line" rows="3" required
+                              class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">İl *</label>
+                        <input name="City" required class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">İlçe *</label>
+                        <input name="District" required class="mt-1 w-full rounded-lg border border-slate-300 focus:border-amber-300 focus:ring-amber-300">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" @@click="store.address.close()"
+                            class="rounded-lg border px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                        Vazgeç
+                    </button>
+                    <button type="submit"
+                            class="rounded-lg bg-amber-300 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-amber-400">
+                        Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
     // Basit IBAN kopyalama
@@ -156,4 +273,50 @@
         } catch { /* sessizce geç */ }
       });
     })();
+
+
+        function payUi(){
+      return {
+        method:'card',
+        saved:[ /* fetch from server: {id:1, brand:'TROY', last4:'4487', holder:'İBRAHİM T.'} */ ],
+        selectedId:null,
+        newCard:{name:'', number:'', exp:'', cvc:'', save:true},
+        digits(s){ return (s||'').replace(/\D/g,''); },
+        maskCard(){ let d=this.digits(this.newCard.number).slice(0,16); this.newCard.number=d.replace(/(\d{4})(?=\d)/g,'$1 ').trim(); },
+        maskExp(){ let d=this.digits(this.newCard.exp).slice(0,4); this.newCard.exp=(d.length>=3)? d.slice(0,2)+'/'+d.slice(2) : d; },
+        luhn(num){ let d=this.digits(num), s=0, alt=false; for(let i=d.length-1;i>=0;i--){ let n=+d[i]; if(alt){ n*=2; if(n>9)n-=9; } s+=n; alt=!alt; } return d.length>=13 && s%10===0; },
+        async placeOrder(){
+          if(!document.getElementById('sozlesme').checked){ alert('Sözleşmeyi onaylayın.'); return; }
+          if(this.method==='card'){
+            if(this.selectedId){
+              // saved card
+              htmx.ajax('POST','/Checkout/PlaceOrder',{values:{paymentMethod:'card_saved', cardId:this.selectedId}});
+              return;
+            }
+            // new card -> in production, tokenize with PSP (iyzico/PayTR/Stripe) and send token
+            if(!this.luhn(this.newCard.number)){ alert('Kart numarası geçersiz.'); return; }
+            htmx.ajax('POST','/Checkout/PlaceOrder',{
+              headers:{ /* 'Content-Type':'application/json' if you prefer */ },
+              values:{
+                paymentMethod:'card_new',
+                name:this.newCard.name,
+                number:this.digits(this.newCard.number),
+                exp:this.newCard.exp,
+                cvc:this.newCard.cvc,
+                save:this.newCard.save
+              }
+            });
+          } else if(this.method==='iban'){
+            htmx.ajax('POST','/Checkout/PlaceOrder',{values:{paymentMethod:'iban'}});
+          }
+        }
+      }
+    }
+          document.addEventListener('alpine:init', () => {
+      Alpine.store('address', {
+        open: false,
+        openNew(){ this.open = true; },
+        close(){ this.open = false; }
+      });
+    });
 </script>

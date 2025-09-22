@@ -4,6 +4,10 @@
 @{
     ViewBag.Title = "Sepetim";
     var cookieMessage = Model.CookieMessage ?? "Çerezleri kabul etmediğiniz için sepetiniz kaydedilemiyor.";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var authenticateUrl = isAuthenticated
+       ? Url.Action("Checkout", "Cart") ?? "/Cart/Checkout"
+       : Url.Action("LogIn", "Account") ?? "/Account/LogIn";
 }
 
 @functions {
@@ -206,7 +210,7 @@ else
                     </div>
                 </dl>
 
-                <a href="/Cart/Checkout" class="mt-4 w-full h-12 inline-flex items-center justify-center rounded-xl bg-amber-300 font-semibold hover:bg-amber-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-slate-200 transition hover:shadow-md">
+                    <a href="@authenticateUrl" class="mt-4 w-full h-12 inline-flex items-center justify-center rounded-xl bg-amber-300 font-semibold hover:bg-amber-400 shadow-sm focus:outline-none focus:ring-4 focus:ring-slate-200 transition hover:shadow-md">
                     Alışverişi tamamla
                 </a>
                 <p class="mt-2 text-xs text-slate-500 text-center">3D Secure desteklenir</p>
