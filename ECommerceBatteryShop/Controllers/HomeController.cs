@@ -68,8 +68,8 @@ namespace ECommerceBatteryShop.Controllers
 
             foreach (var def in plan)
             {
-                var raw = await _repo.BringProductsByCategoryIdAsync(def.CatId, 1, perSection * 2); // kk buffer
-                var ps = raw.Where(p => !used.Contains(p.Id)).Take(perSection).ToList();
+                var raw = await _repo.BringProductsByCategoryIdAsync(def.CatId, 1, perSection * 2);
+                var ps = raw.Items.Where(p => !used.Contains(p.Id)).Take(perSection).ToList();
                 foreach (var p in ps) used.Add(p.Id);
 
                 if (ps.Count > 0)

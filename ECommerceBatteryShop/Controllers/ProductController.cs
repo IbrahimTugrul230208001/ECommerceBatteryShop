@@ -1,4 +1,5 @@
-﻿using ECommerceBatteryShop.DataAccess.Abstract;
+using System;
+using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -21,18 +22,10 @@ namespace ECommerceBatteryShop.Controllers
 
         public async Task<IActionResult> Index(string? search, string? q, int? categoryId,
                                         decimal? minPrice, decimal? maxPrice,
-                                        CancellationToken ct)
+                                        int page = 1,
+                                        CancellationToken ct = default)
         {
             var term = search ?? q;
-
-            IReadOnlyList<Product> products;
-            if (!string.IsNullOrWhiteSpace(term))
-                products = await _repo.ProductSearchResultAsync(term);
-            else if (categoryId.HasValue && categoryId > 0)
-                products = await _repo.BringProductsByCategoryIdAsync(categoryId.Value, ct: ct);
-            else
-                products = await _repo.GetMainPageProductsAsync(40, ct);
-
             const decimal KdvRate = 0.20m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
@@ -51,15 +44,44 @@ namespace ECommerceBatteryShop.Controllers
             if (minUsd.HasValue && maxUsd.HasValue && minUsd > maxUsd)
                 (minUsd, maxUsd) = (maxUsd, minUsd); // normalize swapped inputs
 
-            if (minUsd is not null || maxUsd is not null)
+            const int PageSize = 30;
+            var currentPage = page <= 0 ? 1 : page;
+
+            async Task<(IReadOnlyList<Product> Items, int TotalCount)> LoadPageAsync(int targetPage)
             {
-                products = products
-                    .Where(p => (!minUsd.HasValue || p.Price >= minUsd.Value) &&
-                                (!maxUsd.HasValue || p.Price <= maxUsd.Value))
-                    .ToList();
+                if (!string.IsNullOrWhiteSpace(term))
+                {
+                    return await _repo.ProductSearchResultAsync(term, targetPage, PageSize, minUsd, maxUsd, ct);
+                }
+
+                if (categoryId.HasValue && categoryId > 0)
+                {
+                    return await _repo.BringProductsByCategoryIdAsync(categoryId.Value, targetPage, PageSize, minUsd, maxUsd, ct);
+                }
+
+                return await _repo.GetMainPageProductsAsync(targetPage, PageSize, minUsd, maxUsd, ct);
             }
 
-            var vm = products.Select(p => new ProductViewModel
+            var result = await LoadPageAsync(currentPage);
+            var products = result.Items;
+            var totalCount = result.TotalCount;
+
+            var totalPages = totalCount == 0
+                ? 1
+                : (int)Math.Ceiling(totalCount / (double)PageSize);
+
+            if (totalCount > 0 && currentPage > totalPages)
+            {
+                currentPage = totalPages;
+                result = await LoadPageAsync(currentPage);
+                products = result.Items;
+                totalCount = result.TotalCount;
+                totalPages = totalCount == 0
+                    ? 1
+                    : (int)Math.Ceiling(totalCount / (double)PageSize);
+            }
+
+            var mapped = products.Select(p => new ProductViewModel
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -75,6 +97,18 @@ namespace ECommerceBatteryShop.Controllers
             ViewBag.HasFilter = !string.IsNullOrWhiteSpace(term)
                                 || (categoryId.HasValue && categoryId > 0)
                                 || minPrice.HasValue || maxPrice.HasValue;
+            ViewBag.SearchTerm = term;
+            ViewBag.CategoryId = categoryId;
+            ViewBag.CurrentPage = currentPage;
+
+            var vm = new ProductIndexViewModel
+            {
+                Products = mapped,
+                CurrentPage = currentPage,
+                TotalPages = totalPages,
+                PageSize = PageSize,
+                TotalCount = totalCount
+            };
 
             return View(vm);
 
