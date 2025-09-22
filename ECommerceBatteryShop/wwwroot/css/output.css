@@ -1010,6 +1010,9 @@
   .min-w-\[1\.25rem\] {
     min-width: 1.25rem;
   }
+  .min-w-\[1rem\] {
+    min-width: 1rem;
+  }
   .min-w-\[8rem\] {
     min-width: 8rem;
   }
@@ -1902,9 +1905,16 @@
   .text-\[8px\] {
     font-size: 8px;
   }
+  .text-\[10px\] {
+    font-size: 10px;
+  }
   .leading-6 {
     --tw-leading: calc(var(--spacing) * 6);
     line-height: calc(var(--spacing) * 6);
+  }
+  .leading-none {
+    --tw-leading: 1;
+    line-height: 1;
   }
   .leading-snug {
     --tw-leading: var(--leading-snug);
