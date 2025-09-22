@@ -1,18 +1,38 @@
-﻿@using System.Globalization
-@model IEnumerable<ECommerceBatteryShop.Models.ProductViewModel>
+@model ECommerceBatteryShop.Models.ProductIndexViewModel
+@using System.Globalization
 
 @{
-    var products = Model ?? Array.Empty<ECommerceBatteryShop.Models.ProductViewModel>();
+    var products = Model?.Products ?? Array.Empty<ECommerceBatteryShop.Models.ProductViewModel>();
 
     var hasResults = products.Any();
-    var minQ = (ViewBag.MinPrice as decimal?)?.ToString("0.##") ?? "";
-    var maxQ = (ViewBag.MaxPrice as decimal?)?.ToString("0.##") ?? "";
+    var minQ = (ViewBag.MinPrice as decimal?)?.ToString("0.##") ?? string.Empty;
+    var maxQ = (ViewBag.MaxPrice as decimal?)?.ToString("0.##") ?? string.Empty;
     var hasFilter = (bool)(ViewBag.HasFilter ?? false);
+    var currentPage = Model?.CurrentPage ?? 1;
+    var totalPages = Math.Max(1, Model?.TotalPages ?? 1);
+    var pageSize = Model?.PageSize ?? 30;
+    var totalCount = Model?.TotalCount ?? 0;
+    var showingFrom = totalCount == 0 ? 0 : (currentPage - 1) * pageSize + 1;
+    var showingTo = totalCount == 0 ? 0 : Math.Min(currentPage * pageSize, totalCount);
+    var searchTerm = ViewBag.SearchTerm as string ?? string.Empty;
+    int? currentCategoryId = ViewBag.CategoryId is int cid ? cid : ViewBag.CategoryId as int?;
+    var minParam = ViewBag.MinPrice is decimal minVal ? minVal.ToString(CultureInfo.InvariantCulture) : null;
+    var maxParam = ViewBag.MaxPrice is decimal maxVal ? maxVal.ToString(CultureInfo.InvariantCulture) : null;
+    var hasSearch = !string.IsNullOrWhiteSpace(searchTerm);
+
+    Func<int, object> pageRoute = targetPage => new
+    {
+        page = targetPage,
+        search = hasSearch ? searchTerm : null,
+        q = hasSearch ? searchTerm : null,
+        categoryId = currentCategoryId,
+        minPrice = minParam,
+        maxPrice = maxParam
+    };
 }
 
 <!-- Include once globally (Layout). Safe if duplicated -->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
 
 
 
@@ -70,8 +90,18 @@ else
     <h1 class="text-2xl font-bold mb-4">Ürünler</h1>
 
     <div class="mx-auto max-w-screen-lg px-4 sm:px-2 md:px-4">
- 
+
         <form method="get" class="mb-6 flex flex-wrap items-center gap-x-3 gap-y-3">
+            @if (hasSearch)
+            {
+                <input type="hidden" name="search" value="@searchTerm" />
+                <input type="hidden" name="q" value="@searchTerm" />
+            }
+            @if (currentCategoryId.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@currentCategoryId" />
+            }
+
             <input type="number" step="0.01" name="minPrice" placeholder="Min Fiyat"
                    value="@minQ" class="w-full sm:w-auto flex-1 min-w-[140px] sm:min-w-[200px]
                                   border border-gray-200 focus:border-gray-400 focus:ring-0
@@ -95,6 +125,22 @@ else
             }
         </form>
     </div>
+
+    @if (totalCount > 0)
+    {
+        <div class="mb-4 text-sm text-slate-600">
+            @if (showingFrom == showingTo)
+            {
+                <span>@showingFrom.</span>
+            }
+            else
+            {
+                <span>@showingFrom-@showingTo.</span>
+            }
+            <span> ürün gösteriliyor · Toplam @totalCount ürün</span>
+        </div>
+    }
+
     <!-- PRODUCT GRID -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
         @foreach (var product in products)
@@ -199,6 +245,87 @@ else
             </div>
         }
     </div>
+
+    @if (totalPages > 1)
+    {
+        var prevDisabled = currentPage <= 1;
+        var nextDisabled = currentPage >= totalPages;
+        var maxPageButtons = 5;
+        var startPage = Math.Max(1, currentPage - 2);
+        var endPage = Math.Min(totalPages, startPage + maxPageButtons - 1);
+        if (endPage - startPage < maxPageButtons - 1)
+        {
+            startPage = Math.Max(1, endPage - maxPageButtons + 1);
+        }
+
+        <nav class="mt-10 flex flex-col items-center gap-3" aria-label="Sayfalama">
+            <div class="text-sm text-slate-600">
+                @if (showingFrom == showingTo)
+                {
+                    <span>@showingFrom.</span>
+                }
+                else
+                {
+                    <span>@showingFrom-@showingTo.</span>
+                }
+                <span> ürün listeleniyor · @totalPages sayfa</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+                @if (prevDisabled)
+                {
+                    <span class="px-3 py-2 text-sm text-slate-400 border border-slate-200 rounded-lg cursor-default">Önceki</span>
+                }
+                else
+                {
+                    var prevUrl = Url.Action("Index", "Product", pageRoute(currentPage - 1));
+                    <a href="@prevUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">Önceki</a>
+                }
+
+                @if (startPage > 1)
+                {
+                    var firstUrl = Url.Action("Index", "Product", pageRoute(1));
+                    <a href="@firstUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">1</a>
+                    if (startPage > 2)
+                    {
+                        <span class="px-2 text-slate-400">…</span>
+                    }
+                }
+
+                @for (var i = startPage; i <= endPage; i++)
+                {
+                    if (i == currentPage)
+                    {
+                        <span class="px-3 py-2 text-sm font-semibold rounded-lg bg-amber-300 text-gray-900 shadow">@i</span>
+                    }
+                    else
+                    {
+                        var pageUrl = Url.Action("Index", "Product", pageRoute(i));
+                        <a href="@pageUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">@i</a>
+                    }
+                }
+
+                @if (endPage < totalPages)
+                {
+                    if (endPage < totalPages - 1)
+                    {
+                        <span class="px-2 text-slate-400">…</span>
+                    }
+                    var lastUrl = Url.Action("Index", "Product", pageRoute(totalPages));
+                    <a href="@lastUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">@totalPages</a>
+                }
+
+                @if (nextDisabled)
+                {
+                    <span class="px-3 py-2 text-sm text-slate-400 border border-slate-200 rounded-lg cursor-default">Sonraki</span>
+                }
+                else
+                {
+                    var nextUrl = Url.Action("Index", "Product", pageRoute(currentPage + 1));
+                    <a href="@nextUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">Sonraki</a>
+                }
+            </div>
+        </nav>
+    }
 }
 
 <style>
