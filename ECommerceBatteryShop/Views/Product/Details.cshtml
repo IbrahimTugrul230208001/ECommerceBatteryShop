@@ -88,7 +88,7 @@
                                     : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
                             class="h-11 min-w-[8rem] rounded-md text-sm font-semibold shadow
            transition-colors duration-300 relative overflow-hidden
-           rounded-xl
+           rounded-md
            focus-visible:ring-yellow-400 cursor-pointer ">
                         <span x-show="!added"
                               x-transition:enter="transition transform ease-out duration-250"
@@ -116,13 +116,32 @@
                         </span>
                     </button>
 
-                    <button
-                        hx-post='@Url.Action("Add","Cart")'
-                        hx-vals='js:{ productId: @Model.Id, quantity: qty }'
-                        hx-swap="none"
-                        hx-on:htmx:afterRequest="window.location='/Cart/Index'"
-                        class="h-11 px-5 rounded-xl cursor-pointer bg-orange-500 text-white font-semibold shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-1 focus:ring-orange-200">
-                        Hemen Al
+                    <button type="button"
+                            x-data="{ fav: @(Model.IsFavorite ? "true" : "false"), busy: false }"
+                            @@click="if (busy) return; busy=true; fav=!fav; setTimeout(()=> busy=false, 300);"
+                            hx-post="/Favorites/Toggle"
+                            :hx-vals="JSON.stringify({ productId: @Model.Id})"
+                            hx-swap="none"
+                            :aria-pressed="fav.toString()"
+                            :class="fav ? 'text-rose-600 border-rose-300 bg-rose-50' : 'text-gray-700 border-gray-300 hover:bg-gray-100'"
+                            class="relative h-11 w-11 grid place-items-center rounded-md border cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">
+                        <span class="sr-only" x-text="fav ? 'Favorilerden çıkar' : 'Favorilere ekle'"></span>
+
+                        <div class="relative h-5 w-5">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="absolute inset-0 h-5 w-5 transition-all duration-200 ease-out"
+                                 :class="fav ? 'opacity-0 scale-90' : 'opacity-100 scale-100'"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="absolute inset-0 h-5 w-5 transition-all duration-220 ease-out"
+                                 :class="fav ? 'opacity-100 scale-100' : 'opacity-0 scale-110'"
+                                 viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                        </div>
                     </button>
                 </div>
 

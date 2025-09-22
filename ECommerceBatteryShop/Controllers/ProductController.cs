@@ -112,39 +112,40 @@ namespace ECommerceBatteryShop.Controllers
 
             return View(vm);
 
-            async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
+           
+
+        }
+        async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
+        {
+            FavoriteOwner? owner = null;
+
+            if (User.Identity?.IsAuthenticated == true)
             {
-                FavoriteOwner? owner = null;
-
-                if (User.Identity?.IsAuthenticated == true)
+                var sub = User.FindFirst("sub")?.Value;
+                if (int.TryParse(sub, out var userId))
                 {
-                    var sub = User.FindFirst("sub")?.Value;
-                    if (int.TryParse(sub, out var userId))
-                    {
-                        owner = FavoriteOwner.FromUser(userId);
-                    }
+                    owner = FavoriteOwner.FromUser(userId);
                 }
-                else
+            }
+            else
+            {
+                var anonId = Request.Cookies["ANON_ID"];
+                if (!string.IsNullOrWhiteSpace(anonId))
                 {
-                    var anonId = Request.Cookies["ANON_ID"];
-                    if (!string.IsNullOrWhiteSpace(anonId))
-                    {
-                        owner = FavoriteOwner.FromAnon(anonId);
-                    }
+                    owner = FavoriteOwner.FromAnon(anonId);
                 }
-
-                if (owner is null)
-                {
-                    return new HashSet<int>();
-                }
-
-                var list = await _favorites.GetAsync(owner, createIfMissing: false, token);
-
-                return list is null
-                    ? new HashSet<int>()
-                    : new HashSet<int>(list.Items.Select(i => i.ProductId));
             }
 
+            if (owner is null)
+            {
+                return new HashSet<int>();
+            }
+
+            var list = await _favorites.GetAsync(owner, createIfMissing: false, token);
+
+            return list is null
+                ? new HashSet<int>()
+                : new HashSet<int>(list.Items.Select(i => i.ProductId));
         }
         [HttpGet] // optional
         public async Task<IActionResult> Details(int id, CancellationToken ct = default)
@@ -155,6 +156,7 @@ namespace ECommerceBatteryShop.Controllers
             const decimal KdvRate = 0.20m;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
             var fx = rate ?? 1m;
+            var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
             var vm = new ProductViewModel
             {
@@ -163,6 +165,7 @@ namespace ECommerceBatteryShop.Controllers
                 Price = _currency.ConvertUsdToTry(product.Price, fx) * (1 + KdvRate),
                 Rating = product.Rating,
                 ImageUrl = product.ImageUrl,
+                IsFavorite = favoriteIds.Contains(product.Id),
                 Description = product.Description
             };
 
