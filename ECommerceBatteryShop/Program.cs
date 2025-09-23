@@ -149,7 +149,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dataProtectionKeys = scope.ServiceProvider.GetRequiredService<DataProtectionKeyContext>();
-    dataProtectionKeys.Database.EnsureCreated();
+    dataProtectionKeys.Database.Migrate();
 }
 
 if (!app.Environment.IsDevelopment())
