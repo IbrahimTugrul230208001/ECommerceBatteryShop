@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceBatteryShop.DataAccess;
 
-public sealed class BatteryShopContext : DbContext, IDataProtectionKeyContext
+public sealed class BatteryShopContext : DbContext
 {
     public BatteryShopContext(DbContextOptions<BatteryShopContext> options) : base(options) { }
 
