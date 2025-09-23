@@ -1,15 +1,11 @@
 ﻿using ECommerceBatteryShop.Domain.Entities;
-using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceBatteryShop.DataAccess;
 
-public sealed class BatteryShopContext : DbContext, IDataProtectionKeyContext
+public sealed class BatteryShopContext : DbContext
 {
     public BatteryShopContext(DbContextOptions<BatteryShopContext> options) : base(options) { }
-
-    // REQUIRED for Data Protection persistence
-   public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

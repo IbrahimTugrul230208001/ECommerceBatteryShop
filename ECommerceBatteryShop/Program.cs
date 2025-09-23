@@ -19,8 +19,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // MVC + EF
 builder.Services.AddControllersWithViews();
+var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(dbConnectionString))
+{
+    throw new InvalidOperationException("The 'DefaultConnection' connection string is not configured.");
+}
+
 builder.Services.AddDbContext<BatteryShopContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    opt.UseNpgsql(dbConnectionString));
+builder.Services.AddDbContext<DataProtectionKeyContext>(opt =>
+    opt.UseNpgsql(dbConnectionString));
 
 // DI
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -48,7 +56,7 @@ builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
 // Data Protection (persist keys in DB)
 builder.Services.AddDataProtection()
     .SetApplicationName("ECommerceBatteryShop")
-    .PersistKeysToDbContext<BatteryShopContext>();
+    .PersistKeysToDbContext<DataProtectionKeyContext>();
 
 // Auth: Cookie + Google
 builder.Services.AddAuthentication(o =>
@@ -131,6 +139,13 @@ builder.Services.AddAuthentication(o =>
 });
 
 var app = builder.Build();
+
+// Ensure the data protection key store is created before handling requests
+using (var scope = app.Services.CreateScope())
+{
+    var dataProtectionKeys = scope.ServiceProvider.GetRequiredService<DataProtectionKeyContext>();
+    dataProtectionKeys.Database.EnsureCreated();
+}
 
 if (!app.Environment.IsDevelopment())
 {
