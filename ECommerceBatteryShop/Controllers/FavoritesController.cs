@@ -1,9 +1,10 @@
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace ECommerceBatteryShop.Controllers
@@ -48,8 +49,9 @@ namespace ECommerceBatteryShop.Controllers
             FavoriteOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = FavoriteOwner.FromUser(userId);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                    return Challenge(); owner = FavoriteOwner.FromUser(userId);
             }
             else
             {
@@ -96,10 +98,6 @@ namespace ECommerceBatteryShop.Controllers
             };
 
             return View(model);
-
-
-
-            return View(model);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -109,8 +107,9 @@ namespace ECommerceBatteryShop.Controllers
             FavoriteOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = FavoriteOwner.FromUser(userId);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                    return Challenge(); owner = FavoriteOwner.FromUser(userId);
             }
             else
             {

@@ -71,7 +71,7 @@ builder.Services.AddAuthentication(o =>
     o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     o.Cookie.SameSite = SameSiteMode.None;     // cross-site external login
     o.SlidingExpiration = true;
-    o.ExpireTimeSpan = TimeSpan.FromDays(14);
+    o.ExpireTimeSpan = TimeSpan.FromDays(20);
     o.LoginPath = "/login";
     o.LogoutPath = "/logout";
 })

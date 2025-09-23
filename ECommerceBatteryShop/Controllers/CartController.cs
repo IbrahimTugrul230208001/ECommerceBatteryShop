@@ -1,15 +1,16 @@
 ﻿
 using ECommerceBatteryShop.DataAccess.Abstract;
-using ECommerceBatteryShop.Services;
 using ECommerceBatteryShop.Models;
-using Microsoft.AspNetCore.Mvc;
+using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
-using System.Text.Json;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -52,8 +53,9 @@ namespace ECommerceBatteryShop.Controllers
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                    return Challenge(); owner = CartOwner.FromUser(userId);
             }
             else
             {
@@ -108,8 +110,9 @@ namespace ECommerceBatteryShop.Controllers
             if (User.Identity?.IsAuthenticated == true)
             {
                 // adapt this to however you store user id in claims
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                    return Challenge(); owner = CartOwner.FromUser(userId);
             }
             else
             {
@@ -145,8 +148,9 @@ namespace ECommerceBatteryShop.Controllers
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                    return Challenge(); owner = CartOwner.FromUser(userId);
             }
             else
             {
@@ -174,8 +178,9 @@ namespace ECommerceBatteryShop.Controllers
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                    return Challenge(); owner = CartOwner.FromUser(userId);
             }
             else
             {
