@@ -66,7 +66,7 @@ builder.Services.AddAuthentication(o =>
 })
 .AddCookie(o =>
 {
-    o.Cookie.Name = ".ebs.auth";
+    o.Cookie.Name = ".ebs.auth.v1";
     o.Cookie.HttpOnly = true;
     o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     o.Cookie.SameSite = SameSiteMode.None;     // cross-site external login
@@ -137,7 +137,12 @@ builder.Services.AddAuthentication(o =>
     // Keep your backchannel if you need it
     o.Backchannel = new HttpClient(new HttpLogHandler(new HttpClientHandler()));
 });
-
+builder.Services.AddAntiforgery(o =>
+{
+    o.Cookie.Name = ".ebs.af.v2";         // bump
+    o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    o.Cookie.SameSite = SameSiteMode.None;
+});
 var app = builder.Build();
 
 // Ensure the data protection key store is created before handling requests
