@@ -15,14 +15,14 @@ namespace ECommerceBatteryShop.Controllers
 {
     public class CartController : Controller
     {
-        private readonly ICartRepository _repo;
+        private readonly ICurrencyService _currencyService;
         private readonly ICartService _cartService;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
-        public CartController(ICartRepository repo, ICartService cartService)
+        public CartController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService)
         {
-            _repo = repo;
+            _currencyService = currencyService;
             _cartService = cartService;
         }
 
@@ -73,7 +73,7 @@ namespace ECommerceBatteryShop.Controllers
                 }
                 owner = CartOwner.FromAnon(anonId);
             }
-
+            var exchangeRate = await _currencyService.GetCachedUsdTryAsync(ct);
             var cart = await _cartService.GetAsync(owner, createIfMissing: false, ct);
             var model = new CartViewModel();
             if (cart is not null)
@@ -83,7 +83,7 @@ namespace ECommerceBatteryShop.Controllers
                     ProductId = i.ProductId,
                     Name = i.Product?.Name ?? string.Empty,
                     ImageUrl = i.Product?.ImageUrl,
-                    UnitPrice = i.UnitPrice*1.2m*41m,
+                    UnitPrice = i.UnitPrice*1.2m* (decimal)exchangeRate,
                     Quantity = i.Quantity
                 }).ToList();
             }
@@ -92,9 +92,11 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet]
-        public IActionResult Checkout()
+        public IActionResult Checkout(int subtotal)
         {
-            return View();
+            decimal subtotalDecimal = subtotal / 100m;
+            // TODO: store or validate before payment
+            return View(subtotalDecimal);
         }
 
         [HttpPost]

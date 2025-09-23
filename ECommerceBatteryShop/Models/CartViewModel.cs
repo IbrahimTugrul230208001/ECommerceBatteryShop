@@ -20,3 +20,5 @@ public class CartViewModel
     public bool CookiesDisabled { get; set; }
     public string? CookieMessage { get; set; }
 }
+
+

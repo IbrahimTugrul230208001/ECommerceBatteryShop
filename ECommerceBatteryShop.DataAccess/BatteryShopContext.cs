@@ -1,28 +1,32 @@
-using ECommerceBatteryShop.Domain.Entities;
+﻿using ECommerceBatteryShop.Domain.Entities;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceBatteryShop.DataAccess;
 
-public class BatteryShopContext : DbContext
+public sealed class BatteryShopContext : DbContext, IDataProtectionKeyContext
 {
     public BatteryShopContext(DbContextOptions<BatteryShopContext> options) : base(options) { }
+
+    // REQUIRED for Data Protection persistence
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         const string trCollation = "tr_icu_det";
         modelBuilder.Entity<Product>(e => e.Property(p => p.Name).UseCollation(trCollation));
 
+        // ⚠ You’re on PostgreSQL. Replace SQL Server brackets in filters.
         modelBuilder.Entity<Cart>(b =>
         {
-            b.HasIndex(c => c.UserId).IsUnique().HasFilter("[UserId] IS NOT NULL");
-            b.HasIndex(c => c.AnonId).IsUnique().HasFilter("[AnonId] IS NOT NULL");
+            b.HasIndex(c => c.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
+            b.HasIndex(c => c.AnonId).IsUnique().HasFilter("\"AnonId\" IS NOT NULL");
         });
 
-        // NEW API (EF Core 9+): put check constraint on the table builder
         modelBuilder.Entity<Cart>()
             .ToTable(tb => tb.HasCheckConstraint(
                 "CK_Cart_Owner",
-                "([UserId] IS NOT NULL AND [AnonId] IS NULL) OR ([UserId] IS NULL AND [AnonId] IS NOT NULL)"
+                "(\"UserId\" IS NOT NULL AND \"AnonId\" IS NULL) OR (\"UserId\" IS NULL AND \"AnonId\" IS NOT NULL)"
             ));
 
         base.OnModelCreating(modelBuilder);
@@ -44,7 +48,4 @@ public class BatteryShopContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<FavoriteList> FavoriteLists => Set<FavoriteList>();
     public DbSet<FavoriteListItem> FavoriteListItems => Set<FavoriteListItem>();
-
 }
-
-

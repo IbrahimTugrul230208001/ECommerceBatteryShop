@@ -1,13 +1,14 @@
 ﻿using ECommerceBatteryShop.DataAccess;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Concrete;
+using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Options;
 using ECommerceBatteryShop.Services;
-using ECommerceBatteryShop.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Linq;
@@ -41,7 +42,9 @@ builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 
 // Hosted service
 builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
-
+builder.Services.AddDataProtection()
+    .SetApplicationName("ECommerceBatteryShop")
+    .PersistKeysToDbContext<BatteryShopContext>();
 // ⬇️ AUTH: Cookie + Google
 builder.Services.AddAuthentication(o =>
 {

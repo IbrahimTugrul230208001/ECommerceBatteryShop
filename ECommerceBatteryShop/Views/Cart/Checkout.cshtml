@@ -1,7 +1,13 @@
 @{
     ViewBag.Title = "Checkout";
 }
+@model decimal;
+@{
+    decimal price = Model; 
+    decimal kdv = price * 0.2m;
+    decimal total = price  + 59.99m; // kargo
 
+}
 <main x-data class="bg-white min-h-screen pt-10 pb-24">
     <div class="mx-auto max-w-5xl px-4">
         <!-- Başlık + adım göstergesi -->
@@ -78,7 +84,7 @@
                             <div class="space-y-2">
                                 <p class="text-sm text-slate-700">Kayıtlı Kartlar</p>
                                 <template x-for="c in saved" :key="c.id">
-                                    <label class="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50">
+                                    <label class="flex items-center justify-between rounded-lg border border-slate-700 p-3 hover:bg-slate-50">
                                         <span class="flex items-center gap-3">
                                             <input type="radio" name="cardSel" :value="c.id" x-model="selectedId">
                                             <span class="text-sm text-slate-800" x-text="`${c.brand} •••• ${c.last4}`"></span>
@@ -90,17 +96,17 @@
                         </template>
 
                         <!-- New card form (collapsible if there are saved cards) -->
-                        <details :open="!saved.length" class="rounded-lg border p-3 bg-gray-50">
+                        <details :open="!saved.length" class="rounded-lg border border-slate-500 p-3 bg-gray-50">
                             <summary class="cursor-pointer text-sm font-medium text-slate-800">Yeni kart ekle</summary>
                             <div class="mt-3 grid gap-3">
-                                <input x-model="newCard.name" placeholder="Kart üzerindeki isim" class="rounded-lg border px-3 py-2">
+                                <input x-model="newCard.name" placeholder="Kart üzerindeki isim" class="rounded-lg border border-slate-500  px-3 py-2">
                                 <input x-model="newCard.number" @@input ="maskCard" inputmode="numeric" maxlength="19"
-                                       placeholder="XXXX XXXX XXXX XXXX" class="rounded-lg border px-3 py-2">
+                                       placeholder="XXXX XXXX XXXX XXXX" class="rounded-lg border border-slate-500 px-3 py-2">
                                 <div class="grid grid-cols-3 gap-3">
                                     <input x-model="newCard.exp" @@input ="maskExp" inputmode="numeric" maxlength="5"
-                                           placeholder="AA/YY" class="rounded-lg border px-3 py-2">
+                                           placeholder="AA/YY" class="rounded-lg border border-slate-500 px-3 py-2">
                                     <input x-model="newCard.cvc" inputmode="numeric" maxlength="4"
-                                           placeholder="CVC" class="rounded-lg border px-3 py-2">
+                                           placeholder="CVC" class="rounded-lg border border-slate-500 px-3 py-2">
                                     <label class="flex items-center gap-2 text-sm">
                                         <input type="checkbox" x-model="newCard.save" class="rounded border-slate-300"> Kaydet
                                     </label>
@@ -135,35 +141,7 @@
 
 
 
-                <!-- IBAN Havale/EFT (açılır/kapanır) -->
-                <details class="group rounded-xl border border-slate-200 bg-gray-50 p-4 open:bg-gray-50">
-                    <summary class="flex cursor-pointer list-none items-center justify-between">
-                        <span class="text-slate-900 font-medium">IBAN ile Havale/EFT</span>
-                        <svg class="h-5 w-5 text-slate-500 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.17l3.71-2.94a.75.75 0 111.06 1.06l-4.24 3.36a.75.75 0 01-.94 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd" /></svg>
-                    </summary>
-
-                    <div class="mt-4 space-y-3">
-                        <p class="text-slate-700 text-sm">
-                            Aşağıdaki IBAN’a transfer yapabilirsiniz. Açıklamaya <span class="font-semibold">sipariş numaranızı</span> yazmayı unutmayın.
-                        </p>
-
-                        <div class="flex items-center gap-2">
-                            <code id="ibanText" class="flex-1 bg-white border border-slate-200 rounded-lg p-3 font-mono text-slate-800 text-sm">
-                                TR12 3456 7890 1234 5678 9012 34
-                            </code>
-                            <button type="button" id="copyIban"
-                                    class="shrink-0 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-200">
-                                Kopyala
-                            </button>
-                        </div>
-
-                        <ul class="text-slate-600 text-sm list-disc pl-5">
-                            <li>Alıcı: Battery Shop A.Ş.</li>
-                            <li>Banka: Örnek Bankası (Şube 123)</li>
-                            <li>Tutar: Sipariş toplamı</li>
-                        </ul>
-                    </div>
-                </details>
+               
 
             </div>
 
@@ -174,20 +152,20 @@
                     <dl class="space-y-2 text-sm">
                         <div class="flex justify-between">
                             <dt class="text-slate-600">Ara Toplam</dt>
-                            <dd class="text-slate-900 font-medium">₺0,00</dd>
+                            <dd class="text-slate-900 font-medium">₺@price</dd>
                         </div>
                         <div class="flex justify-between">
                             <dt class="text-slate-600">Kargo</dt>
-                            <dd class="text-slate-900 font-medium">₺0,00</dd>
+                            <dd class="text-slate-900 font-medium">₺59,99</dd>
                         </div>
                         <div class="flex justify-between">
-                            <dt class="text-slate-600">KDV</dt>
-                            <dd class="text-slate-900 font-medium">₺0,00</dd>
+                            <dt class="text-slate-600">KDV (dahil)</dt>
+                            <dd class="text-slate-900 font-medium">₺@kdv</dd>
                         </div>
                         <div class="h-px bg-slate-200 my-2"></div>
                         <div class="flex justify-between text-base">
                             <dt class="text-slate-900 font-semibold">Genel Toplam</dt>
-                            <dd class="text-slate-900 font-semibold">₺0,00</dd>
+                            <dd class="text-slate-900 font-semibold">₺@total</dd>
                         </div>
                     </dl>
                     <p class="text-xs text-slate-500 mt-4">Adres ve ödeme bilgilerinizi doğrulamadan sipariş oluşturulmaz.</p>
