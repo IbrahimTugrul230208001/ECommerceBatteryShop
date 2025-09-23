@@ -42,9 +42,9 @@ builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 
 // Hosted service
 builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
-builder.Services.AddDataProtection()
+/*builder.Services.AddDataProtection()
     .SetApplicationName("ECommerceBatteryShop")
-    .PersistKeysToDbContext<BatteryShopContext>();
+    .PersistKeysToDbContext<BatteryShopContext>();*/
 // ⬇️ AUTH: Cookie + Google
 builder.Services.AddAuthentication(o =>
 {
