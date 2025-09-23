@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceBatteryShop.DataAccess;
 
-public sealed class BatteryShopContext : DbContext
+public sealed class BatteryShopContext : DbContext, IDataProtectionKeyContext
 {
     public BatteryShopContext(DbContextOptions<BatteryShopContext> options) : base(options) { }
 
     // REQUIRED for Data Protection persistence
-    //public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
+   public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
