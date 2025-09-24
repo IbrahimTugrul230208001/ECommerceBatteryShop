@@ -23,7 +23,9 @@ function heroCarousel() {
         slides: [
             { src: '/img/herobanner.png', alt: 'Batteries', title: 'Her an için güç', text: 'Premium bataryalar ve enerji çözümleri kapınıza getirilir.', ctaText: 'Ürünler', ctaHref: '/Product/Index' },
             { src: '/img/alkaline.png', alt: 'Alkalin piller', title: 'Uzun ömürlü alkalin', text: 'Günlük cihazlar için maksimum performans.', ctaText: 'Alışverişe başla', ctaHref: '/Product/Index?cat=alkaline' },
-            { src: '/img/herobanner_2.png', alt: 'Şarjlı piller', title: 'Şarj edilebilir güç', text: 'Daha az atık, daha fazla tasarruf.', ctaText: 'Şimdi keşfet', ctaHref: '/Product/Index?cat=rechargeable' }
+            { src: '/img/herobanner_2.png', alt: 'Şarjlı piller', title: 'Şarj edilebilir güç', text: 'Daha az atık, daha fazla tasarruf.', ctaText: 'Şimdi keşfet', ctaHref: '/Product/Index?cat=rechargeable' },
+            { src: '/img/dayı_aspilsan_banner.jpg', alt: 'Aspilsan şarjlı piller', title: 'Yerli ve milli güç', text: 'Daha az atık, daha fazla tasarruf.', ctaText: 'Şimdi keşfet', ctaHref: '/Product/Index?cat=rechargeable' }
+
         ],
         current: 0,
         timer: null,
