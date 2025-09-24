@@ -176,32 +176,23 @@ app.UseAuthorization();
 // anonId cookie middleware AFTER auth
 app.Use(async (ctx, next) =>
 {
-    const string Cookie = "ANON_ID";
+    // Ensure HTTPS but DO NOT change host (works for both .com and .com.tr)
+    if (!ctx.Request.IsHttps)
+    {
+        var host = ctx.Request.Host.Value; // preserves current host
+        var url = $"https://{host}{ctx.Request.PathBase}{ctx.Request.Path}{ctx.Request.QueryString}";
+        ctx.Response.Redirect(url, permanent: true);
+        return;
+    }
 
-    // if not logged in and no anon id
+    // Issue anon id if needed (optional)
+    const string Cookie = "ANON_ID";
     if (!(ctx.User?.Identity?.IsAuthenticated ?? false) &&
         !ctx.Request.Cookies.ContainsKey(Cookie))
     {
         ctx.Response.Cookies.Append(
             Cookie, Guid.NewGuid().ToString(),
-            new CookieOptions
-            {
-                HttpOnly = true,
-                IsEssential = true,
-                Expires = DateTimeOffset.UtcNow.AddMonths(3)
-            });
-    }
-
-    // if you want to force everything onto a single canonical URL
-    var expectedHost = "dayilyenerji.com";   // adjust to your exact domain
-    var expectedScheme = "https";
-
-    if (!ctx.Request.Host.Host.Equals(expectedHost, StringComparison.OrdinalIgnoreCase) ||
-        !string.Equals(ctx.Request.Scheme, expectedScheme, StringComparison.OrdinalIgnoreCase))
-    {
-        var redirectUrl = $"{expectedScheme}://{expectedHost}{ctx.Request.PathBase}{ctx.Request.Path}{ctx.Request.QueryString}";
-        ctx.Response.Redirect(redirectUrl, permanent: true);
-        return; // stop pipeline here
+            new CookieOptions { HttpOnly = true, IsEssential = true, Expires = DateTimeOffset.UtcNow.AddMonths(3) });
     }
 
     await next();
