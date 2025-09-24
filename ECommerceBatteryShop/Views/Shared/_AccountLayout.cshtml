@@ -12,12 +12,12 @@
     <link href="~/css/output.css" rel="stylesheet" />
 
     <!-- Alpine -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
+    <script nonce="@Csp.ScriptNonce" defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style nonce="@Csp.StyleNonce">
         [x-cloak] {
             display: none !important
         }</style>
-    <script>
+    <script nonce="@Csp.ScriptNonce">
         document.addEventListener('alpine:init', () => {
           Alpine.data('passwordField', () => ({
             show: false,
@@ -62,7 +62,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script nonce="@Csp.ScriptNonce" src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </body>
 </html>
 

@@ -32,7 +32,7 @@
 }
 
 <!-- Include once globally (Layout). Safe if duplicated -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script nonce="@Csp.ScriptNonce" defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 
 
@@ -328,7 +328,7 @@ else
     }
 }
 
-<style>
+<style nonce="@Csp.StyleNonce">
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none;

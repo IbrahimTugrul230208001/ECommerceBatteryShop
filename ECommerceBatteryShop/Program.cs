@@ -6,6 +6,7 @@ using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Concrete;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Options;
+using ECommerceBatteryShop.Security;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -30,6 +31,8 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IFavoritesService, FavoritesService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICspNonceService, CspNonceService>();
 builder.Services.AddMemoryCache();
 
 // ------------------------- Options -------------------------
@@ -186,6 +189,8 @@ var fh = new ForwardedHeadersOptions
 fh.KnownNetworks.Clear();
 fh.KnownProxies.Clear();
 app.UseForwardedHeaders(fh);
+
+app.UseContentSecurityPolicy();
 
 app.UseHsts();
 app.UseHttpsRedirection();

@@ -165,7 +165,7 @@ else
     <!-- If you already emit the token meta in _Layout, keep only the JS below -->
     @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery AF
 
-    <script>
+    <script nonce="@Csp.ScriptNonce">
         // Send antiforgery token with all HTMX requests
         document.body.addEventListener('htmx:configRequest', function (evt) {
             var meta = document.querySelector('meta[name="request-verification-token"]');
