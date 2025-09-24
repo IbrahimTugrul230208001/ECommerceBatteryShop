@@ -170,12 +170,7 @@ builder.Services.AddAuthentication(o =>
 // ------------------------- Build -------------------------
 var app = builder.Build();
 
-// ------------------------- DB migrate on boot -------------------------
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<BatteryShopContext>();
-    db.Database.Migrate();
-}
+
 
 // ------------------------- Middleware pipeline -------------------------
 if (!app.Environment.IsDevelopment())
