@@ -1,6 +1,7 @@
 @using ECommerceBatteryShop.Domain.Entities
 @using ECommerceBatteryShop.Services
 @using System.Linq
+@using System.Security.Claims
 @inject ECommerceBatteryShop.DataAccess.Abstract.ICategoryRepository CategoryRepository
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @inject ICartService CartService
@@ -8,37 +9,41 @@
     var categories = await CategoryRepository.GetCategoriesWithChildrenAsync();
     categories = categories
         .Where(c => c.ProductCategories.Any() || c.SubCategories.Any(sc => sc.ProductCategories.Any()))
-        .Select(c =>
-        {
-            c.SubCategories = c.SubCategories.Where(sc => sc.ProductCategories.Any()).ToList();
-            return c;
-        })
+        .Select(c => { c.SubCategories = c.SubCategories.Where(sc => sc.ProductCategories.Any()).ToList(); return c; })
         .ToList();
 
-    var cartCount = 0;
     var cookieConsent = Context.Request.Cookies["COOKIE_CONSENT"];
-    var cookiesRejected = string.Equals(cookieConsent, "rejected", System.StringComparison.OrdinalIgnoreCase);
-    if (User.Identity?.IsAuthenticated == true)
+    var cookiesRejected = string.Equals(cookieConsent, "rejected", StringComparison.OrdinalIgnoreCase);
+
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+
+    int cartCount = 0;
+    int userId = 0;
+
+    if (isAuthenticated)
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
-        if (int.TryParse(userIdClaim, out var userId))
+        var idStr = User.FindFirstValue("app_user_id");
+        if (int.TryParse(idStr, out userId) && userId > 0)
         {
             cartCount = await CartService.CountAsync(CartOwner.FromUser(userId));
         }
-    }
-    else
-    {
-        var anonId = cookiesRejected ? null : Context.Request.Cookies["ANON_ID"];
-        if (!string.IsNullOrEmpty(anonId))
+        else
         {
-            cartCount = await CartService.CountAsync(CartOwner.FromAnon(anonId));
+            // authenticated but missing claim – show 0 or a safe fallback
+            userId = 0;
         }
     }
+    else if (!cookiesRejected)
+    {
+        var anonId = Context.Request.Cookies["ANON_ID"];
+        if (!string.IsNullOrEmpty(anonId))
+            cartCount = await CartService.CountAsync(CartOwner.FromAnon(anonId));
+    }
+
     var cartText = cartCount > 99 ? "99+" : cartCount.ToString();
-    var isAuthenticated = User.Identity?.IsAuthenticated == true;
     var accountUrl = isAuthenticated
-        ? Url.Action("Profile", "Account") ?? "/Account/Profile"
-        : Url.Action("Register", "Account") ?? "/Account/Register";
+        ? (Url.Action("Profile", "Account") ?? "/Account/Profile")
+        : (Url.Action("Register", "Account") ?? "/Account/Register");
     var accountText = isAuthenticated ? "Hesabım" : "Üye Ol";
 }
 <!DOCTYPE html>

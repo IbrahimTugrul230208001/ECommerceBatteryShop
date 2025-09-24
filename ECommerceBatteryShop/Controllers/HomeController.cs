@@ -3,6 +3,7 @@ using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -80,41 +81,41 @@ namespace ECommerceBatteryShop.Controllers
                         Products = ps.Select(Map).ToList()
                     });
             }
-            return View(sections);
+            return View(sections);          
 
-            async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
+        }
+        async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
+        {
+            FavoriteOwner? owner = null;
+
+            if (User.Identity?.IsAuthenticated == true)
             {
-                FavoriteOwner? owner = null;
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                    userId = 0; // fallback instead of return Challenge()
 
-                if (User.Identity?.IsAuthenticated == true)
+                if (userId > 0)
+                    owner = FavoriteOwner.FromUser(userId);
+            }
+            else
+            {
+                var anonId = Request.Cookies["ANON_ID"];
+                if (!string.IsNullOrWhiteSpace(anonId))
                 {
-                    var sub = User.FindFirst("sub")?.Value;
-                    if (int.TryParse(sub, out var userId))
-                    {
-                        owner = FavoriteOwner.FromUser(userId);
-                    }
+                    owner = FavoriteOwner.FromAnon(anonId);
                 }
-                else
-                {
-                    var anonId = Request.Cookies["ANON_ID"];
-                    if (!string.IsNullOrWhiteSpace(anonId))
-                    {
-                        owner = FavoriteOwner.FromAnon(anonId);
-                    }
-                }
-
-                if (owner is null)
-                {
-                    return new HashSet<int>();
-                }
-
-                var list = await _favorites.GetAsync(owner, createIfMissing: false, token);
-
-                return list is null
-                    ? new HashSet<int>()
-                    : new HashSet<int>(list.Items.Select(i => i.ProductId));
             }
 
+            if (owner is null)
+            {
+                return new HashSet<int>();
+            }
+
+            var list = await _favorites.GetAsync(owner, createIfMissing: false, token);
+
+            return list is null
+                ? new HashSet<int>()
+                : new HashSet<int>(list.Items.Select(i => i.ProductId));
         }
         public IActionResult Contact()
         {

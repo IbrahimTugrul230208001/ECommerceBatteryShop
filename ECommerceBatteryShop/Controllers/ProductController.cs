@@ -1,9 +1,10 @@
-using System;
 using ECommerceBatteryShop.DataAccess.Abstract;
+using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Mvc;
-using ECommerceBatteryShop.Domain.Entities;
+using System;
+using System.Security.Claims;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -118,14 +119,14 @@ namespace ECommerceBatteryShop.Controllers
         async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
         {
             FavoriteOwner? owner = null;
-
             if (User.Identity?.IsAuthenticated == true)
             {
-                var sub = User.FindFirst("sub")?.Value;
-                if (int.TryParse(sub, out var userId))
-                {
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                    userId = 0; // fallback instead of return Challenge()
+
+                if (userId > 0)
                     owner = FavoriteOwner.FromUser(userId);
-                }
             }
             else
             {

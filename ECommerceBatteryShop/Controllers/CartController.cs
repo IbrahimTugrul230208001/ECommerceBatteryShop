@@ -53,7 +53,12 @@ namespace ECommerceBatteryShop.Controllers
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                {
+                    return Challenge();
+                }
+
                 owner = CartOwner.FromUser(userId);
             }
             else
@@ -108,7 +113,12 @@ namespace ECommerceBatteryShop.Controllers
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                {
+                    return Challenge();
+                }
+
                 owner = CartOwner.FromUser(userId);
             }
             else
@@ -145,7 +155,12 @@ namespace ECommerceBatteryShop.Controllers
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                {
+                    return Challenge();
+                }
+
                 owner = CartOwner.FromUser(userId);
             }
             else
@@ -174,7 +189,12 @@ namespace ECommerceBatteryShop.Controllers
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                var idStr = User.FindFirstValue("app_user_id");
+                if (!int.TryParse(idStr, out var userId))
+                {
+                    return Challenge();
+                }
+
                 owner = CartOwner.FromUser(userId);
             }
             else
