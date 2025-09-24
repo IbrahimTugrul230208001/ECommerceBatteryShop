@@ -49,9 +49,8 @@ namespace ECommerceBatteryShop.Controllers
             FavoriteOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var idStr = User.FindFirstValue("app_user_id");
-                if (!int.TryParse(idStr, out var userId))
-                    return Challenge(); owner = FavoriteOwner.FromUser(userId);
+                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                owner = FavoriteOwner.FromUser(userId);
             }
             else
             {
@@ -107,9 +106,8 @@ namespace ECommerceBatteryShop.Controllers
             FavoriteOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
-                var idStr = User.FindFirstValue("app_user_id");
-                if (!int.TryParse(idStr, out var userId))
-                    return Challenge(); owner = FavoriteOwner.FromUser(userId);
+                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                owner = FavoriteOwner.FromUser(userId);
             }
             else
             {
