@@ -351,8 +351,17 @@
   .top-\[58\%\] {
     top: 58%;
   }
+  .top-\[64px\] {
+    top: 64px;
+  }
   .top-\[65\%\] {
     top: 65%;
+  }
+  .top-\[72px\] {
+    top: 72px;
+  }
+  .top-\[80px\] {
+    top: 80px;
   }
   .top-full {
     top: 100%;
@@ -714,6 +723,9 @@
   .ml-2 {
     margin-left: calc(var(--spacing) * 2);
   }
+  .ml-5 {
+    margin-left: calc(var(--spacing) * 5);
+  }
   .ml-auto {
     margin-left: auto;
   }
@@ -843,6 +855,9 @@
   .h-100 {
     height: calc(var(--spacing) * 100);
   }
+  .h-\[2px\] {
+    height: 2px;
+  }
   .h-\[420px\] {
     height: 420px;
   }
@@ -881,6 +896,9 @@
   }
   .min-h-screen {
     min-height: 100vh;
+  }
+  .w-0 {
+    width: calc(var(--spacing) * 0);
   }
   .w-2 {
     width: calc(var(--spacing) * 2);
@@ -1268,6 +1286,20 @@
       --tw-space-x-reverse: 0;
       margin-inline-start: calc(calc(var(--spacing) * 4) * var(--tw-space-x-reverse));
       margin-inline-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-x-reverse)));
+    }
+  }
+  .space-x-5 {
+    :where(& > :not(:last-child)) {
+      --tw-space-x-reverse: 0;
+      margin-inline-start: calc(calc(var(--spacing) * 5) * var(--tw-space-x-reverse));
+      margin-inline-end: calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-x-reverse)));
+    }
+  }
+  .space-x-10 {
+    :where(& > :not(:last-child)) {
+      --tw-space-x-reverse: 0;
+      margin-inline-start: calc(calc(var(--spacing) * 10) * var(--tw-space-x-reverse));
+      margin-inline-end: calc(calc(var(--spacing) * 10) * calc(1 - var(--tw-space-x-reverse)));
     }
   }
   .gap-y-3 {
@@ -2940,6 +2972,16 @@
       display: block;
     }
   }
+  .sm\:flex {
+    @media (width >= 40rem) {
+      display: flex;
+    }
+  }
+  .sm\:hidden {
+    @media (width >= 40rem) {
+      display: none;
+    }
+  }
   .sm\:h-24 {
     @media (width >= 40rem) {
       height: calc(var(--spacing) * 24);
@@ -2990,9 +3032,19 @@
       justify-content: flex-end;
     }
   }
+  .sm\:gap-4 {
+    @media (width >= 40rem) {
+      gap: calc(var(--spacing) * 4);
+    }
+  }
   .sm\:gap-6 {
     @media (width >= 40rem) {
       gap: calc(var(--spacing) * 6);
+    }
+  }
+  .sm\:object-cover {
+    @media (width >= 40rem) {
+      object-fit: cover;
     }
   }
   .sm\:p-6 {
