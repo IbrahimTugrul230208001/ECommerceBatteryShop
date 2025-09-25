@@ -29,28 +29,37 @@ namespace ECommerceBatteryShop.Services
             return cart.Items.Sum(i => i.Quantity);
         }
 
-        public async Task<int> SetQuantityAsync(CartOwner owner, int productId, int qty, CancellationToken ct = default)
+        public async Task<int> ChangeQuantityAsync(
+        CartOwner owner, int productId, int delta, CancellationToken ct = default)
         {
-            var cart = await GetAsync(owner, createIfMissing: qty > 0, ct);
+            var cart = await GetAsync(owner, createIfMissing: delta > 0, ct);
             if (cart is null) return 0;
 
             var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
             if (item is null)
             {
-                if (qty <= 0) return cart.Items.Sum(i => i.Quantity);
+                if (delta <= 0) return cart.Items.Sum(i => i.Quantity);
                 var product = await _db.Products.FindAsync(new object?[] { productId }, ct);
                 if (product is null) return cart.Items.Sum(i => i.Quantity);
-                cart.Items.Add(new CartItem { ProductId = productId, Quantity = qty, UnitPrice = product.Price });
+
+                cart.Items.Add(new CartItem
+                {
+                    ProductId = productId,
+                    Quantity = delta,
+                    UnitPrice = product.Price
+                });
             }
             else
             {
-                if (qty <= 0) cart.Items.Remove(item);
-                else item.Quantity = qty;
+                var newQty = item.Quantity + delta;
+                if (newQty <= 0) cart.Items.Remove(item);
+                else item.Quantity = newQty;
             }
 
             await _db.SaveChangesAsync(ct);
             return cart.Items.Sum(i => i.Quantity);
         }
+
 
         public async Task<int> RemoveAsync(CartOwner owner, int productId, CancellationToken ct = default)
         {
