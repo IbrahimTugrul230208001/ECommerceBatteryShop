@@ -136,6 +136,42 @@ namespace ECommerceBatteryShop.Controllers
             return PartialView("_CartCount", count);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetQuantity(int productId, int quantity, CancellationToken ct = default)
+        {
+            CartOwner owner;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                // adapt this to however you store user id in claims
+                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                owner = CartOwner.FromUser(userId);
+            }
+            else
+            {
+                if (IsCookieConsentRejected())
+                {
+                    return CookieConsentRequired(CartConsentMessage);
+                }
+
+                var anonId = Request.Cookies["ANON_ID"];
+                if (string.IsNullOrEmpty(anonId))
+                {
+                    anonId = Guid.NewGuid().ToString();
+                    Response.Cookies.Append("ANON_ID", anonId, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        IsEssential = true,
+                        Expires = DateTimeOffset.UtcNow.AddMonths(3)
+                    });
+                }
+                owner = CartOwner.FromAnon(anonId);
+            }
+            var count = await _cartService.ChangeQuantityAsync(owner, productId, quantity, ct);
+
+            return PartialView("_CartCount", count);
+        }
+
         [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<IActionResult> Delete(int productId, CancellationToken ct = default)

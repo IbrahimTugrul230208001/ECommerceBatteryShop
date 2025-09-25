@@ -12,7 +12,7 @@ namespace ECommerceBatteryShop.Services
     public interface ICartService
     {
         Task<int> AddAsync(CartOwner owner, int productId, int qty = 1, CancellationToken ct = default);
-        Task<int> SetQuantityAsync(CartOwner owner, int productId, int qty, CancellationToken ct = default);
+        Task<int> ChangeQuantityAsync(CartOwner owner, int productId, int delta, CancellationToken ct = default);  
         Task<int> RemoveAsync(CartOwner owner, int productId, CancellationToken ct = default);
         Task<int> RemoveAllAsync(CartOwner owner, CancellationToken ct);
         Task<int> CountAsync(CartOwner owner, CancellationToken ct = default);
