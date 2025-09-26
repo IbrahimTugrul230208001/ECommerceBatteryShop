@@ -1,0 +1,59 @@
+@model ECommerceBatteryShop.Models.AddressListViewModel
+
+<div id="@Model.ContainerId" class="mt-6 grid gap-4 md:grid-cols-2">
+    @if (Model.Addresses.Count == 0)
+    {
+        <div class="rounded-xl border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+            Henüz adres eklemediniz.
+        </div>
+    }
+    else
+    {
+        foreach (var address in Model.Addresses)
+        {
+            <div class="rounded-xl border border-gray-100 p-4">
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">@address.Title</p>
+                        <p class="mt-1 text-sm text-gray-600">@address.FullAddress</p>
+                        <p class="mt-1 text-xs text-gray-500">@address.Neighbourhood, @address.State / @address.City</p>
+                        <p class="mt-1 text-xs text-gray-500">@address.Name @address.Surname • @address.PhoneNumber</p>
+                    </div>
+                    @if (address.IsDefault)
+                    {
+                        <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Varsayılan</span>
+                    }
+                </div>
+
+                <div class="mt-4 flex flex-wrap gap-2 text-xs">
+                    <button type="button"
+                            class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600"
+                            @@click="$store.address.openEdit($el.dataset)"
+                            data-id="@address.Id"
+                            data-title="@address.Title"
+                            data-name="@address.Name"
+                            data-surname="@address.Surname"
+                            data-phone-number="@address.PhoneNumber"
+                            data-full-address="@address.FullAddress"
+                            data-city="@address.City"
+                            data-state="@address.State"
+                            data-country="@address.Country"
+                            data-neighbourhood="@address.Neighbourhood"
+                            data-is-default="@address.IsDefault.ToString().ToLowerInvariant()">
+                        Düzenle
+                    </button>
+
+                    <button type="button"
+                            class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600 disabled:opacity-50"
+                            hx-post="@Url.Action("SetDefault", "Address")"
+                            hx-target="#@Model.ContainerId"
+                            hx-swap="outerHTML"
+                            hx-vals='{"id": @address.Id}'
+                            @(address.IsDefault ? "disabled" : null)>
+                        Varsayılan Yap
+                    </button>
+                </div>
+            </div>
+        }
+    }
+</div>

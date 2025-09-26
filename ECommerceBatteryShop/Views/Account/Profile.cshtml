@@ -8,6 +8,8 @@
 
     var displayName = rawName.Replace("-", "").Trim();
 
+    var addressList = ViewBag.AddressList as AddressListViewModel ?? new AddressListViewModel();
+
 
     var orders = new[]
     {
@@ -227,7 +229,7 @@
                             <h2 class="text-lg font-semibold text-gray-900">Adresler & Fatura Bilgileri</h2>
                             <p class="text-sm text-gray-500">Teslimat adreslerinizi ve fatura bilgilerinizi yönetin.</p>
                         </div>
-                        <button type="button" class="inline-flex items-center gap-2 rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-600 transition hover:border-amber-300 hover:text-amber-700">
+                        <button type="button" class="inline-flex items-center gap-2 rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-600 transition hover:border-amber-300 hover:text-amber-700" @@click="$store.address.openNew()">
                             Yeni adres ekle
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 5v14" />
@@ -236,24 +238,7 @@
                         </button>
                     </div>
 
-                    <div class="mt-6 grid gap-4 md:grid-cols-2">
-                        <div class="rounded-xl border border-gray-100 p-4">
-                            <p class="text-sm font-semibold text-gray-900">Ev Adresi</p>
-                            <p class="mt-1 text-sm text-gray-600">Ataköy Mah./ İstanbul</p>
-                            <div class="mt-4 flex gap-2 text-xs">
-                                <button type="button" class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600">Düzenle</button>
-                                <button type="button" class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600">Varsayılan Yap</button>
-                            </div>
-                        </div>
-                        <div class="rounded-xl border border-gray-100 p-4">
-                            <p class="text-sm font-semibold text-gray-900">İş Adresi</p>
-                            <p class="mt-1 text-sm text-gray-600">Teknopark İstanbul</p>
-                            <div class="mt-4 flex gap-2 text-xs">
-                                <button type="button" class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600">Düzenle</button>
-                                <button type="button" class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600">Varsayılan Yap</button>
-                            </div>
-                        </div>
-                    </div>
+                    @await Html.PartialAsync("~/Views/Address/_AddressList.cshtml", addressList)
                 </section>
 
                 <section id="support" class="rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6 text-white shadow-sm">
@@ -274,3 +259,10 @@
         </div>
     </div>
 </section>
+
+<style>
+    [x-cloak] {
+        display: none !important
+    }
+</style>
+@await Html.PartialAsync("~/Views/Address/_AddressModal.cshtml", addressList.ContainerId)

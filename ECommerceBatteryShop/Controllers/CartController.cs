@@ -1,31 +1,32 @@
 ﻿
-using ECommerceBatteryShop.DataAccess.Abstract;
-using ECommerceBatteryShop.Services;
-using ECommerceBatteryShop.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using ECommerceBatteryShop.DataAccess;
+using ECommerceBatteryShop.Models;
+using ECommerceBatteryShop.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceBatteryShop.Controllers
 {
     public class CartController : Controller
     {
-        private readonly ICartRepository _repo;
         private readonly ICartService _cartService;
         private readonly ICurrencyService _currencyService;
+        private readonly BatteryShopContext _db;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
-        public CartController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService)
+        public CartController(ICartService cartService, ICurrencyService currencyService, BatteryShopContext db)
         {
-            _repo = repo;
             _cartService = cartService;
             _currencyService = currencyService;
+            _db = db;
         }
 
         private bool IsCookieConsentRejected()
@@ -94,14 +95,14 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Checkout()
+        public async Task<IActionResult> Checkout(CancellationToken ct)
         {
             CartOwner owner;
+            int? userId = null;
             if (User.Identity?.IsAuthenticated == true)
             {
-                // adapt this to however you store user id in claims
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                userId = int.Parse(User.FindFirst("sub")!.Value);
+                owner = CartOwner.FromUser(userId.Value);
             }
             else
             {
@@ -123,10 +124,37 @@ namespace ECommerceBatteryShop.Controllers
                 }
                 owner = CartOwner.FromAnon(anonId);
             }
+
             var rate = await _currencyService.GetCachedUsdTryAsync();
-            decimal cartTotalPrice = await _cartService.CartTotalPriceAsync(owner);
+            var cartTotalPrice = await _cartService.CartTotalPriceAsync(owner);
             var subTotal = cartTotalPrice * (rate ?? 41.3m); // 1.2 = KDV
-            return View(subTotal);
+
+            var addressViewModels = new List<AddressViewModel>();
+            if (userId.HasValue)
+            {
+                var addresses = await _db.Addresses
+                    .AsNoTracking()
+                    .Where(a => a.UserId == userId.Value)
+                    .ToListAsync(ct);
+
+                addressViewModels = addresses
+                    .OrderByDescending(a => a.IsDefault)
+                    .ThenBy(a => a.Id)
+                    .Select(AddressViewModel.FromEntity)
+                    .ToList();
+            }
+
+            var model = new CheckoutViewModel
+            {
+                Subtotal = subTotal,
+                AddressList = new AddressListViewModel
+                {
+                    ContainerId = "address-list",
+                    Addresses = addressViewModels
+                }
+            };
+
+            return View(model);
         }
 
         [HttpPost]

@@ -1,0 +1,169 @@
+@model string
+
+<div x-cloak x-data>
+    <div x-show="$store.address.open" x-transition.opacity
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40"
+         role="dialog" aria-modal="true"
+         @@keydown.window.escape="$store.address.close()">
+        <div class="w-full max-w-lg rounded-md bg-white shadow-xl ring-1 ring-black/10"
+             @@click.outside="$store.address.close()">
+            <div class="flex items-center justify-between p-4 border-b border-slate-300">
+                <h3 class="text-base font-semibold text-slate-600" x-text="$store.address.mode === 'create' ? 'Adres Ekle' : 'Adresi Düzenle'"></h3>
+                <button class="p-2 rounded text-slate-500 hover:bg-slate-100" @@click="$store.address.close()">✕</button>
+            </div>
+
+            <form class="p-4 space-y-4"
+                  x-bind:hx-post="$store.address.formAction"
+                  hx-target="#@Model"
+                  hx-swap="outerHTML"
+                  x-on:htmx:afterOnLoad.window="$store.address.close()">
+
+                <input type="hidden" name="Id" x-model="$store.address.form.id" />
+                <input type="hidden" name="Country" x-model="$store.address.form.country" />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-700">Adres Adı *</label>
+                        <input name="Title" required x-model="$store.address.form.title"
+                               class="mt-1 p-2 w-full rounded-lg border border-slate-300 focus:ring-amber-300 focus:border-amber-300">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Ad *</label>
+                        <input name="Name" required x-model="$store.address.form.name"
+                               class="mt-1 p-2 w-full rounded-lg border border-slate-300 focus:ring-amber-300 focus:border-amber-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Soyad *</label>
+                        <input name="Surname" required x-model="$store.address.form.surname"
+                               class="mt-1 p-2 w-full rounded-lg border border-slate-300 focus:ring-amber-300 focus:border-amber-300">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Telefon *</label>
+                        <input name="PhoneNumber" required x-model="$store.address.form.phoneNumber" placeholder="+90 5XX XXX XX XX"
+                               class="mt-1 p-2 w-full rounded-lg border border-slate-300 focus:ring-amber-300 focus:border-amber-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">İl *</label>
+                        <input name="City" required x-model="$store.address.form.city"
+                               class="mt-1 p-2 w-full rounded-lg border border-slate-300 focus:ring-amber-300 focus:border-amber-300">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Adres *</label>
+                    <textarea name="FullAddress" rows="3" x-model="$store.address.form.fullAddress"
+                              placeholder="Adresinizi mahalle, sokak, cadde, bina ve daire numarası ile beraber tam girdiğinizden emin olun."
+                              required
+                              class="mt-1 w-full rounded-lg p-2 border border-slate-300 focus:ring-amber-300 focus:border-amber-300"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">İlçe *</label>
+                        <input name="State" required x-model="$store.address.form.state"
+                               class="mt-1 p-2 w-full rounded-lg border border-slate-300 focus:ring-amber-300 focus:border-amber-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Mahalle *</label>
+                        <input name="Neighbourhood" required x-model="$store.address.form.neighbourhood"
+                               class="mt-1 p-2 w-full rounded-lg border border-slate-300 focus:ring-amber-300 focus:border-amber-300">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 pt-2">
+                    <label class="inline-flex items-center gap-2 text-xs text-slate-500">
+                        <input type="checkbox" name="IsDefault" x-model="$store.address.form.isDefault"
+                               class="rounded border-slate-300">
+                        Varsayılan adres olarak işaretle
+                    </label>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button"
+                                @@click="$store.address.close()"
+                                class="rounded-lg border border-slate-400 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+                            Vazgeç
+                        </button>
+                        <button type="submit"
+                                class="rounded-lg bg-amber-300 px-4 py-2 text-sm font-semibold border border-amber-300 text-gray-900 hover:bg-amber-400">
+                            Kaydet
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        if (!Alpine.store('address')) {
+            Alpine.store('address', {
+                open: false,
+                mode: 'create',
+                form: {
+                    id: 0,
+                    title: '',
+                    name: '',
+                    surname: '',
+                    phoneNumber: '',
+                    fullAddress: '',
+                    city: '',
+                    state: '',
+                    country: '',
+                    neighbourhood: '',
+                    isDefault: false
+                },
+                get formAction() {
+                    return '/Address/Upsert';
+                },
+                resetForm() {
+                    this.form = {
+                        id: 0,
+                        title: '',
+                        name: '',
+                        surname: '',
+                        phoneNumber: '',
+                        fullAddress: '',
+                        city: '',
+                        state: '',
+                        country: '',
+                        neighbourhood: '',
+                        isDefault: false
+                    };
+                },
+                openNew() {
+                    this.mode = 'create';
+                    this.resetForm();
+                    this.open = true;
+                },
+                openEdit(dataset) {
+                    this.mode = 'edit';
+                    this.form = {
+                        id: Number(dataset.id ?? 0),
+                        title: dataset.title ?? '',
+                        name: dataset.name ?? '',
+                        surname: dataset.surname ?? '',
+                        phoneNumber: dataset.phoneNumber ?? '',
+                        fullAddress: dataset.fullAddress ?? '',
+                        city: dataset.city ?? '',
+                        state: dataset.state ?? '',
+                        country: dataset.country ?? '',
+                        neighbourhood: dataset.neighbourhood ?? '',
+                        isDefault: dataset.isDefault === 'true'
+                    };
+                    this.open = true;
+                },
+                close() {
+                    this.open = false;
+                }
+            });
+        }
+    });
+</script>

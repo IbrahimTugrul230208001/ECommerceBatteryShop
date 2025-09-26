@@ -1,3 +1,4 @@
+using ECommerceBatteryShop.DataAccess;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
@@ -7,12 +8,15 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ECommerceBatteryShop.Controllers;
@@ -22,11 +26,13 @@ public class AccountController : Controller
     private readonly IAccountRepository _accountRepository;
     private readonly IConfiguration _configuration;
     private readonly IUserService _userService;
-    public AccountController(IAccountRepository accountRepository, IConfiguration configuration, IUserService userService)
+    private readonly BatteryShopContext _db;
+    public AccountController(IAccountRepository accountRepository, IConfiguration configuration, IUserService userService, BatteryShopContext db)
     {
         _accountRepository = accountRepository;
         _configuration = configuration;
         _userService = userService;
+        _db = db;
     }
 
     [HttpPost]
@@ -149,8 +155,38 @@ public class AccountController : Controller
         return View();
     }
 
-    public IActionResult Profile()
+    public async Task<IActionResult> Profile(CancellationToken ct)
     {
+        var addressList = new AddressListViewModel
+        {
+            ContainerId = "address-list",
+            Addresses = Array.Empty<AddressViewModel>()
+        };
+
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+            {
+                var addresses = await _db.Addresses
+                    .AsNoTracking()
+                    .Where(a => a.UserId == userId)
+                    .ToListAsync(ct);
+
+                addressList = new AddressListViewModel
+                {
+                    ContainerId = "address-list",
+                    Addresses = addresses
+                        .OrderByDescending(a => a.IsDefault)
+                        .ThenBy(a => a.Id)
+                        .Select(AddressViewModel.FromEntity)
+                        .ToList()
+                };
+            }
+        }
+
+        ViewBag.AddressList = addressList;
+
         return View();
     }
 
