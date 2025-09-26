@@ -18,6 +18,7 @@ namespace ECommerceBatteryShop.Services
         Task<int> CountAsync(CartOwner owner, CancellationToken ct = default);
         Task<Cart> GetAsync(CartOwner owner, bool createIfMissing = false, CancellationToken ct = default);
         Task MergeGuestIntoUserAsync(string anonId, int userId, CancellationToken ct = default);
+        Task<decimal> CartTotalPriceAsync(CartOwner owner, CancellationToken ct = default);
     }
 
 }

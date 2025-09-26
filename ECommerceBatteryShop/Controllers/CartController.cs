@@ -17,13 +17,15 @@ namespace ECommerceBatteryShop.Controllers
     {
         private readonly ICartRepository _repo;
         private readonly ICartService _cartService;
+        private readonly ICurrencyService _currencyService;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
-        public CartController(ICartRepository repo, ICartService cartService)
+        public CartController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService)
         {
             _repo = repo;
             _cartService = cartService;
+            _currencyService = currencyService;
         }
 
         private bool IsCookieConsentRejected()
@@ -92,9 +94,39 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet]
-        public IActionResult Checkout()
+        public async Task<IActionResult> Checkout()
         {
-            return View();
+            CartOwner owner;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                // adapt this to however you store user id in claims
+                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                owner = CartOwner.FromUser(userId);
+            }
+            else
+            {
+                if (IsCookieConsentRejected())
+                {
+                    return CookieConsentRequired(CartConsentMessage);
+                }
+
+                var anonId = Request.Cookies["ANON_ID"];
+                if (string.IsNullOrEmpty(anonId))
+                {
+                    anonId = Guid.NewGuid().ToString();
+                    Response.Cookies.Append("ANON_ID", anonId, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        IsEssential = true,
+                        Expires = DateTimeOffset.UtcNow.AddMonths(3)
+                    });
+                }
+                owner = CartOwner.FromAnon(anonId);
+            }
+            var rate = await _currencyService.GetCachedUsdTryAsync();
+            decimal cartTotalPrice = await _cartService.CartTotalPriceAsync(owner);
+            var subTotal = cartTotalPrice * (rate ?? 41.3m); // 1.2 = KDV
+            return View(subTotal);
         }
 
         [HttpPost]

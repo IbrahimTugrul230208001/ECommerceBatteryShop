@@ -126,6 +126,18 @@ namespace ECommerceBatteryShop.Services
             _db.Carts.Remove(guest);
             await _db.SaveChangesAsync(ct);
         }
+        public async Task<decimal> CartTotalPriceAsync(CartOwner owner, CancellationToken ct = default)
+        {
+            var cart = await GetAsync(owner, createIfMissing: false, ct);
+            if (cart is null) throw new InvalidOperationException("Cart not found");
+            decimal totalPrice = 0m;
+
+            foreach (var item in cart.Items)
+            {
+                totalPrice += item.UnitPrice * item.Quantity * 1.2m; // Including tax
+            }
+            return totalPrice;
+        }
     }
 
 }
