@@ -21,7 +21,7 @@ public sealed class CategoryRepository : ICategoryRepository
             .Include(c => c.ProductCategories)
             .Include(c => c.SubCategories)
                 .ThenInclude(sc => sc.ProductCategories)
-            .OrderBy(c => c.Name)
+            .OrderBy(c => c.Id)
             .ToListAsync(ct);
     }
 }
