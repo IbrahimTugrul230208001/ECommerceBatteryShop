@@ -31,7 +31,7 @@ namespace ECommerceBatteryShop.Controllers
 
             // category ids from your DB
             const int LiIonId = 20;
-            const int BmsId = 51;
+            const int BmsId = 50;
             const int LfpId = 22;
 
             var rate = await _currency.GetCachedUsdTryAsync(ct);
