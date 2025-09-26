@@ -17,7 +17,21 @@ namespace ECommerceBatteryShop.Controllers
 
             return View(new AdminProductEntryViewModel());
         }
-
+        [HttpGet]
+        public IActionResult Analytics()
+        {
+             return View();
+        }
+        [HttpGet]
+        public IActionResult Orders()
+        {
+            return View();
+        }
+        [HttpGet]
+        public IActionResult Stock()
+        {
+            return View();
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateProduct(AdminProductEntryViewModel model)

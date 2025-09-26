@@ -448,24 +448,53 @@
         <div class="bg-gray-800 text-white relative z-40 shadow-xl hidden md:block">
             <div class="mx-auto max-w-7xl px-4">
                 <ul class="h-12 flex items-center gap-8 whitespace-nowrap overflow-x-auto md:overflow-visible overflow-y-visible max-h-12">
-                    @foreach (var parent in categories)
+                    @* GRAND as top-level pills *@
+                    @foreach (var grand in categories)
                     {
-                        if (parent.SubCategories != null && parent.SubCategories.Any())
+                        if (grand.SubCategories?.Any() == true)
                         {
                             <li class="relative group">
-                                <a class="relative z-30 font-semibold flex items-center gap-1
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
-      after:origin-left after:scale-x-0 after:transition-transform after:duration-300
-      hover:after:scale-x-100 group-hover:after:scale-x-100 group-focus-within:after:scale-x-100 cursor-pointer">
-                                    @parent.Name
+                                <a class="relative z-30 font-semibold flex items-center gap-1 cursor-pointer
+                                               after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white
+                                               after:origin-left after:scale-x-0 after:transition-transform after:duration-300
+                                               hover:after:scale-x-100 group-hover:after:scale-x-100 group-focus-within:after:scale-x-100">
+                                    @grand.Name
                                     <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                 </a>
-                                <ul class="absolute font-semibold left-0 top-full z-20 mt-2 min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
-      flex flex-col gap-1 invisible opacity-0 translate-y-1 transition group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
-                                    @foreach (var child in parent.SubCategories)
+
+                                @* PARENTS dropdown *@
+                                <ul class="absolute left-0 top-full z-20 mt-2 min-w-56 w-max bg-white/95 p-2 text-sm text-gray-900 shadow-lg ring-1 ring-black/5 rounded-xl
+                                               font-semibold flex flex-col gap-1 invisible opacity-0 translate-y-1 transition
+                                               group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
+                                    @foreach (var parent in grand.SubCategories)
                                     {
-                                        <li>
-                                            <a href="@Url.Action("Index", "Product", new { categoryId = child.Id })" class="block rounded-lg px-3 py-2 hover:bg-gray-100">@child.Name</a>
+                                        <li class="relative group/parent">
+                                            <a href="@Url.Action("Index", "Product", new { categoryId = parent.Id })"
+                                               class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100">
+                                                <span>@parent.Name</span>
+                                                @if (parent.SubCategories?.Any() == true)
+                                                {
+                                                    <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11 10l-3.77-3.71a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.06 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                }
+                                            </a>
+
+                                            @* CHILD flyout *@
+                                            @if (parent.SubCategories?.Any() == true)
+                                            {
+                                                <ul class="absolute top-0 left-full ml-2 min-w-56 rounded-lg border border-gray-200 bg-white shadow-lg z-50 hidden group-hover/parent:block">
+                                                    @foreach (var child in parent.SubCategories)
+                                                    {
+                                                        <li>
+                                                            <a href="@Url.Action("Index", "Product", new { categoryId = child.Id })"
+                                                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900">
+                                                                @child.Name
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            }
                                         </li>
                                     }
                                 </ul>
@@ -474,26 +503,24 @@
                         else
                         {
                             <li>
-                                <a href="@Url.Action("Index", "Product", new { categoryId = parent.Id })"
+                                <a href="@Url.Action("Index", "Product", new { categoryId = grand.Id })"
                                    class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-       after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-       hover:after:scale-x-100">@parent.Name</a>
+                                              after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
+                                              hover:after:scale-x-100">
+                                    @grand.Name
+                                </a>
                             </li>
                         }
                     }
                     <li>
                         <a href="/Home/Contact"
                            class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-       after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-       hover:after:scale-x-100">İletişim</a>
+                              after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
+                              hover:after:scale-x-100">İletişim</a>
                     </li>
                 </ul>
-
             </div>
         </div>
-
-
-       
 
     </header>
     <main class="max-w-7xl mx-auto px-4 pt-6 pb-28 md:pb-6">
