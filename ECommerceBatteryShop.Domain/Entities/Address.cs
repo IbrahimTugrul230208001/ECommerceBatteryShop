@@ -1,18 +1,38 @@
-namespace ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.Domain.Entities;
+using System.ComponentModel.DataAnnotations;
 
 public class Address
 {
     public int Id { get; set; }
     public int UserId { get; set; }
     public User? User { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Surname { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string FullAddress { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string State { get; set; } = string.Empty;
-    public string NeightBourhood { get; set; } = string.Empty;
 
-    public ICollection<Order> Orders { get; set; } = new List<Order>();
+    [MaxLength(128)]
+    public string Title { get; set; } = string.Empty;
+
+    [MaxLength(128)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(128)]
+    public string Surname { get; set; } = string.Empty;
+
+    [MaxLength(32)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [MaxLength(512)]
+    public string FullAddress { get; set; } = string.Empty;
+
+    [MaxLength(128)]
+    public string City { get; set; } = string.Empty;
+
+    [MaxLength(128)]
+    public string State { get; set; } = string.Empty;
+
+    [MaxLength(128)]
+    public string Country { get; set; } = string.Empty;
+
+    [MaxLength(256)]
+    public string Neighbourhood { get; set; } = string.Empty;
+
+    public bool IsDefault { get; set; }
 }
