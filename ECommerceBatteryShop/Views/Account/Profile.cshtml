@@ -227,9 +227,11 @@
                             <h2 class="text-lg font-semibold text-gray-900">Adresler & Fatura Bilgileri</h2>
                             <p class="text-sm text-gray-500">Teslimat adreslerinizi ve fatura bilgilerinizi yönetin.</p>
                         </div>
-                        <button type="button" class="inline-flex items-center gap-2 rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-600 transition hover:border-amber-300 hover:text-amber-700">
+                        <button type="button"
+                                @@click="$store.address.openNew()"
+                                class="inline-flex items-center gap-2 rounded-full border border-amber-400 px-4 py-2 text-sm font-semibold text-amber-600 hover:border-amber-700 hover:text-amber-700">
                             Yeni adres ekle
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M12 5v14" />
                                 <path d="M5 12h14" />
                             </svg>
@@ -262,7 +264,7 @@
                             <h2 class="text-lg font-semibold">Yardıma mı ihtiyacınız var?</h2>
                             <p class="mt-1 text-sm text-gray-300">7/24 destek hattımızdan bize ulaşabilirsiniz. Ortalama yanıt süresi 15 dakikadır.</p>
                         </div>
-                        <a href="mailto:support@batteryshop.com" class="inline-flex items-center gap-2 rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-amber-400">
+                        <a href="https://api.whatsapp.com/send/?phone=905013176653" class="inline-flex items-center gap-2 rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-amber-400">
                             Destek ile iletişime geç
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -274,3 +276,4 @@
         </div>
     </div>
 </section>
+@await Html.PartialAsync("_AddressModalPartial")
