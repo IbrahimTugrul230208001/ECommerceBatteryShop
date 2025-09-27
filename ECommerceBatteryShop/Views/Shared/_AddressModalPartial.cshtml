@@ -77,7 +77,10 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <input type="checkbox" name="IsDefault" x-model="$store.address.form.isDefault"
+                    <input type="checkbox"
+                           name="IsDefault"
+                           value="true"
+                           x-model="$store.address.form.isDefault"
                            class="rounded border-slate-300 text-amber-500 focus:ring-amber-300" />
                     <span class="text-sm text-slate-600">Varsayılan adres yap</span>
                 </div>
@@ -130,7 +133,6 @@
           phoneNumber: '',
           city: '',
           state: '',
-          country: 'Türkiye',
           neighbourhood: '',
           fullAddress: '',
           isDefault: false
