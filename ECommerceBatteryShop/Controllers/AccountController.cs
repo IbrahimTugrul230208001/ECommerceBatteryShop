@@ -1,4 +1,5 @@
 using ECommerceBatteryShop.DataAccess.Abstract;
+using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using MailKit.Net.Smtp;
@@ -22,11 +23,13 @@ public class AccountController : Controller
     private readonly IAccountRepository _accountRepository;
     private readonly IConfiguration _configuration;
     private readonly IUserService _userService;
-    public AccountController(IAccountRepository accountRepository, IConfiguration configuration, IUserService userService)
+    private readonly IAddressRepository _addressRepository;
+    public AccountController(IAccountRepository accountRepository, IConfiguration configuration, IUserService userService, IAddressRepository addressRepository)
     {
         _accountRepository = accountRepository;
         _configuration = configuration;
         _userService = userService;
+        _addressRepository = addressRepository;
     }
 
     [HttpPost]
@@ -149,9 +152,25 @@ public class AccountController : Controller
         return View();
     }
 
-    public IActionResult Profile()
+    public async Task<IActionResult> Profile(CancellationToken ct)
     {
-        return View();
+        IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var claim = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim != null && int.TryParse(claim.Value, out var userId))
+            {
+                var entities = await _addressRepository.GetByUserAsync(userId, ct);
+                addresses = entities.Select(MapAddress).ToList();
+            }
+        }
+
+        var model = new ProfileViewModel
+        {
+            Addresses = addresses
+        };
+
+        return View(model);
     }
 
     public IActionResult VerifyAccount()
@@ -213,5 +232,24 @@ public class AccountController : Controller
         }
 
         return LocalRedirect(returnUrl);
+    }
+
+    private static AddressViewModel MapAddress(Address address)
+    {
+        return new AddressViewModel
+        {
+            Id = address.Id,
+            UserId = address.UserId,
+            Title = address.Title,
+            Name = address.Name,
+            Surname = address.Surname,
+            PhoneNumber = address.PhoneNumber,
+            FullAddress = address.FullAddress,
+            City = address.City,
+            State = address.State,
+            Country = address.Country,
+            Neighbourhood = address.Neighbourhood,
+            IsDefault = address.IsDefault
+        };
     }
 }
