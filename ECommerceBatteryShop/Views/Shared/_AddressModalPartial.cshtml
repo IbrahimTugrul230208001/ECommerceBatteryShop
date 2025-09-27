@@ -19,6 +19,7 @@
                   hx-post="@Url.Action("Upsert", "Address")"
                   hx-target="#address-list"
                   hx-swap="outerHTML"
+                  data-address-form
                   x-on:htmx:afterOnLoad.window="$store.address.close(); $store.address.reset()">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="Id" x-model="$store.address.form.id" />
@@ -123,6 +124,29 @@
           this.form = defaultForm();
         }
       });
+
+      if (!window.__addressModalHxListener) {
+        window.__addressModalHxListener = true;
+
+        document.body.addEventListener('htmx:afterSwap', (event) => {
+          const target = event.detail?.target;
+          if (!target || target.id !== 'address-list') {
+            return;
+          }
+
+          if (window.Alpine && typeof window.Alpine.initTree === 'function') {
+            window.Alpine.initTree(target);
+          }
+
+          const source = event.detail?.requestConfig?.elt;
+          const shouldReset = Boolean(source?.hasAttribute('data-address-form')) && event.detail?.successful;
+
+          if (shouldReset && window.Alpine?.store('address')) {
+            window.Alpine.store('address').close();
+            window.Alpine.store('address').reset();
+          }
+        });
+      }
 
       function defaultForm() {
         return {
