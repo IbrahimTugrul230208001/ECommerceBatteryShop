@@ -1,139 +1,135 @@
-﻿<main class="container my-4">
+﻿
+<main class="container my-4">
     <header class="mb-4">
         <h1 class="h3">Gizlilik Politikası</h1>
         <p class="text-muted mb-0">
-            Yürürlük tarihi: @DateTime.UtcNow.ToString("dd MMMM yyyy") • Sürüm: 1.0
+            Yürürlük: @DateTime.UtcNow.ToString("dd MMMM yyyy") • Sürüm: 1.1 (İade ile entegre)
         </p>
     </header>
 
-    <section class="mb-4">
-        <h2 class="h5">1) Sorumlu ve İletişim</h2>
-        <p>
-            Veri sorumlusu: <strong>[Şirket Adı]</strong> (<a href="mailto:[kvkk@ornek.com]">[kvkk@ornek.com]</a>)<br />
-            Adres: [Açık Adres] • Telefon: [Telefon]
-        </p>
-    </section>
-
-    <section class="mb-4">
-        <h2 class="h5">2) Bu Politikanın Kapsamı</h2>
-        <p>
-            Bu metin; web sitemiz, mobil uygulamamız ve ilişkili hizmetlerimiz (birlikte “Hizmetler”) kapsamında işlenen kişisel verilerinizi açıklar.
-        </p>
-    </section>
-
-    <section class="mb-4">
-        <h2 class="h5">3) İşlenen Veri Kategorileri</h2>
-        <ul>
-            <li>Kimlik ve iletişim: ad, soyad, e-posta, telefon.</li>
-            <li>Hesap ve kullanım: oturum bilgileri, tercih ve ayarlar, işlem kayıtları.</li>
-            <li>Cihaz ve teknik: IP, tarayıcı/OS verileri, çerez tanımlayıcıları, oturum logları.</li>
-            <li>Ödeme: sınırlı ödeme bilgileri (saklamıyoruz ise belirtin: <em>kart verileri ödeme sağlayıcıda tutulur</em>).</li>
-            <li>Destek içerikleri: talep ve geri bildirim mesajları, ekler.</li>
+    <!-- 1) Veri Sorumlusu -->
+    <section class="mb-4" id="veri-sorumlusu">
+        <h2 class="h5">1) Veri Sorumlusu ve İletişim</h2>
+        <ul class="mb-0">
+            <li><strong>Unvan:</strong> Dayily Enerji (Şahıs Firması)</li>
+            <li><strong>Vergi Dairesi / No:</strong> Sincan / 2721031588</li>
+            <li><strong>Telefon:</strong> +90 501 317 66 53</li>
+            <li><strong>E-posta:</strong> <a href="mailto:yigitdayi4502@gmail.com">yigitdayi4502@gmail.com</a></li>
+            <li><strong>Site:</strong> www.dayilyenerji.com</li>
         </ul>
     </section>
 
+    <!-- 2) Kapsam -->
+    <section class="mb-4">
+        <h2 class="h5">2) Kapsam</h2>
+        <p>
+            Bu metin; web sitemiz üzerinden yapılan ürün satışı, teslimat, garanti ve
+            <a href="/satis-sozlesmesi#iade-iptal">İade &amp; İptal</a> süreçlerinde işlenen kişisel verileri açıklar.
+        </p>
+    </section>
+
+    <!-- 3) İşlenen Veri Kategorileri (İADE ENTEGRASYONLU) -->
+    <section class="mb-4" id="veri-kategorileri">
+        <h2 class="h5">3) İşlenen Veri Kategorileri</h2>
+        <ul>
+            <li><strong>Kimlik &amp; İletişim:</strong> ad, soyad, e-posta, telefon, adres.</li>
+            <li><strong>Satış &amp; Teslimat:</strong> sipariş numarası, ürün, miktar, fiyat, kargo bilgileri.</li>
+            <li><strong>Ödeme &amp; İade:</strong> ödeme tutarı, iade talebi, iade nedeni, iade onayı; ücret iadesi için gerekli finansal bilgiler (ör. IBAN) — <em>yalnızca iade sürecinde ve zorunlu düzeyde</em>.</li>
+            <li><strong>Destek İçerikleri:</strong> e-posta yazışmaları, talep kayıtları.</li>
+            <li><strong>Cihaz/Teknik:</strong> IP, tarayıcı/OS, oturum logları.</li>
+            <li><strong>Çerezler:</strong> <em>yalnızca</em> kimlik doğrulama, sepet ve favori çerezleri.</li>
+        </ul>
+    </section>
+
+    <!-- 4) Amaçlar & Hukuki Sebepler -->
     <section class="mb-4">
         <h2 class="h5">4) Amaçlar ve Hukuki Sebepler</h2>
         <ul>
-            <li>Hizmetin sunulması ve sözleşmenin ifası (KVKK m.5/2-c; GDPR Art.6(1)(b)).</li>
-            <li>Güvenlik, hata ayıklama ve dolandırıcılık önleme (meşru menfaat; KVKK m.5/2-f; GDPR Art.6(1)(f)).</li>
-            <li>Yasal yükümlülüklerin yerine getirilmesi (KVKK m.5/2-ç; GDPR Art.6(1)(c)).</li>
-            <li>Açık rıza gerektiren pazarlama/çerezler (KVKK m.5/1; GDPR Art.6(1)(a)).</li>
+            <li><strong>Sözleşmenin kurulması/ifası:</strong> sipariş, ödeme, teslimat, iade/cayma taleplerinin yürütümü.</li>
+            <li><strong>Hukuki yükümlülük:</strong> faturalama, muhasebe, mevzuat gereği kayıt tutma.</li>
+            <li><strong>Meşru menfaat:</strong> dolandırıcılık önleme, güvenlik, hata ayıklama.</li>
+            <li><strong>Açık rıza (varsa):</strong> yalnızca rıza gerektiren işlemler için.</li>
         </ul>
     </section>
 
-    <section class="mb-4">
-        <h2 class="h5">5) Çerezler ve Benzer Teknolojiler</h2>
-        <p>
-            Zorunlu, işlevsel ve analiz/performans çerezleri kullanırız. Pazarlama çerezleri yalnızca rıza ile çalışır.
-            Ayrıntılar için <a href="/cerez-politikasi">Çerez Politikası</a> sayfasına bakınız. Tercihlerinizi
-            her zaman <strong>Çerez Tercihleri</strong> panelinden güncelleyebilirsiniz.
+    <!-- 5) İade & Cayma ile Veri İşleme Bağı -->
+    <section class="mb-4" id="iade-entegrasyon">
+        <h2 class="h5">5) İade/Cayma Süreci ile Veri İşleme</h2>
+        <p class="mb-2">
+            <a href="/satis-sozlesmesi#iade-iptal">İade &amp; İptal Politikası</a> uyarınca:
         </p>
-    </section>
-
-    <section class="mb-4">
-        <h2 class="h5">6) Paylaşımlar ve Alıcı Grupları</h2>
         <ul>
-            <li>Hizmet sağlayıcılar: barındırma, e-posta, analiz, müşteri destek araçları.</li>
-            <li>Ödeme kuruluşları ve bankalar (işlem doğrulama).</li>
-            <li>Hukuki zorunluluk halinde yetkili makamlar.</li>
-            <li>Grup şirketleri (varsa) ve iş ortakları (sözleşmesel sınırlar dâhilinde).</li>
+            <li><strong>14 gün</strong> içinde kullanılmamış/ambalajı açılmamış ürün iade talepleri için kimlik, iletişim, sipariş ve iade nedeni verileri işlenir.</li>
+            <li><strong>İade Edilemeyen Ürünler:</strong> lehim/punta görmüş ürünler, batarya paketleri, siparişe özel parçalar. Bu istisnaların yönetimi için asgari düzeyde sipariş/ürün bilgisi kullanılır.</li>
+            <li><strong>Ücret iadesi:</strong> onay sonrası <strong>7 iş günü</strong> içinde gerçekleştirilir; iade ödemesine ilişkin zorunlu finansal veri yalnızca işlem tamamlanana kadar ve mevzuat süresi kadar saklanır.</li>
         </ul>
     </section>
 
-    <section class="mb-4">
-        <h2 class="h5">7) Yurt Dışına Aktarım</h2>
-        <p>
-            Verilerinizin yurt dışına aktarımı gerekli olduğunda; yeterlilik kararı, taahhütname/sözleşme,
-            standart sözleşme maddeleri ve ek teknik-organizasyonel önlemler uygulanır. Ayrıntı ve güncel liste için
-            <a href="/veri-isleme-envanteri">Veri İşleme Envanteri</a> sayfasına bakınız.
-        </p>
-    </section>
-
-    <section class="mb-4">
-        <h2 class="h5">8) Saklama Süreleri</h2>
-        <p>
-            Veriler, amaç sona erene kadar ve mevzuattaki asgari süreler boyunca saklanır; süre sonunda anonimleştirilir
-            veya güvenli şekilde imha edilir. Örnek: hesap verileri = hesap kapanışından itibaren [X] ay; loglar = [Y] gün.
-        </p>
-    </section>
-
-    <section class="mb-4">
-        <h2 class="h5">9) Güvenlik Önlemleri</h2>
+    <!-- 6) Çerezler (Sadece Zorunlu) -->
+    <section class="mb-4" id="cerezler">
+        <h2 class="h5">6) Çerezler</h2>
+        <p class="mb-1">Sitede yalnızca zorunlu çerezler kullanılır:</p>
         <ul>
-            <li>Uygun düzeyde şifreleme (taşınırken TLS, dururken [örn. AES-256]).</li>
-            <li>Erişim kontrolü, yetkilendirme, ilke tabanlı ayrıştırma.</li>
+            <li><strong>Kimlik Doğrulama:</strong> oturumun sürdürülmesi.</li>
+            <li><strong>Sepet:</strong> sepet içeriğinin saklanması.</li>
+            <li><strong>Favori:</strong> favori ürünlerin hatırlanması.</li>
+        </ul>
+        <p class="small text-muted mb-0">Analiz/reklam veya üçüncü taraf izleme çerezleri kullanılmaz.</p>
+    </section>
+
+    <!-- 7) Paylaşımlar -->
+    <section class="mb-4">
+        <h2 class="h5">7) Alıcı Grupları/Paylaşımlar</h2>
+        <ul>
+            <li>Barındırma, e-posta ve kargo gibi <strong>hizmet sağlayıcılar</strong>.</li>
+            <li>Ödeme/iade işlemleri için <strong>bankalar ve ödeme kuruluşları</strong>.</li>
+            <li>Yasal zorunluluk halinde <strong>yetkili makamlar</strong>.</li>
+        </ul>
+    </section>
+
+    <!-- 8) Saklama Süreleri -->
+    <section class="mb-4">
+        <h2 class="h5">8) Saklama</h2>
+        <p>
+            Veriler, amaç sona erene kadar ve ilgili mevzuattaki asgari süreler boyunca saklanır; süre sonunda silinir/anonimleştirilir.
+            Örnek: sipariş/iade kayıtları ve faturalama verileri mevzuat süresi kadar.
+        </p>
+    </section>
+
+    <!-- 9) Güvenlik -->
+    <section class="mb-4">
+        <h2 class="h5">9) Güvenlik</h2>
+        <ul>
+            <li>Taşınırken TLS, dururken uygun şifreleme.</li>
+            <li>Erişim kontrolü ve yetkilendirme.</li>
             <li>Güncel yedekleme ve olay müdahale süreçleri.</li>
-            <li>Düzenli denetim ve zafiyet taramaları.</li>
         </ul>
     </section>
 
-    <section class="mb-4">
-        <h2 class="h5">10) 18 Yaş Altı</h2>
+    <!-- 10) Haklar -->
+    <section class="mb-4" id="haklar">
+        <h2 class="h5">10) Haklarınız</h2>
         <p>
-            18 yaş altından bilerek veri toplamayız. Böyle bir durum tespit edilirse silme için bizimle iletişime geçiniz.
+            Erişim, düzeltme, silme, kısıtlama, itiraz, veri taşınabilirliği ve rızayı geri çekme haklarınızı
+            <a href="mailto:yigitdayi4502@gmail.com">yigitdayi4502@gmail.com</a> adresine “Veri Sahibi Başvurusu” konulu e-posta göndererek kullanabilirsiniz.
         </p>
     </section>
 
+    <!-- 11) Üçüncü Taraf Bağlantılar -->
     <section class="mb-4">
-        <h2 class="h5">11) Haklarınız</h2>
-        <p>
-            KVKK m.11 ve GDPR kapsamındaki haklarınızı kullanmak için <a href="mailto:[kvkk@ornek.com]">[kvkk@ornek.com]</a> adresine
-            “<strong>Veri Sahibi Başvurusu</strong>” konulu e-posta gönderebilirsiniz.
-        </p>
-        <ul>
-            <li>Erişim, düzeltme, silme, kısıtlama, itiraz, veri taşınabilirliği.</li>
-            <li>Açık rızayı dilediğiniz zaman geri çekme.</li>
-            <li>Kurul/otoriteye şikâyet: TR için KVKK Kurumu.</li>
-        </ul>
-        <p class="small text-muted">
-            Başvurunuza en geç 30 gün içinde cevap verilir; ilave maliyet doğarsa mevzuattaki tarifeye uygun ücret talep edilebilir.
-        </p>
+        <h2 class="h5">11) Üçüncü Taraf Bağlantılar</h2>
+        <p>Harici sitelerin içerik/uygulamalarından sorumlu değiliz.</p>
     </section>
 
-    <section class="mb-4">
-        <h2 class="h5">12) Üçüncü Taraf Bağlantılar</h2>
-        <p>
-            Hizmetlerimiz üçüncü taraf sitelere bağlantı içerebilir; bu sitelerin içerik ve uygulamalarından sorumlu değiliz.
-        </p>
-    </section>
-
-    <section class="mb-4">
-        <h2 class="h5">13) Güncellemeler</h2>
-        <p>
-            Politikayı zaman zaman güncelleyebiliriz. En güncel sürüm bu sayfada yayınlanır; önemli değişikliklerde bildirim yapılır.
-        </p>
-    </section>
-
+    <!-- 12) Güncellemeler -->
     <section class="mb-5">
-        <h2 class="h5">14) İletişim</h2>
-        <address>
-            Dayily Enerji • <a href="mailto:[yigitdayi452@gmail.com]">yigitdayi452@gmail.com</a> • Tel: [Telefon]
-        </address>
+        <h2 class="h5">12) Güncellemeler</h2>
+        <p>Politika gerektiğinde güncellenir; önemli değişikliklerde bildirim yapılır.</p>
     </section>
 
     <hr />
     <p class="small text-muted">
-        *Bu metin bir şablondur; sektörünüz ve süreçlerinize göre hukuk danışmanınızla özelleştiriniz.
+        *Bu metin, <a href="/satis-sozlesmesi#iade-iptal">İade &amp; İptal Politikası</a> ile uyumlu olacak şekilde sadeleştirilmiş entegrasyondur.
+        Süreçleriniz değişirse güncelleyiniz.
     </p>
 </main>

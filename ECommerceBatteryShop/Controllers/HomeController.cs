@@ -125,5 +125,13 @@ namespace ECommerceBatteryShop.Controllers
         {
             return View();
         }
+        public IActionResult Refund()
+        {
+            return View();
+        }
+        public IActionResult Cookies()
+        {
+            return View();
+        }
     }
 }
