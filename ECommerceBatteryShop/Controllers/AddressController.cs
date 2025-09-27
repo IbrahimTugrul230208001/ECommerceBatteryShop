@@ -66,7 +66,6 @@ public class AddressController : Controller
                 FullAddress = model.FullAddress.Trim(),
                 City = model.City.Trim(),
                 State = model.State.Trim(),
-                Country = model.Country?.Trim() ?? string.Empty,
                 Neighbourhood = model.Neighbourhood.Trim(),
                 IsDefault = model.IsDefault
             }, ct);
@@ -90,7 +89,6 @@ public class AddressController : Controller
                 FullAddress = model.FullAddress.Trim(),
                 City = model.City.Trim(),
                 State = model.State.Trim(),
-                Country = model.Country?.Trim() ?? string.Empty,
                 Neighbourhood = model.Neighbourhood.Trim(),
                 IsDefault = model.IsDefault
             }, ct);
@@ -165,7 +163,6 @@ public class AddressController : Controller
             FullAddress = address.FullAddress,
             City = address.City,
             State = address.State,
-            Country = address.Country,
             Neighbourhood = address.Neighbourhood,
             IsDefault = address.IsDefault
         };

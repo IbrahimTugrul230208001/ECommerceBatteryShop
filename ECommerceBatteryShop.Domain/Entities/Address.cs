@@ -28,8 +28,6 @@ public class Address
     [MaxLength(128)]
     public string State { get; set; } = string.Empty;
 
-    [MaxLength(128)]
-    public string Country { get; set; } = string.Empty;
 
     [MaxLength(256)]
     public string Neighbourhood { get; set; } = string.Empty;
