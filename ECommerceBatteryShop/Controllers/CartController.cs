@@ -160,7 +160,6 @@ namespace ECommerceBatteryShop.Controllers
                 FullAddress = address.FullAddress,
                 City = address.City,
                 State = address.State,
-                Country = address.Country,
                 Neighbourhood = address.Neighbourhood,
                 IsDefault = address.IsDefault
             };

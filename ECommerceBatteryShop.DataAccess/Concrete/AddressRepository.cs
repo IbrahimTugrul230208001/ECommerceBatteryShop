@@ -62,7 +62,6 @@ public class AddressRepository : IAddressRepository
         existing.FullAddress = address.FullAddress;
         existing.City = address.City;
         existing.State = address.State;
-        existing.Country = address.Country;
         existing.Neighbourhood = address.Neighbourhood;
         existing.IsDefault = address.IsDefault;
 
