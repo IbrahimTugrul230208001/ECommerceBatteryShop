@@ -1,5 +1,6 @@
 ﻿
 using ECommerceBatteryShop.DataAccess.Abstract;
+using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Services;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +19,16 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ICartRepository _repo;
         private readonly ICartService _cartService;
         private readonly ICurrencyService _currencyService;
+        private readonly IAddressRepository _addressRepository;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
-        public CartController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService)
+        public CartController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository)
         {
             _repo = repo;
             _cartService = cartService;
             _currencyService = currencyService;
+            _addressRepository = addressRepository;
         }
 
         private bool IsCookieConsentRejected()
@@ -126,7 +129,41 @@ namespace ECommerceBatteryShop.Controllers
             var rate = await _currencyService.GetCachedUsdTryAsync();
             decimal cartTotalPrice = await _cartService.CartTotalPriceAsync(owner);
             var subTotal = cartTotalPrice * (rate ?? 41.3m); // 1.2 = KDV
-            return View(subTotal);
+
+            IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = int.Parse(User.FindFirst("sub")!.Value);
+                var addressEntities = await _addressRepository.GetByUserAsync(userId, HttpContext.RequestAborted);
+                addresses = addressEntities.Select(MapAddress).ToList();
+            }
+
+            var model = new CheckoutPageViewModel
+            {
+                SubTotal = subTotal,
+                Addresses = addresses
+            };
+
+            return View(model);
+        }
+
+        private static AddressViewModel MapAddress(Address address)
+        {
+            return new AddressViewModel
+            {
+                Id = address.Id,
+                UserId = address.UserId,
+                Title = address.Title,
+                Name = address.Name,
+                Surname = address.Surname,
+                PhoneNumber = address.PhoneNumber,
+                FullAddress = address.FullAddress,
+                City = address.City,
+                State = address.State,
+                Country = address.Country,
+                Neighbourhood = address.Neighbourhood,
+                IsDefault = address.IsDefault
+            };
         }
 
         [HttpPost]
