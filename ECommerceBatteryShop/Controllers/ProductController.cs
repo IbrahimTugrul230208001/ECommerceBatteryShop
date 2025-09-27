@@ -81,16 +81,19 @@ namespace ECommerceBatteryShop.Controllers
                     : (int)Math.Ceiling(totalCount / (double)PageSize);
             }
 
-            var mapped = products.Select(p => new ProductViewModel
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Price = _currency.ConvertUsdToTry(p.Price /* USD */, fx) * (1 + KdvRate), // displayed in TRY or USD
-                Rating = p.Rating,
-                ImageUrl = p.ImageUrl,
-                IsFavorite = favoriteIds.Contains(p.Id)
-            }).ToList();
-
+            var mapped = products
+    .OrderBy(p => p.Id)              // force correct order
+    .Select(p => new ProductViewModel
+    {
+        Id = p.Id,
+        Name = p.Name,
+        Price = p.Price,
+        Rating = p.Rating,
+        ImageUrl = p.ImageUrl,
+        IsFavorite = favoriteIds.Contains(p.Id),
+        Description = p.Description
+    })
+    .ToList();
             // for the view to persist current filters & "clear" button state
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
