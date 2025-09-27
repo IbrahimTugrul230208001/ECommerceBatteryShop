@@ -28,9 +28,6 @@ public class AddressInputModel
     [Required, StringLength(128)]
     public string State { get; set; } = string.Empty;
 
-    [StringLength(128)]
-    public string Country { get; set; } = "Türkiye";
-
     [Required, StringLength(256)]
     public string Neighbourhood { get; set; } = string.Empty;
 

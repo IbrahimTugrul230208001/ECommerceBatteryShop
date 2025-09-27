@@ -36,10 +36,10 @@ namespace ECommerceBatteryShop.Controllers
                 _log.LogWarning("USD→TRY unavailable; using USD display.");
             }
             var fx = rate ?? 1m; // display currency factor (TRY if rate!=null, USD otherwise)
-
+          
             // --- PRICE FILTERING ---
             // Inputs are given in the display currency -> convert back to USD for filtering source prices.
-            decimal? minUsd = minPrice.HasValue ? Math.Max(0, minPrice.Value / fx) : null;
+            decimal ? minUsd = minPrice.HasValue ? Math.Max(0, minPrice.Value / fx) : null;
             decimal? maxUsd = maxPrice.HasValue ? Math.Max(0, maxPrice.Value / fx) : null;
             if (minUsd.HasValue && maxUsd.HasValue && minUsd > maxUsd)
                 (minUsd, maxUsd) = (maxUsd, minUsd); // normalize swapped inputs
@@ -65,7 +65,6 @@ namespace ECommerceBatteryShop.Controllers
             var result = await LoadPageAsync(currentPage);
             var products = result.Items;
             var totalCount = result.TotalCount;
-
             var totalPages = totalCount == 0
                 ? 1
                 : (int)Math.Ceiling(totalCount / (double)PageSize);
@@ -85,11 +84,11 @@ namespace ECommerceBatteryShop.Controllers
             {
                 Id = p.Id,
                 Name = p.Name,
-                Price = _currency.ConvertUsdToTry(p.Price /* USD */, fx) * (1 + KdvRate), // displayed in TRY or USD
+                Price = (_currency.ConvertUsdToTry(p.Price /* USD */, fx) + p.ExtraAmount)* (1 + KdvRate), // displayed in TRY or USD
                 Rating = p.Rating,
                 ImageUrl = p.ImageUrl,
                 IsFavorite = favoriteIds.Contains(p.Id)
-            }).ToList();
+            }).OrderBy(p=>p.Id).ToList();
 
             // for the view to persist current filters & "clear" button state
             ViewBag.MinPrice = minPrice;
@@ -100,7 +99,7 @@ namespace ECommerceBatteryShop.Controllers
             ViewBag.SearchTerm = term;
             ViewBag.CategoryId = categoryId;
             ViewBag.CurrentPage = currentPage;
-
+            
             var vm = new ProductIndexViewModel
             {
                 Products = mapped,

@@ -40,7 +40,7 @@ namespace ECommerceBatteryShop.Controllers
                 TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
                 _logger.LogWarning("USD?TRY unavailable; using USD display.");
             }
-            var fx = rate ?? 1m;
+            var fx = rate ?? 41.3m;
 
             // Ensure this includes ProductCategories (CategoryId is enough; Category.Include not required)
 
@@ -53,6 +53,7 @@ namespace ECommerceBatteryShop.Controllers
                 Price = _currency.ConvertUsdToTry(p.Price, fx) * (1 + KdvRate),
                 Rating = p.Rating,
                 ImageUrl = p.ImageUrl ?? string.Empty,
+                ExtraAmount = p.ExtraAmount,
                 Description = p.Description ?? string.Empty,
                 IsFavorite = favoriteIds.Contains(p.Id)
             };
