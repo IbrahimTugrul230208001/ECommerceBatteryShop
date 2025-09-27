@@ -24,6 +24,7 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
   builder.Services.AddScoped<IAccountRepository, AccountRepository>();
   builder.Services.AddScoped<ICartRepository, CartRepository>();
   builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+  builder.Services.AddScoped<IAddressRepository, AddressRepository>();
   builder.Services.AddScoped<IUserService, UserService>();
   builder.Services.AddScoped<ICartService, CartService>();
   builder.Services.AddScoped<IFavoritesService, FavoritesService>();
