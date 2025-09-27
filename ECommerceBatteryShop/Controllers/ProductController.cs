@@ -21,9 +21,9 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         public async Task<IActionResult> Index(string? search, string? q, int? categoryId,
-                                        decimal? minPrice, decimal? maxPrice,
-                                        int page = 1,
-                                        CancellationToken ct = default)
+                                         decimal? minPrice, decimal? maxPrice,
+                                         int page = 1,
+                                         CancellationToken ct = default)
         {
             var term = search ?? q;
             const decimal KdvRate = 0.20m;
@@ -81,19 +81,16 @@ namespace ECommerceBatteryShop.Controllers
                     : (int)Math.Ceiling(totalCount / (double)PageSize);
             }
 
-            var mapped = products
-    .OrderBy(p => p.Id)              // force correct order
-    .Select(p => new ProductViewModel
-    {
-        Id = p.Id,
-        Name = p.Name,
-        Price = p.Price,
-        Rating = p.Rating,
-        ImageUrl = p.ImageUrl,
-        IsFavorite = favoriteIds.Contains(p.Id),
-        Description = p.Description
-    })
-    .ToList();
+            var mapped = products.Select(p => new ProductViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = _currency.ConvertUsdToTry(p.Price /* USD */, fx) * (1 + KdvRate), // displayed in TRY or USD
+                Rating = p.Rating,
+                ImageUrl = p.ImageUrl,
+                IsFavorite = favoriteIds.Contains(p.Id)
+            }).ToList();
+
             // for the view to persist current filters & "clear" button state
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
@@ -115,9 +112,10 @@ namespace ECommerceBatteryShop.Controllers
 
             return View(vm);
 
-           
+
 
         }
+        
         async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
         {
             FavoriteOwner? owner = null;
