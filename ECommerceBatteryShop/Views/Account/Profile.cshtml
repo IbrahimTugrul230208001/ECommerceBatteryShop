@@ -9,7 +9,6 @@
 
     var displayName = rawName.Replace("-", "").Trim();
 
-
     var orders = new[]
     {
         new { Id = "ORD-1023", Date = "15 Mart 2024", Status = "Hazırlanıyor", BadgeClass = "bg-amber-100 text-amber-700", Total = "₺1.299,00", Items = "3 ürün" },
@@ -54,28 +53,8 @@
                         <div>
                             <p class="text-sm font-medium text-gray-500">Üyelik</p>
                             <p class="text-lg font-semibold text-gray-900">@displayName</p>
-                            <p class="text-sm text-gray-500">Premium müşteri • 12 ay</p>
                         </div>
                     </div>
-
-                    <dl class="mt-6 grid grid-cols-2 gap-4 text-sm">
-                        <div class="rounded-xl bg-gray-50 p-4">
-                            <dt class="text-gray-500">Aktif Sipariş</dt>
-                            <dd class="mt-1 text-lg font-semibold text-gray-900">2</dd>
-                        </div>
-                        <div class="rounded-xl bg-gray-50 p-4">
-                            <dt class="text-gray-500">Toplam Harcama</dt>
-                            <dd class="mt-1 text-lg font-semibold text-gray-900">₺12.840</dd>
-                        </div>
-                        <div class="rounded-xl bg-gray-50 p-4">
-                            <dt class="text-gray-500">Bekleyen İade</dt>
-                            <dd class="mt-1 text-lg font-semibold text-gray-900">1</dd>
-                        </div>
-                        <div class="rounded-xl bg-gray-50 p-4">
-                            <dt class="text-gray-500">Puanlar</dt>
-                            <dd class="mt-1 text-lg font-semibold text-gray-900">420</dd>
-                        </div>
-                    </dl>
                 </div>
 
                 <nav class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
@@ -115,7 +94,7 @@
                                         <path d="M2 7h20v10H2z" />
                                         <path d="M16 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2" />
                                     </svg>
-                                    Cüzdan & İşlemler
+                                    İşlemler
                                 </span>
                                 <svg class="h-4 w-4 text-gray-400 group-hover:text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M9 5l7 7-7 7" />
@@ -177,24 +156,12 @@
                 <section id="wallet" class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div>
-                            <h2 class="text-lg font-semibold text-gray-900">Cüzdan & İşlem Geçmişi</h2>
+                            <h2 class="text-lg font-semibold text-gray-900">İşlem Geçmişi</h2>
                             <p class="text-sm text-gray-500">Ödemelerinizi ve iadelerinizi buradan takip edin.</p>
                         </div>
-                        <button type="button" class="inline-flex items-center gap-2 rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-amber-400">
-                            Bakiye Yükle
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 5v14" />
-                                <path d="M5 12h14" />
-                            </svg>
-                        </button>
                     </div>
 
                     <div class="mt-6 grid gap-4 lg:grid-cols-3">
-                        <div class="rounded-xl bg-gray-50 p-4">
-                            <p class="text-sm text-gray-500">Cüzdan Bakiyesi</p>
-                            <p class="mt-2 text-2xl font-semibold text-gray-900">₺720,00</p>
-                            <p class="mt-1 text-xs text-gray-500">Son güncelleme 12 Mart 2024</p>
-                        </div>
                         <div class="rounded-xl bg-gray-50 p-4">
                             <p class="text-sm text-gray-500">Son Ödeme</p>
                             <p class="mt-2 text-lg font-semibold text-gray-900">Mastercard •••• 9245</p>
