@@ -38,12 +38,17 @@ namespace ECommerceBatteryShop.Controllers
             return View();
         }
         [HttpGet]
-        public async Task<IActionResult> Stocks(CancellationToken cancellationToken)
+        public async Task<IActionResult> Stocks(string? search, CancellationToken cancellationToken)
         {
             var model = new AdminStockViewModel
             {
-                Items = await LoadStockItemsAsync(cancellationToken)
+                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim()
             };
+
+            if (!string.IsNullOrWhiteSpace(model.SearchTerm))
+            {
+                model.Items = await LoadStockItemsAsync(model.SearchTerm, cancellationToken);
+            }
 
             return View(model);
         }
@@ -60,7 +65,10 @@ namespace ECommerceBatteryShop.Controllers
             if (!ModelState.IsValid)
             {
                 model ??= new AdminStockViewModel();
-                model.Items = await LoadStockItemsAsync(cancellationToken);
+                if (!string.IsNullOrWhiteSpace(model.SearchTerm))
+                {
+                    model.Items = await LoadStockItemsAsync(model.SearchTerm, cancellationToken);
+                }
                 return View(model);
             }
 
@@ -106,6 +114,15 @@ namespace ECommerceBatteryShop.Controllers
 
             return RedirectToAction(nameof(Stocks));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> StockSearch(string? query, CancellationToken cancellationToken)
+        {
+            var searchTerm = string.IsNullOrWhiteSpace(query) ? null : query.Trim();
+            var items = await LoadStockItemsAsync(searchTerm, cancellationToken);
+
+            return Json(new { items });
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateProduct(AdminProductEntryViewModel model)
@@ -119,11 +136,30 @@ namespace ECommerceBatteryShop.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task<IList<AdminStockItemViewModel>> LoadStockItemsAsync(CancellationToken cancellationToken)
+        private async Task<IList<AdminStockItemViewModel>> LoadStockItemsAsync(string? searchTerm, CancellationToken cancellationToken)
         {
-            return await _context.Products
-                .AsNoTracking()
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return new List<AdminStockItemViewModel>();
+            }
+
+            searchTerm = searchTerm.Trim();
+
+            var query = _context.Products.AsNoTracking();
+            var pattern = $"%{searchTerm}%";
+
+            if (int.TryParse(searchTerm, out var productId))
+            {
+                query = query.Where(p => p.Id == productId || EF.Functions.ILike(p.Name, pattern));
+            }
+            else
+            {
+                query = query.Where(p => EF.Functions.ILike(p.Name, pattern));
+            }
+
+            return await query
                 .OrderBy(p => p.Name)
+                .Take(25)
                 .Select(p => new AdminStockItemViewModel
                 {
                     ProductId = p.Id,
