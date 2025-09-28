@@ -141,7 +141,14 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Profile));
     }
 
-
+    public IActionResult LogOut()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
+        }
+        return RedirectToAction("Index", "Home");
+    }
     public IActionResult ForgotPassword()
     {
         return View();
