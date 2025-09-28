@@ -1,5 +1,282 @@
-﻿@model AdminProductEntryViewModel
+@using System.Globalization
+@using System.Linq
 @{
     ViewData["Title"] = "Analitik";
     Layout = "_AdminLayout";
+
+    var culture = new CultureInfo("tr-TR");
+
+    var rangeOptions = new[]
+    {
+        new { Label = "Son 7 Gün", Value = "last7", Revenue = 184250m, Orders = 412, AvgOrder = 447.90m, Growth = 12.6m },
+        new { Label = "Son 30 Gün", Value = "last30", Revenue = 682430m, Orders = 1689, AvgOrder = 403.90m, Growth = 8.1m },
+        new { Label = "Son 90 Gün", Value = "last90", Revenue = 1963430m, Orders = 4925, AvgOrder = 398.20m, Growth = -2.4m }
+    };
+
+    var activeRange = rangeOptions[0];
+
+    var dailySales = new[]
+    {
+        new { Day = "Pzt", Revenue = 21840m, Orders = 58 },
+        new { Day = "Sal", Revenue = 24320m, Orders = 64 },
+        new { Day = "Çar", Revenue = 20580m, Orders = 52 },
+        new { Day = "Per", Revenue = 25210m, Orders = 66 },
+        new { Day = "Cum", Revenue = 28960m, Orders = 74 },
+        new { Day = "Cmt", Revenue = 31020m, Orders = 78 },
+        new { Day = "Paz", Revenue = 23540m, Orders = 60 }
+    };
+
+    var peakDailyRevenue = dailySales.Max(s => s.Revenue);
+
+    var productSales = new[]
+    {
+        new { Name = "Uzun Ömürlü Lityum 18650", Sku = "SKU-18650", Units = 248, Revenue = 98210m, Share = 0.27m, Trend = 14.2m },
+        new { Name = "Ultra Güçlü Alkalin AA", Sku = "SKU-AA24", Units = 326, Revenue = 78420m, Share = 0.21m, Trend = 9.4m },
+        new { Name = "Hızlı Şarjlı Powerbank 20.000 mAh", Sku = "SKU-PB20", Units = 142, Revenue = 65360m, Share = 0.18m, Trend = 4.8m },
+        new { Name = "Akıllı Cihaz Pili CR2032", Sku = "SKU-CR2032", Units = 288, Revenue = 41860m, Share = 0.11m, Trend = -3.6m },
+        new { Name = "Profesyonel Drone Bataryası", Sku = "SKU-DRONE", Units = 74, Revenue = 36540m, Share = 0.10m, Trend = 6.3m }
+    };
+
+    var categoryShares = new[]
+    {
+        new { Category = "Elektrikli Aletler", Share = 0.36m },
+        new { Category = "Tüketici Elektroniği", Share = 0.28m },
+        new { Category = "Endüstriyel", Share = 0.19m },
+        new { Category = "Otomotiv", Share = 0.11m },
+        new { Category = "Diğer", Share = 0.06m }
+    };
+
+    var returningCustomerRate = 0.42m;
+    var conversionRate = 0.038m;
 }
+
+<div class="mx-auto max-w-7xl space-y-10">
+    <header class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div class="space-y-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Yönetim Analitikleri</p>
+            <h1 class="text-3xl font-semibold text-slate-900">Ürün Bazlı Satış Performansı</h1>
+            <p class="max-w-2xl text-sm leading-6 text-slate-500">
+                Seçili dönemdeki toplam gelir, sipariş ve ürün kırılımlarını inceleyin. Bu sayfada görüntülenen rakamlar
+                gerçek verilerle eşleştirildiğinde otomatik olarak güncellenecektir.
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 rounded-full bg-white/60 p-2 shadow-inner shadow-slate-200">
+            @foreach (var option in rangeOptions)
+            {
+                var isActive = option.Value == activeRange.Value;
+                <button type="button" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition @(isActive ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20" : "text-slate-600 hover:bg-slate-100")">
+                    <span>@option.Label</span>
+                    <span class="text-[11px] font-semibold uppercase tracking-wide @(option.Growth >= 0 ? "text-emerald-400" : "text-rose-400")">
+                        @(option.Growth >= 0 ? "+" : string.Empty)@option.Growth%
+                    </span>
+                </button>
+            }
+        </div>
+    </header>
+
+    <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Toplam Ciro</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">@activeRange.Revenue.ToString("C0", culture)</p>
+            <p class="mt-2 flex items-center gap-2 text-xs font-medium text-emerald-600">
+                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100">↗</span>
+                Seçilen dönemde geçen haftaya göre @(activeRange.Growth >= 0 ? "+" : string.Empty)@activeRange.Growth%
+            </p>
+        </article>
+        <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Toplam Sipariş</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">@activeRange.Orders</p>
+            <p class="mt-2 text-xs text-slate-500">Günlük ortalama <span class="font-semibold text-slate-700">@(Math.Round((decimal)activeRange.Orders / dailySales.Length, 1))</span> sipariş</p>
+        </article>
+        <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Sipariş Başına Gelir</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">@activeRange.AvgOrder.ToString("C", culture)</p>
+            <p class="mt-2 text-xs text-slate-500">Sepet dönüşüm oranı <span class="font-semibold text-slate-700">@conversionRate.ToString("P1", culture)</span></p>
+        </article>
+        <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tekrar Eden Müşteri</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">@returningCustomerRate.ToString("P0", culture)</p>
+            <p class="mt-2 text-xs text-slate-500">Sadakat programı ile artış hedefi: <span class="font-semibold text-slate-700">%50</span></p>
+        </article>
+    </section>
+
+    <section class="grid gap-8 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <div class="space-y-8">
+            <article class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/40">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-900">Günlük Satış Eğrisi</h2>
+                        <p class="text-sm text-slate-500">Gelir ve sipariş adedi günlük bazda nasıl değiştiğini gösterir.</p>
+                    </div>
+                    <div class="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                        <span class="flex items-center gap-1 text-slate-700"><span class="h-2 w-2 rounded-full bg-slate-900"></span> Gelir</span>
+                        <span class="flex items-center gap-1 text-slate-700"><span class="h-2 w-2 rounded-full bg-emerald-400"></span> Sipariş</span>
+                    </div>
+                </div>
+                <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
+                    <div class="flex h-64 items-end justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                        @foreach (var day in dailySales)
+                        {
+                            var height = peakDailyRevenue == 0 ? 0 : Math.Round((day.Revenue / peakDailyRevenue) * 100m, 0);
+                            <div class="group flex w-full flex-col items-center gap-2">
+                                <div class="relative flex h-full w-full items-end justify-center">
+                                    <div class="h-full w-2 rounded-full bg-gradient-to-t from-slate-300 to-slate-900" style="height:@height%"></div>
+                                    <div class="absolute bottom-0 mb-[-1.75rem] hidden min-w-[120px] flex-col rounded-xl bg-slate-900 px-3 py-2 text-[11px] text-white shadow-xl group-hover:flex">
+                                        <p class="font-semibold">@day.Day</p>
+                                        <p class="text-slate-300">Gelir: @day.Revenue.ToString("C0", culture)</p>
+                                        <p class="text-slate-300">Sipariş: @day.Orders</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs font-semibold text-slate-500">@day.Day</p>
+                            </div>
+                        }
+                    </div>
+                    <dl class="space-y-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+                        <div class="flex items-center justify-between">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">En yüksek gün</dt>
+                            <dd class="text-sm font-semibold text-slate-900">
+                                @{ var bestDay = dailySales.OrderByDescending(s => s.Revenue).First(); }
+                                @bestDay.Day - @bestDay.Revenue.ToString("C0", culture)
+                            </dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">En düşük gün</dt>
+                            <dd class="text-sm font-semibold text-slate-900">
+                                @{ var worstDay = dailySales.OrderBy(s => s.Revenue).First(); }
+                                @worstDay.Day - @worstDay.Revenue.ToString("C0", culture)
+                            </dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Ortalama günlük gelir</dt>
+                            <dd class="text-sm font-semibold text-slate-900">@dailySales.Average(s => s.Revenue).ToString("C0", culture)</dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Ortalama sipariş adedi</dt>
+                            <dd class="text-sm font-semibold text-slate-900">@dailySales.Average(s => s.Orders).ToString("N0", culture)</dd>
+                        </div>
+                    </dl>
+                </div>
+            </article>
+
+            <article class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/40">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-900">Ürün Bazlı Gelir Dağılımı</h2>
+                        <p class="text-sm text-slate-500">Satışlarınızın en çok gelir getiren ürünlerini sıralı olarak görüntüleyin.</p>
+                    </div>
+                    <div class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Toplam @productSales.Sum(p => p.Revenue).ToString("C0", culture)</div>
+                </div>
+                <div class="mt-6 overflow-hidden rounded-2xl border border-slate-100">
+                    <table class="min-w-full divide-y divide-slate-100 text-sm">
+                        <thead class="bg-slate-50/80 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <tr>
+                                <th class="px-4 py-3">Ürün</th>
+                                <th class="px-4 py-3">Satılan Adet</th>
+                                <th class="px-4 py-3">Gelir</th>
+                                <th class="px-4 py-3">Gelir Payı</th>
+                                <th class="px-4 py-3">Değişim</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @foreach (var product in productSales)
+                            {
+                                <tr class="transition hover:bg-slate-50/80">
+                                    <td class="px-4 py-4">
+                                        <div class="space-y-1">
+                                            <p class="font-semibold text-slate-900">@product.Name</p>
+                                            <p class="text-xs text-slate-500">@product.Sku</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 font-semibold text-slate-900">@product.Units</td>
+                                    <td class="px-4 py-4 font-semibold text-slate-900">@product.Revenue.ToString("C0", culture)</td>
+                                    <td class="px-4 py-4 text-sm font-semibold text-slate-600">@product.Share.ToString("P0", culture)</td>
+                                    <td class="px-4 py-4">
+                                        <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold @(product.Trend >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600")">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                                @if (product.Trend >= 0)
+                                                {
+                                                    <path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75V13.3l3.22-3.22a.75.75 0 011.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 011.06-1.06L9.25 13.3V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+                                                }
+                                                else
+                                                {
+                                                    <path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V6.7l-3.22 3.22a.75.75 0 11-1.06-1.06l4.5-4.5a.75.75 0 011.06 0l4.5 4.5a.75.75 0 01-1.06 1.06L10.75 6.7v9.55A.75.75 0 0110 17z" clip-rule="evenodd" />
+                                                }
+                                            </svg>
+                                            @(product.Trend >= 0 ? "+" : string.Empty)@product.Trend%
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </div>
+
+        <aside class="space-y-8">
+            <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/40">
+                <h2 class="text-lg font-semibold text-slate-900">Kategori Dağılımı</h2>
+                <p class="mt-1 text-sm text-slate-500">Gelirin kategori bazında dağılımını gösterir.</p>
+                <div class="mt-6 space-y-4">
+                    @foreach (var category in categoryShares)
+                    {
+                        <div>
+                            <div class="flex items-center justify-between text-sm font-medium text-slate-700">
+                                <span>@category.Category</span>
+                                <span>@category.Share.ToString("P0", culture)</span>
+                            </div>
+                            <div class="mt-2 h-2 rounded-full bg-slate-100">
+                                <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600" style="width:@Math.Round(category.Share * 100m, 0)%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </article>
+
+            <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/40">
+                <h2 class="text-lg font-semibold text-slate-900">Dönem Karşılaştırması</h2>
+                <p class="mt-1 text-sm text-slate-500">Seçili dönem ile önceki eş dönem performansını kıyaslayın.</p>
+                <dl class="mt-6 space-y-4 text-sm text-slate-600">
+                    <div class="flex items-center justify-between">
+                        <dt class="font-medium text-slate-500">Ciro</dt>
+                        <dd class="font-semibold text-slate-900">@activeRange.Revenue.ToString("C0", culture)</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="font-medium text-slate-500">Önceki dönem</dt>
+                        <dd class="font-semibold text-slate-900">@((activeRange.Revenue / (1 + (activeRange.Growth / 100m))).ToString("C0", culture))</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="font-medium text-slate-500">Sipariş</dt>
+                        <dd class="font-semibold text-slate-900">@activeRange.Orders</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="font-medium text-slate-500">Önceki sipariş</dt>
+                        <dd class="font-semibold text-slate-900">@Math.Round(activeRange.Orders / (1 + (activeRange.Growth / 100m)))</dd>
+                    </div>
+                </dl>
+                <div class="mt-6 rounded-2xl bg-emerald-50 p-4 text-xs text-emerald-800">
+                    <p class="font-semibold">Önerilen aksiyon</p>
+                    <p class="mt-1 leading-5">Stok devir hızını artırmak için yüksek performanslı ürünlerde haftalık kampanyaları sürdürün ve düşük trende sahip ürünler için çapraz satış önerileri hazırlayın.</p>
+                </div>
+            </article>
+
+            <article class="rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/30">
+                <h2 class="text-lg font-semibold">Hızlı Notlar</h2>
+                <ul class="mt-5 space-y-4 text-sm text-slate-200">
+                    <li class="flex items-start gap-3">
+                        <span class="mt-1 inline-flex h-2.5 w-2.5 flex-none rounded-full bg-emerald-400"></span>
+                        <span>Son 7 günde yeni müşteri gelir payı %34 ile rekor seviyede.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-1 inline-flex h-2.5 w-2.5 flex-none rounded-full bg-amber-300"></span>
+                        <span>Stok devir süresi 18 güne yükseldi. Ana ürünlerde yeniden sipariş uyarısı verin.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-1 inline-flex h-2.5 w-2.5 flex-none rounded-full bg-sky-300"></span>
+                        <span>Promosyonlu ürünlerin ortalama sepet katkısı ₺72 seviyesinde.</span>
+                    </li>
+                </ul>
+            </article>
+        </aside>
+    </section>
+</div>
