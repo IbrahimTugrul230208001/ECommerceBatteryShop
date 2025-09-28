@@ -93,4 +93,17 @@ public class AddressRepository : IAddressRepository
         _logger.LogInformation("Address {AddressId} set as default for user {UserId}", addressId, userId);
         return true;
     }
+    public async Task<bool> DeleteAsync(int addressId, CancellationToken ct = default)
+    {
+        var existing = await _ctx.Addresses.FirstOrDefaultAsync(a => a.Id == addressId, ct);
+        if (existing is null)
+        {
+            _logger.LogWarning("Attempted to delete address {AddressId}, but it was not found", addressId);
+            return false;
+        }
+        _ctx.Addresses.Remove(existing);
+        await _ctx.SaveChangesAsync(ct);
+        _logger.LogInformation("Address {AddressId} deleted for user {UserId}", addressId, existing.UserId);
+        return true;
+    }
 }

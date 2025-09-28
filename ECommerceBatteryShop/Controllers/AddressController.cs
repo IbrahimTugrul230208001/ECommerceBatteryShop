@@ -149,7 +149,30 @@ public class AddressController : Controller
         _logger.LogWarning("Could not parse user id claim value {Claim}", claim.Value);
         return null;
     }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        var userId = GetUserId();
+        if (!userId.HasValue)
+        {
+            return Unauthorized();
+        }
 
+        var result = await _addressRepository.DeleteAsync(id, ct);
+        if (!result)
+        {
+            return NotFound();
+        }
+        var addresses = await _addressRepository.GetByUserAsync(userId.Value, ct);
+        if (!addresses.Any(a => a.IsDefault) && addresses.Count > 0)
+        {
+            var fallback = addresses.First();
+            await _addressRepository.SetDefaultAsync(userId.Value, fallback.Id, ct);
+            addresses = await _addressRepository.GetByUserAsync(userId.Value, ct);
+        }
+        return PartialView("_AddressListPartial", addresses.Select(MapToViewModel).ToList());
+    }
     private static AddressViewModel MapToViewModel(Address address)
     {
         return new AddressViewModel

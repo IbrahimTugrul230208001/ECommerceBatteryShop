@@ -23,7 +23,6 @@
                   x-on:htmx:afterOnLoad.window="$store.address.close(); $store.address.reset()">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="Id" x-model="$store.address.form.id" />
-                <input type="hidden" name="Country" x-model="$store.address.form.country" />
 
                 <div>
                     <label class="block text-sm font-medium text-slate-700">Adres Başlığı *</label>

@@ -36,10 +36,28 @@
             <article class="@cardClasses">
                 <div class="flex items-center justify-between gap-2">
                     <p class="text-sm font-semibold text-gray-900">@address.Title</p>
-                    @if (address.IsDefault)
-                    {
-                        <span class="rounded-full bg-amber-200 px-3 py-1 text-xs font-semibold text-amber-700">Varsayılan</span>
-                    }
+
+                    <form method="post"
+                          hx-post='@Url.Action("Delete","Address")'
+                          hx-target="#address-list"
+                          hx-swap="outerHTML"
+                          @@click="remove(@address.Id)"
+                          hx-confirm="Bu adresi silmek istiyor musunuz?"
+                          class="contents">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@address.Id" />
+                        <button type="submit"
+                                title="Sil"
+                                class="p-1.5 rounded text-slate-500 hover:text-slate-700 border border-transparent hover:border-red-200">
+                            <svg class="h-5 w-5 cursor-pointer" viewBox="0 0 24 24" fill="none">
+                                <path d="M18 6V16.2C18 17.8802 18 18.7202 17.673 19.362C17.3854 19.9265 16.9265 20.3854 16.362 20.673C15.7202 21 14.8802 21 13.2 21H10.8C9.11984 21 8.27976 21 7.63803 20.673C7.07354 20.3854 6.6146 19.9265 6.32698 19.362C6 18.7202 6 17.8802 6 16.2V6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                    </form>
                 </div>
                 <p class="mt-2 text-sm text-gray-700 font-medium">@address.Name @address.Surname</p>
                 <p class="text-sm text-gray-500">@address.PhoneNumber</p>
@@ -49,7 +67,7 @@
                 <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
                     <button type="button"
                             class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600"
-                            @@click="$store.address.edit(@Html.Raw(payload))">
+                            @@click='$store.address.edit(@Html.Raw(payload))'>
                         Düzenle
                     </button>
                     @if (!address.IsDefault)
@@ -79,3 +97,19 @@
         }
     }
 </div>
+<script>
+    remove(id){
+      const idx = this.items.findIndex(i => i.id === id);
+      if (idx > 0) {
+        const removed = { ...this.items[idx] };
+        this.items[idx].removing = true;
+
+        setTimeout(() => {
+          this.items.splice(idx, 1);
+          this.lastRemoved = removed;
+          this.persist();
+          this.notify('Ürün kaldırıldı', 'warn');
+        }, 200);
+      }
+    }
+</script>
