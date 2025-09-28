@@ -162,7 +162,7 @@ namespace ECommerceBatteryShop.Controllers
             {
                 Id = product.Id,
                 Name = product.Name,
-                Price = _currency.ConvertUsdToTry(product.Price, fx) * (1 + KdvRate),
+                Price = (_currency.ConvertUsdToTry(product.Price, fx)+product.ExtraAmount) * (1 + KdvRate),
                 Rating = product.Rating,
                 ImageUrl = product.ImageUrl,
                 IsFavorite = favoriteIds.Contains(product.Id),
