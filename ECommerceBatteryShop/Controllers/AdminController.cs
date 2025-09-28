@@ -208,9 +208,9 @@ namespace ECommerceBatteryShop.Controllers
                 var newFileName = CreateImageFileName(product.Name, extension);
                 var filePath = Path.Combine(imagesFolder, newFileName);
 
-                await using (var stream = File.Create(filePath))
+                await using (var stream = System.IO.File.Create(filePath))
                 {
-                    await model.Image.CopyToAsync(stream, cancellationToken);
+                    await model.Image.CopyToAsync(stream);
                 }
 
                 if (!string.IsNullOrWhiteSpace(savedFileName) && !string.Equals(savedFileName, newFileName, StringComparison.OrdinalIgnoreCase))
