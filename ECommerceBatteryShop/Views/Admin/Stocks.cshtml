@@ -51,7 +51,8 @@
                             <circle cx="11" cy="11" r="7" stroke-width="2" />
                             <path d="M21 21l-4.3-4.3" stroke-width="2" />
                         </svg>
-                        <input id="stock-search" type="search" name="q"
+                        <input id="stock-search" type="search"
+                               value="@Model.SearchTerm"
                                placeholder="Ürün ara…"
                                class="w-full rounded-2xl border border-slate-300 pl-10 pr-10 py-3
                   text-sm text-slate-800 placeholder-slate-400
@@ -79,9 +80,11 @@
         </div>
     }
 
-    <form asp-action="Stocks" method="post" class="space-y-5">
+    <form asp-action="Stocks" method="post" class="space-y-5" data-stock-form>
         @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="space-y-1 text-sm text-red-600" role="alert"></div>
+
+        <input type="hidden" asp-for="SearchTerm" id="stock-search-term" />
 
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg shadow-slate-200/50">
             <table class="min-w-full divide-y divide-slate-200">
@@ -94,17 +97,17 @@
                <tbody id="stock-rows" class="divide-y divide-slate-100 text-sm text-slate-700">
                     @if (Model.Items.Count == 0)
                     {
-                                <tr data-empty-row>
-                                    <td colspan="2" class="px-6 py-8 text-center text-sm text-slate-500">
-                                        Henüz ürün bulunamadı. Ürün ekleyerek stok durumunu yönetebilirsiniz.
-                                    </td>
-                                </tr>
+                        <tr data-empty-row>
+                            <td colspan="2" class="px-6 py-8 text-center text-sm text-slate-500">
+                                Arama yaparak ürünleri görüntüleyin.
+                            </td>
+                        </tr>
                     }
                     else
                     {
                         for (var i = 0; i < Model.Items.Count; i++)
                         {
-                            <tr class="transition hover:bg-slate-50/70">
+                            <tr class="transition hover:bg-slate-50/70" data-stock-row>
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col">
                                         <span class="font-semibold text-slate-900">@Model.Items[i].ProductName</span>
@@ -144,4 +147,220 @@
 </div>
 </main>
 
+
+@section Scripts {
+    <script>
+        (function () {
+            const searchInput = document.getElementById('stock-search');
+            const clearButton = document.getElementById('stock-clear');
+            const tableBody = document.getElementById('stock-rows');
+            const hiddenSearch = document.getElementById('stock-search-term');
+            const form = document.querySelector('form[data-stock-form]');
+            const searchUrl = '@Url.Action("StockSearch", "Admin")';
+            const minQueryLength = 2;
+
+            let currentRequest = null;
+            let debounceTimer = null;
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function setTableContent(markup) {
+                tableBody.innerHTML = markup;
+            }
+
+            function renderPlaceholder(message) {
+                setTableContent(`
+                    <tr data-empty-row>
+                        <td colspan="2" class="px-6 py-8 text-center text-sm text-slate-500">
+                            ${message}
+                        </td>
+                    </tr>
+                `);
+            }
+
+            function renderLoading() {
+                renderPlaceholder('Ürünler yükleniyor…');
+            }
+
+            function renderError() {
+                renderPlaceholder('Ürünler yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.');
+            }
+
+            function renderResults(items) {
+                if (!Array.isArray(items) || items.length === 0) {
+                    renderPlaceholder('Aramanıza uygun ürün bulunamadı.');
+                    return;
+                }
+
+                const rows = items.map((item, index) => {
+                    const inStockRaw = item.inStock ?? item.InStock;
+                    const productIdRaw = item.productId ?? item.ProductId;
+                    const productNameRaw = item.productName ?? item.ProductName ?? '';
+
+                    const inStock = Boolean(inStockRaw);
+                    const productId = Number.isFinite(productIdRaw) ? productIdRaw : parseInt(productIdRaw, 10);
+                    const productIdValue = Number.isFinite(productId) ? productId : (productIdRaw ?? '');
+                    const productNameSafe = escapeHtml(productNameRaw);
+
+                    return `
+                        <tr class="transition hover:bg-slate-50/70" data-stock-row>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="font-semibold text-slate-900">${productNameSafe}</span>
+                                    <span class="text-xs text-slate-500">ID: ${Number.isFinite(productId) ? productId : escapeHtml(productIdValue)}</span>
+                                </div>
+                                <input type="hidden" name="Items[${index}].ProductId" value="${escapeHtml(productIdValue)}" />
+                                <input type="hidden" name="Items[${index}].ProductName" value="${productNameSafe}" />
+                            </td>
+                            <td class="px-6 py-4">
+                                <label class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
+                                    <select name="Items[${index}].InStock" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                                        <option value="true" ${inStock ? 'selected' : ''}>Stok var</option>
+                                        <option value="false" ${!inStock ? 'selected' : ''}>Stok yok</option>
+                                    </select>
+                                </label>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                setTableContent(rows.join(''));
+            }
+
+            function abortCurrentRequest() {
+                if (currentRequest) {
+                    currentRequest.abort();
+                    currentRequest = null;
+                }
+            }
+
+            async function fetchResults(term) {
+                abortCurrentRequest();
+
+                const controller = new AbortController();
+                currentRequest = controller;
+
+                try {
+                    const response = await fetch(`${searchUrl}?query=${encodeURIComponent(term)}`, {
+                        signal: controller.signal,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Response not OK');
+                    }
+
+                    const data = await response.json();
+                    renderResults(data.items ?? []);
+                } catch (error) {
+                    if (controller.signal.aborted) {
+                        return;
+                    }
+
+                    console.error('Stock search failed', error);
+                    renderError();
+                } finally {
+                    if (currentRequest === controller) {
+                        currentRequest = null;
+                    }
+                }
+            }
+
+            function scheduleFetch(term) {
+                if (debounceTimer) {
+                    clearTimeout(debounceTimer);
+                }
+
+                debounceTimer = setTimeout(() => fetchResults(term), 200);
+            }
+
+            function onSearchInput() {
+                const term = searchInput.value.trim();
+                hiddenSearch.value = term;
+                if (clearButton) {
+                    clearButton.classList.toggle('hidden', term.length === 0);
+                }
+
+                abortCurrentRequest();
+
+                if (term.length === 0) {
+                    renderPlaceholder('Arama yaparak ürünleri görüntüleyin.');
+                    return;
+                }
+
+                if (term.length < minQueryLength && !/^\d+$/.test(term)) {
+                    renderPlaceholder('Lütfen en az iki karakter girin.');
+                    return;
+                }
+
+                renderLoading();
+                scheduleFetch(term);
+            }
+
+            function onClearClick(event) {
+                event.preventDefault();
+                searchInput.value = '';
+                hiddenSearch.value = '';
+                if (clearButton) {
+                    clearButton.classList.add('hidden');
+                }
+                abortCurrentRequest();
+                renderPlaceholder('Arama yaparak ürünleri görüntüleyin.');
+                searchInput.focus();
+            }
+
+            if (form) {
+                form.addEventListener('submit', function () {
+                    // ensure indexes remain consistent by renumbering selects
+                    const rows = tableBody.querySelectorAll('tr[data-stock-row]');
+                    rows.forEach((row, index) => {
+                        const hiddenInputs = row.querySelectorAll('input[type="hidden"]');
+                        hiddenInputs.forEach((input) => {
+                            const field = input.name.split('.').pop();
+                            input.name = `Items[${index}].${field}`;
+                        });
+
+                        const select = row.querySelector('select');
+                        if (select) {
+                            select.name = `Items[${index}].InStock`;
+                        }
+                    });
+                });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', onSearchInput);
+                searchInput.addEventListener('search', onSearchInput);
+            }
+
+            if (clearButton) {
+                clearButton.addEventListener('click', onClearClick);
+            }
+
+            // Initialise state on load
+            const initialTerm = searchInput ? searchInput.value.trim() : '';
+            hiddenSearch.value = initialTerm;
+            if (clearButton) {
+                clearButton.classList.toggle('hidden', initialTerm.length === 0);
+            }
+
+            const hasServerRows = tableBody.querySelector('tr[data-stock-row]');
+            if (initialTerm.length === 0 && !hasServerRows) {
+                renderPlaceholder('Arama yaparak ürünleri görüntüleyin.');
+            } else if (initialTerm.length >= minQueryLength && !hasServerRows) {
+                renderLoading();
+                fetchResults(initialTerm);
+            }
+        })();
+    </script>
+}
 
