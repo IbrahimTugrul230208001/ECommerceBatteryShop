@@ -3,6 +3,7 @@
     ViewData["Title"] = "Ürün Girişi";
     Layout = "_AdminLayout";
 }
+
 @{
     var existingImagePath = string.IsNullOrWhiteSpace(Model.ExistingImageUrl)
         ? Url.Content("~/img/placeholder-image.svg")
