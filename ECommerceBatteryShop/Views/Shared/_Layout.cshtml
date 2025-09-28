@@ -147,7 +147,7 @@
                                                 @foreach (var child in parent.SubCategories)
                                                 {
                                                     <li>
-                                                        <a href="@Url.Action("Index", "Product", new { categoryId = child.Id })"
+                                                          <a href="@Url.Action("Index", "Product", new { categoryId = child.Id })"
                                                            class="block rounded-md font-bold px-2 py-1.5 hover:bg-gray-100 hover:text-gray-900">@child.Name</a>
                                                     </li>
                                                 }
@@ -157,6 +157,9 @@
                                 }
                                 <li>
                                     <a href="/Home/Contact" class="block text-base font-semibold text-gray-900 hover:text-amber-500">İletişim</a>
+                                </li>
+                                <li>
+                                    <a href="/Home/AboutUs" class="block text-base font-semibold text-gray-900 hover:text-amber-500">Hakkımızda</a>
                                 </li>
                             </ul>
                         </nav>
@@ -517,6 +520,12 @@
                            class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
                               after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
                               hover:after:scale-x-100">İletişim</a>
+                    </li>
+                    <li>
+                        <a href="/Home/AboutUs"
+                           class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
+                              after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
+                              hover:after:scale-x-100">Hakkımızda</a>
                     </li>
                 </ul>
             </div>
