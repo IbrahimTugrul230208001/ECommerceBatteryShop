@@ -1,13 +1,19 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 
 namespace ECommerceBatteryShop.Models;
 
-public class AdminProductEntryViewModel
+public class AdminProductEntryViewModel : IValidatableObject
 {
+    [Display(Name = "Ürün ID")]
+    public int? ProductId { get; set; }
+
     [Display(Name = "Ürün Görseli")]
-    [Required(ErrorMessage = "Lütfen bir ürün görseli yükleyin.")]
     public IFormFile? Image { get; set; }
+
+    [Display(Name = "Mevcut Görsel")]
+    public string? ExistingImageUrl { get; set; }
 
     [Required(ErrorMessage = "Ürün adı zorunludur."), StringLength(120, ErrorMessage = "Ürün adı 120 karakterden uzun olamaz.")]
     [Display(Name = "Ürün Adı")]
@@ -20,4 +26,30 @@ public class AdminProductEntryViewModel
     [Required(ErrorMessage = "Açıklama zorunludur."), StringLength(1000, ErrorMessage = "Açıklama 1000 karakterden uzun olamaz.")]
     [Display(Name = "Ürün Açıklaması")]
     public string Description { get; set; } = string.Empty;
+
+    [Display(Name = "Ürün Ara")]
+    public string? SearchTerm { get; set; }
+
+    public IList<AdminProductSelectionItemViewModel> SearchResults { get; set; } = new List<AdminProductSelectionItemViewModel>();
+
+    public bool IsEditing => ProductId.HasValue;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (!ProductId.HasValue && Image is null)
+        {
+            yield return new ValidationResult("Yeni ürün oluşturmak için lütfen bir görsel yükleyin.", new[] { nameof(Image) });
+        }
+    }
+}
+
+public class AdminProductSelectionItemViewModel
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public decimal Price { get; set; }
+
+    public string? ImageUrl { get; set; }
 }
