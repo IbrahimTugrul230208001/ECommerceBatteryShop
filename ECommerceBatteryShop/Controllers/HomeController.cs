@@ -137,5 +137,9 @@ namespace ECommerceBatteryShop.Controllers
         {
             return View();
         }
+        public IActionResult DistantSelling()
+        {
+            return View();
+        }
     }
 }
