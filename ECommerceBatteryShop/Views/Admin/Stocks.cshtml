@@ -1,5 +1,93 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model AdminStockViewModel
 @{
+    ViewData["Title"] = "Stok Yönetimi";
+    Layout = "_AdminLayout";
 }
+
+<section class="space-y-6">
+    <header class="rounded-3xl border border-slate-200 bg-white/90 px-8 py-6 shadow-xl shadow-slate-200/60">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-900">Stok Yönetimi</h1>
+                <p class="mt-1 text-sm text-slate-500">Ürünlerin stok durumlarını kontrol edin ve anlık olarak güncelleyin.</p>
+            </div>
+            <div class="flex items-center gap-2 rounded-full bg-slate-900/90 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/25">
+                <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                Aktif
+            </div>
+        </div>
+        <p class="mt-3 text-xs text-slate-500">Listeden ürünleri seçerek stokta olup olmadığını belirleyebilir, kaydederek mağaza görünürlüğünü güncel tutabilirsiniz.</p>
+    </header>
+
+    @if (TempData["StockUpdateSuccess"] is string successMessage)
+    {
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-900 shadow-sm">
+            <div class="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mt-0.5 h-5 w-5 text-emerald-500">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7" />
+                </svg>
+                <p>@successMessage</p>
+            </div>
+        </div>
+    }
+
+    <form asp-action="Stocks" method="post" class="space-y-5">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="space-y-1 text-sm text-red-600" role="alert"></div>
+
+        <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg shadow-slate-200/50">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50/80">
+                    <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th scope="col" class="px-6 py-4">Ürün</th>
+                        <th scope="col" class="px-6 py-4">Durum</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                    @if (Model.Items.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="2" class="px-6 py-8 text-center text-sm text-slate-500">Henüz ürün bulunamadı. Ürün ekleyerek stok durumunu yönetebilirsiniz.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        for (var i = 0; i < Model.Items.Count; i++)
+                        {
+                            <tr class="transition hover:bg-slate-50/70">
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="font-semibold text-slate-900">@Model.Items[i].ProductName</span>
+                                        <span class="text-xs text-slate-500">ID: @Model.Items[i].ProductId</span>
+                                    </div>
+                                    <input type="hidden" asp-for="Items[i].ProductId" />
+                                    <input type="hidden" asp-for="Items[i].ProductName" />
+                                </td>
+                                <td class="px-6 py-4">
+                                    <label class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
+                                        <select asp-for="Items[i].InStock" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                                            <option value="true">Stok var</option>
+                                            <option value="false">Stok yok</option>
+                                        </select>
+                                    </label>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Items.Count > 0)
+        {
+            <div class="flex items-center justify-end">
+                <button type="submit" class="inline-flex items-center gap-3 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-slate-900/25 transition hover:bg-slate-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12l5 5L20 7" />
+                    </svg>
+                    Stok Durumlarını Kaydet
+                </button>
+            </div>
+        }
+    </form>
+</section>
