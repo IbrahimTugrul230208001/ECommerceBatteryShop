@@ -1,7 +1,12 @@
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ECommerceBatteryShop.DataAccess;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,21 +16,30 @@ namespace ECommerceBatteryShop.Controllers
     public class AdminController : Controller
     {
         private readonly BatteryShopContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public AdminController(BatteryShopContext context)
+        public AdminController(BatteryShopContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(int? productId, string? search, CancellationToken cancellationToken)
         {
             if (TempData.ContainsKey("ProductEntrySuccess"))
             {
                 ViewBag.ProductEntrySuccess = TempData["ProductEntrySuccess"];
             }
 
-            return View(new AdminProductEntryViewModel());
+            var model = new AdminProductEntryViewModel
+            {
+                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim()
+            };
+
+            await PopulateEntryViewModelAsync(model, productId, cancellationToken);
+
+            return View(model);
         }
         [HttpGet]
         public IActionResult Analytics()
@@ -125,15 +139,104 @@ namespace ECommerceBatteryShop.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreateProduct(AdminProductEntryViewModel model)
+        public async Task<IActionResult> CreateProduct(AdminProductEntryViewModel model, CancellationToken cancellationToken)
         {
+            model.SearchTerm = string.IsNullOrWhiteSpace(model.SearchTerm) ? null : model.SearchTerm.Trim();
+            model.SearchResults = await LoadProductSelectionItemsAsync(model.SearchTerm, cancellationToken);
+
+            if (model.ProductId.HasValue)
+            {
+                var exists = await _context.Products.AnyAsync(p => p.Id == model.ProductId.Value, cancellationToken);
+                if (!exists)
+                {
+                    ModelState.AddModelError(string.Empty, "Güncellenecek ürün bulunamadı veya silinmiş olabilir.");
+                }
+            }
+
+            if (model.Image is not null)
+            {
+                if (string.IsNullOrWhiteSpace(model.Image.ContentType) || !model.Image.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(nameof(model.Image), "Lütfen geçerli bir görsel dosyası yükleyin.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 return View("Index", model);
             }
 
-            TempData["ProductEntrySuccess"] = "Ürün taslağı başarıyla kaydedildi. Şimdi ürün detaylarını inceleyebilirsiniz.";
-            return RedirectToAction(nameof(Index));
+            var isNew = !model.ProductId.HasValue;
+            Product product;
+
+            if (isNew)
+            {
+                product = new Product
+                {
+                    Rating = 0,
+                    ExtraAmount = 0
+                };
+                _context.Products.Add(product);
+            }
+            else
+            {
+                product = await _context.Products.FirstAsync(p => p.Id == model.ProductId!.Value, cancellationToken);
+            }
+
+            product.Name = model.Name.Trim();
+            product.Price = model.Price!.Value;
+            product.Description = model.Description.Trim();
+
+            var imagesFolder = Path.Combine(_environment.WebRootPath ?? string.Empty, "img");
+            Directory.CreateDirectory(imagesFolder);
+
+            string? savedFileName = product.ImageUrl ?? model.ExistingImageUrl;
+
+            if (model.Image is not null && model.Image.Length > 0)
+            {
+                var extension = Path.GetExtension(model.Image.FileName);
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    extension = model.Image.ContentType?.ToLowerInvariant() switch
+                    {
+                        "image/png" => ".png",
+                        "image/webp" => ".webp",
+                        _ => ".jpg"
+                    };
+                }
+
+                var newFileName = CreateImageFileName(product.Name, extension);
+                var filePath = Path.Combine(imagesFolder, newFileName);
+
+                await using (var stream = File.Create(filePath))
+                {
+                    await model.Image.CopyToAsync(stream, cancellationToken);
+                }
+
+                if (!string.IsNullOrWhiteSpace(savedFileName) && !string.Equals(savedFileName, newFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var previousPath = Path.Combine(imagesFolder, savedFileName);
+                    if (System.IO.File.Exists(previousPath))
+                    {
+                        System.IO.File.Delete(previousPath);
+                    }
+                }
+
+                savedFileName = newFileName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(savedFileName))
+            {
+                product.ImageUrl = savedFileName;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            TempData["ProductEntrySuccess"] = isNew
+                ? "Yeni ürün başarıyla oluşturuldu."
+                : "Ürün bilgileri başarıyla güncellendi.";
+
+            return RedirectToAction(nameof(Index), new { productId = product.Id, search = model.SearchTerm });
         }
 
         private async Task<IList<AdminStockItemViewModel>> LoadStockItemsAsync(string? searchTerm, CancellationToken cancellationToken)
@@ -167,6 +270,89 @@ namespace ECommerceBatteryShop.Controllers
                     InStock = p.Inventory != null && p.Inventory.Exists
                 })
                 .ToListAsync(cancellationToken);
+        }
+
+        private async Task PopulateEntryViewModelAsync(AdminProductEntryViewModel model, int? productId, CancellationToken cancellationToken)
+        {
+            model.SearchResults = await LoadProductSelectionItemsAsync(model.SearchTerm, cancellationToken);
+
+            if (!productId.HasValue)
+            {
+                return;
+            }
+
+            var product = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId.Value, cancellationToken);
+            if (product is null)
+            {
+                ModelState.AddModelError(string.Empty, "Seçili ürün bulunamadı veya silinmiş olabilir.");
+                return;
+            }
+
+            model.ProductId = product.Id;
+            model.Name = product.Name;
+            model.Price = product.Price;
+            model.Description = product.Description ?? string.Empty;
+            model.ExistingImageUrl = product.ImageUrl;
+
+            if (model.SearchResults.All(r => r.Id != product.Id))
+            {
+                model.SearchResults.Insert(0, new AdminProductSelectionItemViewModel
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Price = product.Price,
+                    ImageUrl = product.ImageUrl
+                });
+            }
+        }
+
+        private async Task<IList<AdminProductSelectionItemViewModel>> LoadProductSelectionItemsAsync(string? searchTerm, CancellationToken cancellationToken)
+        {
+            var query = _context.Products.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.Trim();
+                var pattern = $"%{searchTerm}%";
+
+                if (int.TryParse(searchTerm, out var productId))
+                {
+                    query = query.Where(p => p.Id == productId || EF.Functions.ILike(p.Name, pattern));
+                }
+                else
+                {
+                    query = query.Where(p => EF.Functions.ILike(p.Name, pattern));
+                }
+            }
+
+            return await query
+                .OrderBy(p => p.Name)
+                .Take(15)
+                .Select(p => new AdminProductSelectionItemViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    ImageUrl = p.ImageUrl
+                })
+                .ToListAsync(cancellationToken);
+        }
+
+        private static string CreateImageFileName(string productName, string extension)
+        {
+            extension = string.IsNullOrWhiteSpace(extension) || !extension.StartsWith('.')
+                ? ".jpg"
+                : extension.ToLowerInvariant();
+
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var sanitized = new string(productName.Where(c => !char.IsWhiteSpace(c) && !invalidChars.Contains(c)).ToArray());
+
+            if (string.IsNullOrWhiteSpace(sanitized))
+            {
+                sanitized = "urun";
+            }
+
+            return sanitized + extension;
         }
     }
 }
