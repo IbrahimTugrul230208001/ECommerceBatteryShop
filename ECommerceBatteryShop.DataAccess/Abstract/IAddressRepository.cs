@@ -9,4 +9,5 @@ public interface IAddressRepository
     Task<Address> AddAsync(Address address, CancellationToken ct = default);
     Task<Address?> UpdateAsync(Address address, CancellationToken ct = default);
     Task<bool> SetDefaultAsync(int userId, int addressId, CancellationToken ct = default);
+    Task<bool> DeleteAsync(int addressId, CancellationToken ct = default);
 }
