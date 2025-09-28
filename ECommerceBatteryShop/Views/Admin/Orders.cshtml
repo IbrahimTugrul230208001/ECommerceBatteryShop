@@ -1,5 +1,271 @@
-﻿@model AdminProductEntryViewModel
+@using System.Globalization
 @{
-    ViewData["Title"] = "Siparişler";
+    ViewData["Title"] = "Sipariş Yönetimi";
     Layout = "_AdminLayout";
+
+    var culture = new CultureInfo("tr-TR");
+
+    var statusSummary = new[]
+    {
+        new { Title = "Yeni Sipariş", Count = 18, Description = "Onay bekleyen yeni sipariş", Trend = 6.2m, TrendIsPositive = true, Accent = "bg-sky-100 text-sky-700" },
+        new { Title = "Hazırlanıyor", Count = 27, Description = "Paketleme aşamasındaki sipariş", Trend = 2.4m, TrendIsPositive = true, Accent = "bg-amber-100 text-amber-700" },
+        new { Title = "Kargoya Verildi", Count = 35, Description = "Kargo firmasına teslim edildi", Trend = -1.8m, TrendIsPositive = false, Accent = "bg-indigo-100 text-indigo-700" },
+        new { Title = "Tamamlandı", Count = 264, Description = "Son 30 günde başarıyla teslim edildi", Trend = 12.3m, TrendIsPositive = true, Accent = "bg-emerald-100 text-emerald-700" }
+    };
+
+    var fulfillmentQueues = new[]
+    {
+        new { Label = "Pazaryeri", Pending = 9, AvgHandling = "38 dk", LastUpdate = "12 dk önce" },
+        new { Label = "Web Siparişleri", Pending = 6, AvgHandling = "52 dk", LastUpdate = "8 dk önce" },
+        new { Label = "Kurumsal", Pending = 3, AvgHandling = "1 sa 14 dk", LastUpdate = "22 dk önce" }
+    };
+
+    var shipmentProviders = new[]
+    {
+        new { Name = "Yurtiçi Kargo", DispatchRate = 0.82m, AvgDelivery = "1.8 gün", Contact = "Müşteri Temsilcisi - Ayşe Hanım" },
+        new { Name = "Trendyol Express", DispatchRate = 0.91m, AvgDelivery = "1.2 gün", Contact = "Operasyon Sorumlusu - Murat" },
+        new { Name = "Aras Kargo", DispatchRate = 0.76m, AvgDelivery = "2.3 gün", Contact = "Bölge Yetkilisi - Derya" }
+    };
+
+    var workflowStatusOptions = new[]
+    {
+        "Ödeme Onayı Bekliyor",
+        "Hazırlanıyor",
+        "Kargoya Verildi",
+        "Teslim Edildi",
+        "İade Sürecinde"
+    };
+
+    var orders = new[]
+    {
+        new
+        {
+            OrderNo = "ORD-20240128",
+            Customer = "Mehmet Yılmaz",
+            Email = "mehmet.yilmaz@example.com",
+            Total = 2850.50m,
+            Status = "Hazırlanıyor",
+            Payment = "Kredi Kartı",
+            CreatedAt = DateTime.Today.AddHours(-4),
+            Notes = "Powerbank stok kontrolü tamamlandı. Kutu içeriği hazır.",
+            Items = new[]
+            {
+                new { Name = "Ultra Güçlü Alkalin AA", Quantity = 2, Amount = 340m },
+                new { Name = "Hızlı Şarjlı Powerbank 20.000 mAh", Quantity = 1, Amount = 1250.50m },
+                new { Name = "USB-C Hızlı Şarj Adaptörü", Quantity = 1, Amount = 420m }
+            }
+        },
+        new
+        {
+            OrderNo = "ORD-20240127",
+            Customer = "Elif Demir",
+            Email = "elif.demir@example.com",
+            Total = 1680m,
+            Status = "Kargoya Verildi",
+            Payment = "Kapıda Ödeme",
+            CreatedAt = DateTime.Today.AddHours(-9),
+            Notes = "Müşteri ile teslimat adresi teyit edildi.",
+            Items = new[]
+            {
+                new { Name = "Uzun Ömürlü Lityum 18650", Quantity = 4, Amount = 980m },
+                new { Name = "Akıllı Cihaz Pili CR2032", Quantity = 5, Amount = 350m }
+            }
+        },
+        new
+        {
+            OrderNo = "ORD-20240126",
+            Customer = "Can Kaya",
+            Email = "can.kaya@example.com",
+            Total = 940m,
+            Status = "Ödeme Onayı Bekliyor",
+            Payment = "Havale/EFT",
+            CreatedAt = DateTime.Today.AddHours(-16),
+            Notes = "Ödeme dekontu bekleniyor. Finans ile paylaşılacak.",
+            Items = new[]
+            {
+                new { Name = "Profesyonel Drone Bataryası", Quantity = 1, Amount = 740m },
+                new { Name = "Drone Şarj Ünitesi", Quantity = 1, Amount = 200m }
+            }
+        }
+    };
 }
+
+<div class="mx-auto max-w-7xl space-y-10">
+    <header class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div class="space-y-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Sipariş Yönetim Paneli</p>
+            <h1 class="text-3xl font-semibold text-slate-900">Sipariş Akışı ve Durum Güncellemeleri</h1>
+            <p class="max-w-3xl text-sm leading-6 text-slate-500">
+                Bu sayfa, OrdersRepository üzerinden gelen sipariş akışını gerçek zamanlı takip etmek için tasarlandı.
+                Aşağıdaki dummy veriler; yeni siparişlerin izlenmesi, durum değişiklikleri ve kargo süreçlerinin yönetimi
+                için kullanılacak bileşenleri göstermektedir.
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 rounded-full bg-white/60 p-2 shadow-inner shadow-slate-200">
+            <button class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-slate-900/20" type="button">Bugün</button>
+            <button class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100" type="button">Son 7 Gün</button>
+            <button class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100" type="button">Son 30 Gün</button>
+        </div>
+    </header>
+
+    <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        @foreach (var card in statusSummary)
+        {
+            <article class="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50">
+                <div class="space-y-4">
+                    <span class="inline-flex w-max items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold @card.Accent">@card.Title</span>
+                    <p class="text-3xl font-semibold text-slate-900">@card.Count</p>
+                    <p class="text-xs text-slate-500">@card.Description</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-semibold @(card.TrendIsPositive ? "text-emerald-600" : "text-rose-600")">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full @(card.TrendIsPositive ? "bg-emerald-100" : "bg-rose-100")">@(card.TrendIsPositive ? "↗" : "↘")</span>
+                    @(card.TrendIsPositive ? "+" : string.Empty)@card.Trend% son 24 saatte
+                </div>
+            </article>
+        }
+    </section>
+
+    <section class="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <article class="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/40">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-900">Canlı Sipariş Akışı</h2>
+                    <p class="text-sm text-slate-500">OrdersRepository üzerinden alınan veriler burada listelenecek. Satırlar üzerinden durum güncelleyebilirsiniz.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Durum Filtrele</label>
+                    <select class="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                        <option value="">Tümü</option>
+                        @foreach (var option in workflowStatusOptions)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-2xl border border-slate-100">
+                <table class="min-w-full divide-y divide-slate-100 text-sm">
+                    <thead class="bg-slate-50/80 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <tr>
+                            <th class="px-4 py-3">Sipariş</th>
+                            <th class="px-4 py-3">Müşteri</th>
+                            <th class="px-4 py-3">Tutar</th>
+                            <th class="px-4 py-3">Ödeme</th>
+                            <th class="px-4 py-3">Durum</th>
+                            <th class="px-4 py-3">Son İşlem</th>
+                            <th class="px-4 py-3 text-right">Aksiyon</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                        @foreach (var order in orders)
+                        {
+                            <tr class="transition hover:bg-slate-50/80">
+                                <td class="px-4 py-4 align-top font-semibold text-slate-900">
+                                    <div class="space-y-1">
+                                        <p>@order.OrderNo</p>
+                                        <p class="text-xs font-medium text-slate-500">@order.CreatedAt.ToString("dd MMM yyyy HH:mm", culture)</p>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-4 align-top">
+                                    <div class="space-y-1 text-sm">
+                                        <p class="font-semibold text-slate-900">@order.Customer</p>
+                                        <p class="text-xs text-slate-500">@order.Email</p>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-4 align-top font-semibold text-slate-900">@order.Total.ToString("C", culture)</td>
+                                <td class="px-4 py-4 align-top text-sm font-medium text-slate-700">@order.Payment</td>
+                                <td class="px-4 py-4 align-top">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 align-top text-xs text-slate-500">@order.Notes</td>
+                                <td class="px-4 py-4 align-top">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-100" type="button">
+                                            Durum Güncelle
+                                        </button>
+                                        <button class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-slate-900/20" type="button">
+                                            Detay
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50/50">
+                                <td colspan="7" class="px-4 pb-6">
+                                    <div class="grid gap-4 rounded-2xl border border-slate-100 bg-white/70 p-4 md:grid-cols-[minmax(0,1fr)_240px]">
+                                        <ul class="space-y-2 text-sm text-slate-600">
+                                            @foreach (var item in order.Items)
+                                            {
+                                                <li class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                                                    <span class="font-medium text-slate-700">@item.Name</span>
+                                                    <span class="text-xs text-slate-500">@item.Quantity adet</span>
+                                                    <span class="font-semibold text-slate-900">@item.Amount.ToString("C", culture)</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                        <div class="space-y-3 rounded-2xl bg-slate-900/90 p-4 text-xs text-white">
+                                            <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-300">Hızlı Aksiyonlar</p>
+                                            @foreach (var option in workflowStatusOptions)
+                                            {
+                                                <button class="w-full rounded-xl bg-white/10 px-3 py-2 text-left font-semibold text-white transition hover:bg-white/20" type="button">@option</button>
+                                            }
+                                            <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-300">İç Not</p>
+                                            <p class="text-[11px] leading-4 text-slate-200">@order.Notes</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <aside class="space-y-6">
+            <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Hazırlık Kuyrukları</h2>
+                <ul class="mt-4 space-y-4">
+                    @foreach (var queue in fulfillmentQueues)
+                    {
+                        <li class="rounded-2xl border border-slate-100 p-4">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">@queue.Label</p>
+                                    <p class="text-xs text-slate-500">Ortalama hazırlama süresi @queue.AvgHandling</p>
+                                </div>
+                                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">@queue.Pending bekliyor</span>
+                            </div>
+                            <p class="mt-2 text-xs text-slate-400">Son güncelleme: @queue.LastUpdate</p>
+                        </li>
+                    }
+                </ul>
+            </section>
+
+            <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Kargo Sağlayıcı Performansı</h2>
+                <ul class="mt-4 space-y-4">
+                    @foreach (var shipment in shipmentProviders)
+                    {
+                        <li class="rounded-2xl border border-slate-100 p-4">
+                            <div class="space-y-1">
+                                <p class="text-sm font-semibold text-slate-900">@shipment.Name</p>
+                                <p class="text-xs text-slate-500">Güncel teslimat süresi: <span class="font-semibold text-slate-700">@shipment.AvgDelivery</span></p>
+                                <p class="text-xs text-slate-500">İrtibat: @shipment.Contact</p>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between text-xs font-semibold">
+                                <span class="text-slate-500">Günlük çıkış oranı</span>
+                                <span class="text-emerald-600">@shipment.DispatchRate.ToString("P0", culture)</span>
+                            </div>
+                            <div class="mt-2 h-2 w-full rounded-full bg-slate-100">
+                                <div class="h-2 rounded-full bg-emerald-400" style="width: @(shipment.DispatchRate * 100m)%"></div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </section>
+        </aside>
+    </section>
+</div>
