@@ -6,6 +6,8 @@ namespace ECommerceBatteryShop.Models
     public class AdminStockViewModel
     {
         public IList<AdminStockItemViewModel> Items { get; set; } = new List<AdminStockItemViewModel>();
+
+        public string? SearchTerm { get; set; }
     }
 
     public class AdminStockItemViewModel
