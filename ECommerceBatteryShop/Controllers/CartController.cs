@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text.Json;
+using System.Security.Claims;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -145,6 +146,146 @@ namespace ECommerceBatteryShop.Controllers
             };
 
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DistantSelling(int? addressId, decimal? shipping, CancellationToken ct)
+        {
+            const decimal DefaultFx = 41.3m;
+            const decimal KdvRate = 0.20m;
+            const decimal DefaultShippingFee = 150m;
+
+            var orderItems = new List<OrderItem>();
+
+            CartOwner? owner = null;
+            Cart? cart = null;
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userClaim = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userClaim != null && int.TryParse(userClaim.Value, out var userId))
+                {
+                    owner = CartOwner.FromUser(userId);
+                }
+            }
+            else if (!IsCookieConsentRejected())
+            {
+                var anonId = Request.Cookies["ANON_ID"];
+                if (!string.IsNullOrWhiteSpace(anonId))
+                {
+                    owner = CartOwner.FromAnon(anonId);
+                }
+            }
+
+            if (owner is CartOwner resolvedOwner)
+            {
+                cart = await _cartService.GetAsync(resolvedOwner, createIfMissing: true, ct);
+            }
+
+            var rate = await _currencyService.GetCachedUsdTryAsync(ct) ?? DefaultFx;
+
+            if (cart is not null)
+            {
+                foreach (var item in cart.Items)
+                {
+                    var description = item.Product?.Name ?? $"Ürün #{item.ProductId}";
+                    var unitPriceTry = decimal.Round(item.UnitPrice * (1 + KdvRate) * rate, 2, MidpointRounding.AwayFromZero);
+
+                    orderItems.Add(new OrderItem
+                    {
+                        Description = description,
+                        Quantity = item.Quantity,
+                        UnitPrice = unitPriceTry
+                    });
+                }
+            }
+
+            if (orderItems.Count == 0)
+            {
+                orderItems.Add(new OrderItem
+                {
+                    Description = "Sepetinizde ürün bulunmamaktadır.",
+                    Quantity = 1,
+                    UnitPrice = 0m
+                });
+            }
+
+            Address? selectedAddress = null;
+            var buyerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userClaim = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userClaim != null && int.TryParse(userClaim.Value, out var userId))
+                {
+                    if (addressId.HasValue)
+                    {
+                        selectedAddress = await _addressRepository.GetByIdAsync(userId, addressId.Value, ct);
+                    }
+
+                    if (selectedAddress is null)
+                    {
+                        var addresses = await _addressRepository.GetByUserAsync(userId, ct);
+                        selectedAddress = addresses.FirstOrDefault(a => a.IsDefault) ?? addresses.FirstOrDefault();
+                    }
+                }
+            }
+
+            string buyerName = selectedAddress is not null
+                ? $"{selectedAddress.Name} {selectedAddress.Surname}".Trim()
+                : "Belirtilmedi";
+            if (string.IsNullOrWhiteSpace(buyerName))
+            {
+                buyerName = "Belirtilmedi";
+            }
+
+            string buyerPhone = selectedAddress?.PhoneNumber ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(buyerPhone))
+            {
+                buyerPhone = "+90 000 000 00 00";
+            }
+
+            var addressParts = selectedAddress is null
+                ? Array.Empty<string>()
+                : new[]
+                {
+                    selectedAddress.FullAddress,
+                    selectedAddress.Neighbourhood,
+                    string.Join('/', new[] { selectedAddress.State, selectedAddress.City }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                };
+
+            var buyerAddress = addressParts.Length == 0
+                ? "Belirtilmedi"
+                : string.Join(" ", addressParts.Where(part => !string.IsNullOrWhiteSpace(part)));
+
+            buyerEmail = string.IsNullOrWhiteSpace(buyerEmail) ? "info@dayilyenerji.com" : buyerEmail;
+
+            var shippingFee = orderItems.Any(i => i.UnitPrice > 0m)
+                ? (shipping ?? DefaultShippingFee)
+                : 0m;
+
+            var model = new ContractViewModel
+            {
+                BuyerName = buyerName,
+                BuyerAddress = buyerAddress,
+                BuyerPhone = buyerPhone,
+                BuyerEmail = buyerEmail,
+                OrdererName = buyerName,
+                OrdererAddress = buyerAddress,
+                OrdererPhone = buyerPhone,
+                OrdererEmail = buyerEmail,
+                Items = orderItems,
+                ShippingFee = shippingFee,
+                InvoiceTitle = buyerName,
+                InvoiceTax = "00000000000",
+                InvoiceAddress = buyerAddress,
+                InvoicePhone = buyerPhone,
+                InvoiceEmail = buyerEmail,
+                ReturnPath = Url.Action("Refund", "Home") ?? "/Home/Refund",
+                OrderDate = DateTime.Now
+            };
+
+            return View("~/Views/Home/DistantSelling.cshtml", model);
         }
 
         private static AddressViewModel MapAddress(Address address)
