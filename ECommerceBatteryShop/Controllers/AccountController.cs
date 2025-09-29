@@ -33,13 +33,13 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> RegisterUser([FromBody] UserViewModel userViewModel)
+    public async Task<IActionResult> RegisterUser(UserViewModel userViewModel)
     {
         try
         {
             string email = userViewModel.Email;
-            string password = userViewModel.NewPassword;
-            string confirmPassword = userViewModel.NewPasswordAgain;
+            string password = userViewModel.Password;
+            string confirmPassword = userViewModel.ConfirmPassword;
 
 
             if (password != confirmPassword)
@@ -61,7 +61,8 @@ public class AccountController : Controller
             _userService.VerificationCode = verificationCode;
             _userService.Email = email;
             _userService.Password = password;
-            return Json(new { success = true, redirectUrl = Url.Action("KullaniciDogrulama", "Dogrulama") });
+            await _accountRepository.RegisterAsync(email, password);
+            return Json(new { success = true, redirectUrl = Url.Action("LogIn", "Account") });
         }
         catch (ApplicationException ex)
         {
@@ -138,7 +139,7 @@ public class AccountController : Controller
         var principal = new ClaimsPrincipal(identity);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-        return RedirectToAction(nameof(Profile));
+        return RedirectToAction("Index", "Home");
     }
 
     public IActionResult LogOut()

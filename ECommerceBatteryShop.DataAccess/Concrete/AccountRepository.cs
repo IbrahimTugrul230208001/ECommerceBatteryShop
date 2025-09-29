@@ -67,17 +67,15 @@ public sealed class AccountRepository : IAccountRepository
 
     public Task<bool> ValidateEmailAsync(string email)
     {
-        throw new NotImplementedException();
+        bool exists = _ctx.Users.Any(u => u.Email == email);
+        return Task.FromResult(!exists);
     }
 
     public Task<bool> ValidateUserNameAsync(string userName)
     {
-        throw new NotImplementedException();
+        bool exists = _ctx.Users.Any(u => u.UserName == userName);
+        return Task.FromResult(!exists);
+
     }
 
-
-    public Task AddNewUserAsync(string email, string password)
-    {
-        throw new NotImplementedException();
-    }
 }
