@@ -1,3 +1,4 @@
+@using System.Linq
 @{
     ViewBag.Title = "Checkout";
 }
@@ -6,6 +7,12 @@
     decimal subTotal = Model.SubTotal;
     decimal tax = subTotal * 0.2m;
     decimal shipping = Model.ShippingCost;
+    var defaultAddressId = Model.Addresses.FirstOrDefault(a => a.IsDefault)?.Id
+        ?? Model.Addresses.FirstOrDefault()?.Id;
+    var contractUrl = defaultAddressId.HasValue
+        ? Url.Action("DistantSelling", "Cart", new { addressId = defaultAddressId.Value, shipping })
+        : Url.Action("DistantSelling", "Cart", new { shipping });
+    contractUrl ??= "/Cart/DistantSelling";
 }
 <main x-data class="bg-white min-h-screen pt-10 pb-24">
     <div class="mx-auto max-w-5xl px-4">
@@ -107,7 +114,13 @@
                     <div class="mt-6 flex items-center gap-2">
                         <input id="sozlesme" type="checkbox" class="rounded border-slate-300">
                         <label for="sozlesme" class="text-xs text-slate-600">
-                            Ön bilgilendirme formu ve Mesafeli satış sözleşmesini onaylıyorum.
+                            Ön bilgilendirme formu ve
+                            <a href="@contractUrl"
+                               target="_blank"
+                               rel="noopener"
+                               class="text-amber-600 hover:text-amber-700 underline font-medium">
+                                Mesafeli satış sözleşmesini okudum, onaylıyorum
+                            </a>.
                         </label>
                     </div>
 

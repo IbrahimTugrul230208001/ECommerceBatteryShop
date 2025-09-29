@@ -139,7 +139,7 @@ namespace ECommerceBatteryShop.Controllers
         }
         public IActionResult DistantSelling()
         {
-            return View();
+            return RedirectToAction("DistantSelling", "Cart");
         }
     }
 }
