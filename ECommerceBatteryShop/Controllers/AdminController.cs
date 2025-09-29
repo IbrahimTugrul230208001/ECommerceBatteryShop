@@ -1,14 +1,16 @@
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ECommerceBatteryShop.DataAccess;
+using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -17,11 +19,12 @@ namespace ECommerceBatteryShop.Controllers
     {
         private readonly BatteryShopContext _context;
         private readonly IWebHostEnvironment _environment;
-
-        public AdminController(BatteryShopContext context, IWebHostEnvironment environment)
+        private readonly ICategoryRepository _categoryRepository;  
+        public AdminController(BatteryShopContext context, IWebHostEnvironment environment, ICategoryRepository categoryRepository)
         {
             _context = context;
             _environment = environment;
+            _categoryRepository = categoryRepository;
         }
 
         [HttpGet]
@@ -34,7 +37,8 @@ namespace ECommerceBatteryShop.Controllers
 
             var model = new AdminProductEntryViewModel
             {
-                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim()
+                SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                Categories = await LoadCategoryItemsAsync(null)
             };
 
             await PopulateEntryViewModelAsync(model, productId, cancellationToken);
@@ -168,9 +172,10 @@ namespace ECommerceBatteryShop.Controllers
 
             var isNew = !model.ProductId.HasValue;
             Product product;
-
+            ProductCategory productCategory;
             if (isNew)
             {
+                productCategory = new ProductCategory();
                 product = new Product
                 {
                     Rating = 0,
@@ -181,8 +186,12 @@ namespace ECommerceBatteryShop.Controllers
             else
             {
                 product = await _context.Products.FirstAsync(p => p.Id == model.ProductId!.Value, cancellationToken);
+                productCategory = await _context.ProductCategories.FirstOrDefaultAsync(pc => pc.ProductId == product.Id, cancellationToken)
+                    ?? new ProductCategory { ProductId = product.Id };
             }
-
+            int categoryId = model.CategoryId;
+            productCategory.ProductId = product.Id;
+            productCategory.CategoryId = categoryId;
             product.Name = model.Name.Trim();
             product.Price = model.Price!.Value;
             product.Description = model.Description.Trim();
@@ -354,5 +363,21 @@ namespace ECommerceBatteryShop.Controllers
 
             return sanitized + extension;
         }
+
+        private async Task<List<CategorySelectionViewModel>> LoadCategoryItemsAsync(int? selectedId = null)
+        {
+            var items = await _context.Categories
+                .AsNoTracking()
+                .OrderBy(c => c.Name).Where(c=>c.ParentCategoryId != null)
+                .Select(c => new CategorySelectionViewModel
+                {
+                    CategoryId = c.Id,
+                    CategoryName = c.Name,
+                })
+                .ToListAsync();
+
+            return items;
+        }
+
     }
 }

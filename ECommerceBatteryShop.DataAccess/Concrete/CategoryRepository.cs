@@ -63,5 +63,4 @@ public sealed class CategoryRepository : ICategoryRepository
             .OrderBy(c => c.Id)
             .ToListAsync(ct);
     }
-
 }

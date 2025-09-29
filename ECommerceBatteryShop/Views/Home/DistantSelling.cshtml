@@ -1,58 +1,120 @@
-﻿<header class="mb-4">
-    <h1 class="h3">Satış Sözleşmesi</h1>
-    <p class="text-muted mb-0">
-        Yürürlük: @DateTime.UtcNow.ToString("dd MMMM yyyy") • Sürüm: 1.0
-    </p>
-</header>
+﻿@model ContractViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Mesafeli Satış Sözleşmesi";
+    var tr = new CultureInfo("tr-TR");
+    string C(decimal v) => v.ToString("C", tr);
+}
 
-<section class="mb-4">
-    <h2 class="h5">1) Taraflar</h2>
-    <p>
-        Bu sözleşme, www.dayilyenerji.com üzerinden ürün satın alan <strong>Alıcı</strong> ile aşağıdaki bilgileri yer alan <strong>Satıcı</strong> arasında elektronik ortamda düzenlenmiştir.
-    </p>
-    <ul class="mb-0">
-        <li><strong>Firma Unvanı:</strong> Dayily Enerji (Şahıs Firması)</li>
-        <li><strong>Vergi Dairesi:</strong> Sincan</li>
-        <li><strong>Vergi No:</strong> 2721031588</li>
-        <li><strong>Telefon:</strong> +90 501 317 66 53</li>
-        <li><strong>E-posta:</strong> <a href="mailto:yigitdayi4502@gmail.com">yigitdayi4502@gmail.com</a></li>
-    </ul>
-</section>
+<div class="container my-4">
+    <h1 class="text-center">MESAFELİ SATIŞ SÖZLEŞMESİ</h1>
+    <p class="text-center text-muted">Yürürlük: 29.09.2025 • Sürüm: 1.0</p>
+    <hr />
 
-<section class="mb-4">
-    <h2 class="h5">2) Konu</h2>
-    <p>
-        Alıcı’nın Satıcı’dan www.dayilyenerji.com aracılığıyla satın aldığı enerji depolama sistemleri, pil, batarya ve ilgili bileşenlerin satışı, teslimi, iadesi ve diğer hususları düzenler.
-    </p>
-</section>
+    <h2>1) Taraflar</h2>
+    <p>Bu sözleşme, <strong>www.dayilyenerji.com</strong> üzerinden ürün satın alan Alıcı ile aşağıdaki bilgileri yer alan Satıcı arasında elektronik ortamda düzenlenmiştir.</p>
 
-<section class="mb-4">
-    <h2 class="h5">3) Ürünler ve Faaliyet Alanı</h2>
-    <p class="mb-0">
-        Enerji depolama sistemleri, lityum piller, batarya paketleri ve bunlara bağlı bileşenler satışa konu ürünlerdir.
-    </p>
-</section>
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Satıcı</h4>
+            <p><strong>Firma Unvanı:</strong> Dayily Enerji (Şahıs Firması)</p>
+            <p><strong>Vergi Dairesi / No:</strong> Sincan / 2721031588</p>
+            <p><strong>Adres:</strong> Törekent Mah. 337.sk 9/11 Sincan/Ankara</p>
+            <p><strong>Telefon:</strong> +90 501 317 66 53</p>
+            <p><strong>E-posta:</strong> yigitdayi4502@gmail.com</p>
+            <p><strong>Site:</strong> www.dayilyenerji.com</p>
+        </div>
+        <div class="col-md-6">
+            <h4>Alıcı</h4>
+            <p><strong>Ad-Soyad/Unvan:</strong> @Model.BuyerName</p>
+            <p><strong>Adres:</strong> @Model.BuyerAddress</p>
+            <p><strong>Telefon:</strong> @Model.BuyerPhone</p>
+            <p><strong>E-posta:</strong> @Model.BuyerEmail</p>
+        </div>
+    </div>
 
-<section class="mb-4">
-    <h2 class="h5">4) Fiyatlandırma ve Ödeme</h2>
+    <div class="alert alert-light border mt-2">
+        ALICI, siparişi onaylayarak bedeli ve varsa kargo/vergi dâhil ek masrafları ödemeyi peşinen kabul eder.
+    </div>
+
+    <h2>2) Konu</h2>
+    <p>Alıcı’nın Satıcı’dan <strong>www.dayilyenerji.com</strong> aracılığıyla satın aldığı <em>enerji depolama sistemleri, pil, batarya ve ilgili bileşenler</em>in satışı, teslimi, iadesi ve diğer hususları düzenler.</p>
+
+    <h2>3) Tanımlar</h2>
+    <p>Bakanlık: T.C. Ticaret Bakanlığı • Kanun: 6502 • Yönetmelik: Mesafeli Sözleşmeler Yön. • Hizmet: Mal sağlama dışındaki işlemler • Site: www.dayilyenerji.com • Mal: Taşınır eşya ve elektronik içerikler.</p>
+
+    <h2>4) Satıcı Bilgileri</h2>
+    <p><strong>Unvan:</strong> Dayily Enerji (Şahıs Firması) — <strong>VD/VKN:</strong> Sincan / 2721031588 — <strong>Adres:</strong> Törekent Mah. 337.sk 9/11 Sincan/Ankara <strong>Tel:</strong> +90 501 317 66 53 — <strong>E-posta:</strong> yigitdayi4502@gmail.com</p>
+
+    <h2>5) Alıcı Bilgileri</h2>
+    <p><strong>Teslim Edilecek Kişi:</strong> @Model.BuyerName — <strong>Adres:</strong> @Model.BuyerAddress — <strong>Telefon:</strong> @Model.BuyerPhone — <strong>E-posta:</strong> @Model.BuyerEmail</p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.OrdererName))
+    {
+        <h2>6) Sipariş Veren</h2>
+        <p><strong>Ad-Soyad/Unvan:</strong> @Model.OrdererName — <strong>Adres:</strong> @Model.OrdererAddress — <strong>Telefon:</strong> @Model.OrdererPhone — <strong>E-posta:</strong> @Model.OrdererEmail</p>
+    }
+
+    <h2>7) Ürün/Ürünler Bilgileri</h2>
+    <p><strong>Temel Özellikler:</strong> Ürünlerin türü/miktarı/marka-modeli/adedi sitede belirtildiği gibidir.</p>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>Ürün Açıklaması</th>
+                    <th class="text-end">Adet</th>
+                    <th class="text-end">Birim (KDV d.)</th>
+                    <th class="text-end">Ara Toplam</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var it in Model.Items)
+                {
+                    <tr>
+                        <td>@it.Description</td>
+                        <td class="text-end">@it.Quantity</td>
+                        <td class="text-end">@C(it.UnitPrice)</td>
+                        <td class="text-end">@C(it.UnitPrice * it.Quantity)</td>
+                    </tr>
+                }
+                @if (Model.ShippingFee > 0)
+                {
+                    <tr>
+                        <td colspan="3"><strong>Kargo Tutarı</strong></td>
+                        <td class="text-end">@C(Model.ShippingFee)</td>
+                    </tr>
+                }
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Genel Toplam</strong></td>
+                    <td class="text-end"><strong>@C(Model.GrandTotal)</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>8) Fatura Bilgileri</h2>
+    <p><strong>Unvan/Ad-Soyad:</strong> @Model.InvoiceTitle — <strong>VD/VKN-TCKN:</strong> @Model.InvoiceTax — <strong>Adres:</strong> @Model.InvoiceAddress — <strong>Tel:</strong> @Model.InvoicePhone — <strong>E-posta:</strong> @Model.InvoiceEmail</p>
+    <p>Fatura, e-fatura/e-arşiv olarak ve/veya fiziken teslim edilir.</p>
+
+    <h2>9) Genel Hükümler</h2>
     <ul>
-        <li>Ürün fiyatları KDV dâhil olarak sitede yer alır.</li>
-        <li>Ödeme yöntemleri: kredi kartı, havale/EFT vb.</li>
+        <li>Alıcı, ön bilgileri okuyup elektronik ortamda teyit ettiğini kabul eder.</li>
+        <li>Ürün(ler) Alıcı’nın adresine en geç 30 gün içinde teslim edilir. Ön sipariş/kişiye özel üretimde süre farklı olabilir.</li>
     </ul>
-</section>
 
-<section class="mb-4">
-    <h2 class="h5">5) Teslimat</h2>
-    <ul>
-        <li>Hazır stok ürünler genellikle 1–3 iş günü içinde kargoya verilir.</li>
-        <li>Özel üretim ürünler (batarya paketleri, lehim/punta işlemleri vb.) için teslim süresi 5–7 iş günü olabilir.</li>
-        <li>Kargo süresi, kargo firması ve Alıcı’nın konumuna göre değişebilir.</li>
-    </ul>
-</section>
+    <h2>10) Cayma Hakkı</h2>
+    <p>Alıcı, mal tesliminden itibaren <strong>14 gün</strong> içinde gerekçesiz cayabilir. Cayma bildirimi <strong>yigitdayi4502@gmail.com</strong> adresine veya sitedeki iade kanalı <strong>@Model.ReturnPath</strong> üzerinden yapılır. Cayma halinde ürün, 14 gün içinde faturası ve tüm aksesuarlarıyla, Satıcı’nın bildirdiği kargo kanalıyla iade edilir.</p>
 
-<section class="mb-4">
-    <h2 class="h5">6) Garanti ve Sorumluluk</h2>
-    <p>
-        Satıcı, ürünleri sağlam ve çalışır şekilde teslim etmekle sorumludur. Nakliye sırasında oluşabilecek hasarlar için Alıcı, kargo teslimi esnasında tutanak tutturmalı ve kargo şirketine bildirimde bulunmalıdır.
-    </p>
-</section>
+    <h2>11) Cayma Hakkı Kapsamı Dışı</h2>
+    <p>Kişiye özel üretilen; ambalajı açılmış hijyen ürünleri; tek kullanımlık/çabuk bozulan ürünler vb. Yönetmelikte sayılan istisnalar.</p>
+
+    <h2>12) Temerrüt</h2>
+    <p>Kredi kartı ile ödemede temerrüt doğarsa, Alıcı kart sözleşmesine göre faiz ve diğer yükümlülüklerden Banka’ya karşı sorumludur.</p>
+
+    <h2>13) Uyuşmazlıkların Çözümü</h2>
+    <p>Alıcı’nın yerleşim yeri veya işlemin yapıldığı yerdeki Tüketici Hakem Heyeti/Tüketici Mahkemeleri yetkilidir.</p>
+
+    <h2>14) Yürürlük</h2>
+    <p>Alıcı, site üzerinden ödeme yapıp siparişi onayladığında bu sözleşme hükümlerini kabul etmiş sayılır.</p>
+</div>

@@ -29,9 +29,11 @@ public class AdminProductEntryViewModel : IValidatableObject
 
     [Display(Name = "Ürün Ara")]
     public string? SearchTerm { get; set; }
+    [Display(Name= "Kategori zorunludur")]
+    public int CategoryId { get; set; }
 
     public IList<AdminProductSelectionItemViewModel> SearchResults { get; set; } = new List<AdminProductSelectionItemViewModel>();
-
+    public List<CategorySelectionViewModel> Categories { get; set; } = new List<CategorySelectionViewModel>();
     public bool IsEditing => ProductId.HasValue;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
