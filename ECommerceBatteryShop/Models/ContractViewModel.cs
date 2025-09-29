@@ -1,5 +1,6 @@
 ﻿using ECommerceBatteryShop.Domain.Entities;
 using System.ComponentModel.DataAnnotations;
+using System.Linq; // Add this at the top with other using directives
 
 namespace ECommerceBatteryShop.Models
 {
@@ -24,7 +25,7 @@ namespace ECommerceBatteryShop.Models
         [Range(0, double.MaxValue)] public decimal ShippingFee { get; set; } = 0m;
 
         // Hesaplamalar
-        public decimal Subtotal => Items.Sum(i => i.Total);
+        public decimal Subtotal => Items.Sum(item => item.UnitPrice * item.Quantity);
         public decimal GrandTotal => Subtotal + ShippingFee;
 
         // --- Fatura bilgileri ---
@@ -39,14 +40,5 @@ namespace ECommerceBatteryShop.Models
 
         // --- Meta (opsiyonel) ---
         public DateTime OrderDate { get; set; } = DateTime.Now;            // Görselde kullanılmıyor ama faydalı
-    }
-    public sealed class OrderItem
-    {
-        [Required] public string Description { get; set; } = "";
-        [Range(1, int.MaxValue)] public int Quantity { get; set; }
-        [Range(typeof(decimal), "0", "79228162514264337593543950335")]
-        public decimal UnitPrice { get; set; }
-
-        public decimal Total => UnitPrice * Quantity;
     }
 }

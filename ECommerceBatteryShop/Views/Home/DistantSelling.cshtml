@@ -1,10 +1,6 @@
 ﻿@model ContractViewModel
 @using System.Globalization
-@{
-    ViewData["Title"] = "Mesafeli Satış Sözleşmesi";
-    var tr = new CultureInfo("tr-TR");
-    string C(decimal v) => v.ToString("C", tr);
-}
+
 
 <div class="container my-4">
     <h1 class="text-center">MESAFELİ SATIŞ SÖZLEŞMESİ</h1>
@@ -72,22 +68,21 @@
                 @foreach (var it in Model.Items)
                 {
                     <tr>
-                        <td>@it.Description</td>
                         <td class="text-end">@it.Quantity</td>
-                        <td class="text-end">@C(it.UnitPrice)</td>
-                        <td class="text-end">@C(it.UnitPrice * it.Quantity)</td>
+                        <td class="text-end">₺@it.UnitPrice)</td>
+                        <td class="text-end">₺@it.UnitPrice * it.Quantity)</td>
                     </tr>
                 }
                 @if (Model.ShippingFee > 0)
                 {
                     <tr>
                         <td colspan="3"><strong>Kargo Tutarı</strong></td>
-                        <td class="text-end">@C(Model.ShippingFee)</td>
+                        <td class="text-end">₺@Model.ShippingFee</td>
                     </tr>
                 }
                 <tr>
                     <td colspan="3" class="text-end"><strong>Genel Toplam</strong></td>
-                    <td class="text-end"><strong>@C(Model.GrandTotal)</strong></td>
+                    <td class="text-end"><strong>₺@Model.GrandTotal</strong></td>
                 </tr>
             </tbody>
         </table>
