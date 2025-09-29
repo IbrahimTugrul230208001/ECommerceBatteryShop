@@ -193,7 +193,6 @@ namespace ECommerceBatteryShop.Controllers
 
                     orderItems.Add(new OrderItem
                     {
-                        Description = description,
                         Quantity = item.Quantity,
                         UnitPrice = unitPriceTry
                     });
@@ -204,7 +203,6 @@ namespace ECommerceBatteryShop.Controllers
             {
                 orderItems.Add(new OrderItem
                 {
-                    Description = "Sepetinizde ürün bulunmamaktadır.",
                     Quantity = 1,
                     UnitPrice = 0m
                 });
