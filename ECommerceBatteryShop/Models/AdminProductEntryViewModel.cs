@@ -20,7 +20,7 @@ public class AdminProductEntryViewModel : IValidatableObject
     public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Fiyat zorunludur."), Range(0.01, 100000, ErrorMessage = "Lütfen geçerli bir fiyat girin.")]
-    [Display(Name = "Fiyat (₺)")]
+    [Display(Name = "Fiyat ($)")]
     public decimal? Price { get; set; }
 
     [Required(ErrorMessage = "Açıklama zorunludur."), StringLength(1000, ErrorMessage = "Açıklama 1000 karakterden uzun olamaz.")]
@@ -29,9 +29,9 @@ public class AdminProductEntryViewModel : IValidatableObject
 
     [Display(Name = "Ürün Ara")]
     public string? SearchTerm { get; set; }
-    [Display(Name= "Kategori zorunludur")]
+    [Display(Name= "Kategori Zorunludur")]
     public int CategoryId { get; set; }
-
+    
     public IList<AdminProductSelectionItemViewModel> SearchResults { get; set; } = new List<AdminProductSelectionItemViewModel>();
     public List<CategorySelectionViewModel> Categories { get; set; } = new List<CategorySelectionViewModel>();
     public bool IsEditing => ProductId.HasValue;

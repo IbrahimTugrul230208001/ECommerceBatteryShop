@@ -34,12 +34,17 @@ namespace ECommerceBatteryShop.Controllers
             {
                 ViewBag.ProductEntrySuccess = TempData["ProductEntrySuccess"];
             }
-
             var model = new AdminProductEntryViewModel
             {
                 SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
                 Categories = await LoadCategoryItemsAsync(null)
             };
+            if (productId.HasValue)
+            {
+                var selectedProduct = _context.ProductCategories.Where(c => c.ProductId == productId).FirstOrDefault();
+                model.CategoryId = selectedProduct.CategoryId;
+            }
+            
 
             await PopulateEntryViewModelAsync(model, productId, cancellationToken);
 
@@ -172,10 +177,8 @@ namespace ECommerceBatteryShop.Controllers
 
             var isNew = !model.ProductId.HasValue;
             Product product;
-            ProductCategory productCategory;
             if (isNew)
             {
-                productCategory = new ProductCategory();
                 product = new Product
                 {
                     Rating = 0,
@@ -186,12 +189,8 @@ namespace ECommerceBatteryShop.Controllers
             else
             {
                 product = await _context.Products.FirstAsync(p => p.Id == model.ProductId!.Value, cancellationToken);
-                productCategory = await _context.ProductCategories.FirstOrDefaultAsync(pc => pc.ProductId == product.Id, cancellationToken)
-                    ?? new ProductCategory { ProductId = product.Id };
             }
-            int categoryId = model.CategoryId;
-            productCategory.ProductId = product.Id;
-            productCategory.CategoryId = categoryId;
+            
             product.Name = model.Name.Trim();
             product.Price = model.Price!.Value;
             product.Description = model.Description.Trim();
@@ -240,14 +239,41 @@ namespace ECommerceBatteryShop.Controllers
             }
 
             await _context.SaveChangesAsync(cancellationToken);
-
+            await AssignCategoryAsync(product.Id,model.CategoryId);
             TempData["ProductEntrySuccess"] = isNew
                 ? "Yeni ürün başarıyla oluşturuldu."
                 : "Ürün bilgileri başarıyla güncellendi.";
 
             return RedirectToAction(nameof(Index), new { productId = product.Id, search = model.SearchTerm });
         }
+        private async Task AssignCategoryAsync(int productId, int? categoryId, CancellationToken ct=default)
+        {
+            var existing = await _context.ProductCategories
+                .Where(pc => pc.ProductId == productId)
+                .ToListAsync(ct);
 
+            // remove all current links if null/invalid
+            if (categoryId is null || !await _context.Categories.AnyAsync(c => c.Id == categoryId, ct))
+            {
+                if (existing.Count > 0) _context.ProductCategories.RemoveRange(existing);
+                await _context.SaveChangesAsync(ct);
+                return;
+            }
+
+            // already linked? keep exactly one
+            if (existing.Any(pc => pc.CategoryId == categoryId.Value))
+            {
+                var toRemove = existing.Where(pc => pc.CategoryId != categoryId.Value).ToList();
+                if (toRemove.Count > 0) _context.ProductCategories.RemoveRange(toRemove);
+                await _context.SaveChangesAsync(ct);
+                return;
+            }
+
+            // not linked yet: clear others and add one
+            if (existing.Count > 0) _context.ProductCategories.RemoveRange(existing);
+            _context.ProductCategories.Add(new ProductCategory { ProductId = productId, CategoryId = categoryId.Value });
+            await _context.SaveChangesAsync(ct);
+        }
         private async Task<IList<AdminStockItemViewModel>> LoadStockItemsAsync(string? searchTerm, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))

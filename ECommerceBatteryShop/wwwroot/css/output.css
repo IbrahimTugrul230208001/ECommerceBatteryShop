@@ -361,9 +361,6 @@
   .top-\[58\%\] {
     top: 58%;
   }
-  .top-\[65\%\] {
-    top: 65%;
-  }
   .top-full {
     top: 100%;
   }
@@ -2058,10 +2055,6 @@
   .leading-relaxed {
     --tw-leading: var(--leading-relaxed);
     line-height: var(--leading-relaxed);
-  }
-  .leading-snug {
-    --tw-leading: var(--leading-snug);
-    line-height: var(--leading-snug);
   }
   .font-bold {
     --tw-font-weight: var(--font-weight-bold);
