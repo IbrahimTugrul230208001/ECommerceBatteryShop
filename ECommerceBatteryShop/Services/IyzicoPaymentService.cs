@@ -1,9 +1,11 @@
-using System.Globalization;
-using System.Linq;
 using ECommerceBatteryShop.Options;
 using Iyzipay.Model;
 using Iyzipay.Request;
 using Microsoft.Extensions.Options;
+using System.Configuration;
+using System.Globalization;
+using System.Linq;
+using System.Text.Json;
 
 namespace ECommerceBatteryShop.Services;
 
@@ -14,10 +16,11 @@ public interface IIyzicoPaymentService
 
 public class IyzicoPaymentService : IIyzicoPaymentService
 {
+    private readonly IConfiguration configuration;
     private readonly Iyzipay.Options _options;
     private readonly ILogger<IyzicoPaymentService> _logger;
 
-    public IyzicoPaymentService(IOptions<IyzicoOptions> options, ILogger<IyzicoPaymentService> logger)
+    public IyzicoPaymentService(IOptions<IyzicoOptions> options, ILogger<IyzicoPaymentService> logger, IConfiguration configuration)
     {
         var value = options.Value ?? throw new ArgumentNullException(nameof(options));
         _options = new Iyzipay.Options
@@ -27,7 +30,9 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             BaseUrl = value.BaseUrl
         };
         _logger = logger;
+        this.configuration = configuration;
     }
+   
 
     public async Task<IyzicoPaymentResult> CreatePaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default)
     {
@@ -71,25 +76,25 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             ZipCode = model.Buyer.ZipCode,
             Ip = model.Buyer.Ip
         };
-
-        request.ShippingAddress = new Address
+        var d = configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
+        request.ShippingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.ShippingAddress.ContactName,
-            City = model.ShippingAddress.City,
-            Country = model.ShippingAddress.Country,
-            Description = model.ShippingAddress.Description,
-            ZipCode = model.ShippingAddress.ZipCode
+            City = model.ShippingAddress.City ?? d.City,
+            Country = d.Country,
+            ZipCode = model.ShippingAddress.ZipCode ?? d.ZipCode,
+            Description = model.ShippingAddress.Description
         };
-
-        request.BillingAddress = new Address
+        request.BillingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.BillingAddress.ContactName,
-            City = model.BillingAddress.City,
-            Country = model.BillingAddress.Country,
-            Description = model.BillingAddress.Description,
-            ZipCode = model.BillingAddress.ZipCode
+            City = model.BillingAddress.City ?? d.City,
+            Country = d.Country,
+            ZipCode = model.BillingAddress.ZipCode ?? d.ZipCode,
+            Description = model.BillingAddress.Description
         };
-
+        request.Buyer.Country = d.Country;
+        request.Buyer.ZipCode = request.BillingAddress.ZipCode;
         request.BasketItems = model.Items.Select(item => new BasketItem
         {
             Id = item.Id,
@@ -104,6 +109,8 @@ public class IyzicoPaymentService : IIyzicoPaymentService
         {
             var response = await Task.Run(() => Payment.Create(request, _options), cancellationToken);
             var success = string.Equals(response.Status, "success", StringComparison.OrdinalIgnoreCase);
+
+            var rawJson = JsonSerializer.Serialize(response);   // <- replace RawResult
             if (!success)
             {
                 _logger.LogWarning("Iyzico payment failed. ConversationId: {ConversationId}, ErrorCode: {ErrorCode}, Message: {Message}",
@@ -112,7 +119,7 @@ public class IyzicoPaymentService : IIyzicoPaymentService
                     response.ErrorMessage);
             }
 
-            return new IyzicoPaymentResult(success, response.ErrorMessage, response.RawResult);
+            return new IyzicoPaymentResult(success, response.ErrorMessage, rawJson);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -134,9 +141,9 @@ public class IyzicoPaymentModel
     public required decimal Price { get; init; }
     public required decimal PaidPrice { get; init; }
     public int Installment { get; init; } = 1;
-    public string Currency { get; init; } = Currency.TRY.ToString();
-    public string PaymentChannel { get; init; } = Model.PaymentChannel.WEB.ToString();
-    public string PaymentGroup { get; init; } = Model.PaymentGroup.PRODUCT.ToString();
+    public string Currency { get; init; } = "TRY";
+    public string PaymentChannel { get; init; } = "WEB";
+    public string PaymentGroup { get; init; } = "PRODUCT";
     public required IyzicoPaymentCard Card { get; init; }
     public required IyzicoBuyer Buyer { get; init; }
     public required IyzicoAddress BillingAddress { get; init; }
@@ -154,6 +161,8 @@ public class IyzicoPaymentCard
     public bool RegisterCard { get; init; }
 }
 
+
+
 public class IyzicoBuyer
 {
     public required string Id { get; init; }
@@ -163,9 +172,9 @@ public class IyzicoBuyer
     public required string Email { get; init; }
     public required string IdentityNumber { get; init; }
     public required string RegistrationAddress { get; init; }
-    public required string City { get; init; }
-    public required string Country { get; init; }
-    public string ZipCode { get; init; } = "";
+    public required string City { get; init; } = "Ankara";
+    public required string Country { get; init; } = "Türkiye";
+    public string ZipCode { get; init; } = "06000";
     public string Ip { get; init; } = "";
 }
 

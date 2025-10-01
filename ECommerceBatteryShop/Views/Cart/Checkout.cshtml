@@ -7,6 +7,9 @@
     decimal subTotal = Model.SubTotal;
     decimal tax = subTotal * 0.2m;
     decimal shipping = Model.ShippingCost;
+    subTotal = Math.Round(subTotal, 2);
+    tax = Math.Round(tax, 2);
+    shipping = Math.Round(shipping, 2);
     var defaultAddressId = Model.Addresses.FirstOrDefault(a => a.IsDefault)?.Id
         ?? Model.Addresses.FirstOrDefault()?.Id;
     var contractUrl = defaultAddressId.HasValue
