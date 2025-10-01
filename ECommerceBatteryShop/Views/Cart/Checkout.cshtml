@@ -124,8 +124,21 @@
                         </label>
                     </div>
 
-                    <button type="button" @@click="placeOrder" class="mt-4 w-full h-12 rounded-xl bg-amber-300 font-semibold text-gray-900 hover:bg-amber-400 disabled:opacity-60">
-                        Siparişi onayla
+                    <template x-if="notice">
+                        <div class="mt-4 rounded-lg border p-3" :class="notice.success ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'">
+                            <p class="text-sm font-medium" x-text="notice.message"></p>
+                        </div>
+                    </template>
+
+                    <button type="button"
+                            @@click="placeOrder"
+                            :disabled="loading"
+                            class="mt-4 w-full h-12 rounded-xl bg-amber-300 font-semibold text-gray-900 hover:bg-amber-400 disabled:opacity-60 flex items-center justify-center gap-2">
+                        <svg x-show="loading" class="h-5 w-5 animate-spin text-gray-900" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <span x-text="loading ? 'İşleniyor...' : 'Siparişi onayla'"></span>
                     </button>
                 </section>
             </div>
@@ -176,27 +189,75 @@
         saved:[],
         selectedId:null,
         newCard:{name:'', number:'', exp:'', cvc:'', save:true},
+        loading:false,
+        notice:null,
         digits(s){ return (s||'').replace(/\D/g,''); },
         maskCard(){ let d=this.digits(this.newCard.number).slice(0,16); this.newCard.number=d.replace(/(\d{4})(?=\d)/g,'$1 ').trim(); },
         maskExp(){ let d=this.digits(this.newCard.exp).slice(0,4); this.newCard.exp=(d.length>=3)? d.slice(0,2)+'/'+d.slice(2) : d; },
         luhn(num){ let d=this.digits(num), s=0, alt=false; for(let i=d.length-1;i>=0;i--){ let n=+d[i]; if(alt){ n*=2; if(n>9)n-=9; } s+=n; alt=!alt; } return d.length>=13 && s%10===0; },
-        placeOrder(){
-          if(!document.getElementById('sozlesme').checked){ alert('Sözleşmeyi onaylayın.'); return; }
+        async placeOrder(){
+          if(this.loading) return;
+          this.notice = null;
+          if(!document.getElementById('sozlesme').checked){
+            this.notice = { success:false, message:'Lütfen sözleşmeyi onaylayın.' };
+            return;
+          }
           if(this.method==='card'){
-            if(this.selectedId){ htmx.ajax('POST','/Checkout/PlaceOrder',{values:{paymentMethod:'card_saved', cardId:this.selectedId}}); return; }
-            if(!this.luhn(this.newCard.number)){ alert('Kart numarası geçersiz.'); return; }
-            htmx.ajax('POST','/Checkout/PlaceOrder',{
-              values:{
-                paymentMethod:'card_new',
-                name:this.newCard.name,
-                number:this.digits(this.newCard.number),
-                exp:this.newCard.exp,
-                cvc:this.newCard.cvc,
-                save:this.newCard.save
-              }
+            if(this.selectedId){
+              this.notice = { success:false, message:'Kayıtlı kart ile ödeme henüz desteklenmiyor.' };
+              return;
+            }
+            if(!this.luhn(this.newCard.number)){
+              this.notice = { success:false, message:'Kart numarası geçersiz görünüyor.' };
+              return;
+            }
+            await this.send({
+              paymentMethod:'card_new',
+              name:this.newCard.name,
+              number:this.digits(this.newCard.number),
+              exp:this.newCard.exp,
+              cvc:this.newCard.cvc,
+              save:this.newCard.save
             });
           } else if(this.method==='iban'){
-            htmx.ajax('POST','/Checkout/PlaceOrder',{values:{paymentMethod:'iban'}});
+            await this.send({ paymentMethod:'iban' });
+          }
+        },
+        async send(payload){
+          const tokenEl = document.querySelector('meta[name="request-verification-token"]');
+          const headers = { 'Content-Type':'application/x-www-form-urlencoded' };
+          if(tokenEl){ headers['RequestVerificationToken'] = tokenEl.content; }
+          const body = new URLSearchParams();
+          Object.entries(payload).forEach(([key,value]) => {
+            if(Array.isArray(value)) return;
+            body.append(key, value ?? '');
+          });
+          this.loading = true;
+          try {
+            const response = await fetch('/Checkout/PlaceOrder', {
+              method:'POST',
+              headers,
+              body
+            });
+            let data = null;
+            try {
+              data = await response.json();
+            } catch {}
+            if(!response.ok || !data || !data.success){
+              const message = data?.message || 'Ödeme sırasında bir sorun oluştu. Lütfen tekrar deneyin.';
+              this.notice = { success:false, message };
+              return;
+            }
+            this.notice = { success:true, message: data.message || 'Ödemeniz başarıyla tamamlandı.' };
+            if(data.redirectUrl){
+              window.location.href = data.redirectUrl;
+            } else {
+              setTimeout(() => window.location.href = '/', 2000);
+            }
+          } catch (err){
+            this.notice = { success:false, message:'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.' };
+          } finally {
+            this.loading = false;
           }
         }
       }
