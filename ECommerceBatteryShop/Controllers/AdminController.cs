@@ -39,15 +39,15 @@ namespace ECommerceBatteryShop.Controllers
                 SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
                 Categories = await LoadCategoryItemsAsync(null)
             };
+           
+            
+
+            await PopulateEntryViewModelAsync(model, productId, cancellationToken);
             if (productId.HasValue)
             {
                 var selectedProduct = _context.ProductCategories.Where(c => c.ProductId == productId).FirstOrDefault();
                 model.CategoryId = selectedProduct.CategoryId;
             }
-            
-
-            await PopulateEntryViewModelAsync(model, productId, cancellationToken);
-
             return View(model);
         }
         [HttpGet]

@@ -61,7 +61,7 @@
                                             </span>
                                             <span>
                                                 <span class="block font-semibold">@item.Name</span>
-                                                <span class="text-xs text-slate-500">@item.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</span>
+                                                <span class="text-xs text-slate-500">$@item.Price</span>
                                             </span>
                                         </span>
                                         <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Düzenle</span>
@@ -255,16 +255,16 @@
 
         function formatCurrency(value) {
             if (!value) {
-                return '₺0,00';
+                return '$0,00';
             }
 
             const normalized = value.toString().replace(/[^0-9.,]/g, '').replace(',', '.');
             const amount = Number.parseFloat(normalized);
             if (Number.isNaN(amount)) {
-                return '₺0,00';
+                return '$0,00';
             }
 
-            return amount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+            return amount.toLocaleString('us',{ style: 'currency', currency: 'USD' });
         }
 
         imageInput?.addEventListener('change', (event) => {
