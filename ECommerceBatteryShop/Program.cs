@@ -28,6 +28,7 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
   builder.Services.AddScoped<IUserService, UserService>();
   builder.Services.AddScoped<ICartService, CartService>();
   builder.Services.AddScoped<IFavoritesService, FavoritesService>();
+  builder.Services.AddScoped<IIyzicoPaymentService, IyzicoPaymentService>();
 builder.Services.AddMemoryCache();
 
 // Options
@@ -35,6 +36,15 @@ builder.Services.AddOptions<CurrencyOptions>()
     .Bind(builder.Configuration.GetSection("Currency"))
     .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl) && !string.IsNullOrWhiteSpace(o.ApiKey),
               "Currency:BaseUrl and Currency:ApiKey are required")
+    .ValidateOnStart();
+
+builder.Services.AddOptions<IyzicoOptions>()
+    .Bind(builder.Configuration.GetSection("Iyzico"))
+    .Validate(o =>
+        !string.IsNullOrWhiteSpace(o.ApiKey) &&
+        !string.IsNullOrWhiteSpace(o.SecretKey) &&
+        !string.IsNullOrWhiteSpace(o.BaseUrl),
+        "Iyzico configuration (ApiKey, SecretKey, BaseUrl) is required")
     .ValidateOnStart();
 
 // Typed HttpClient for currency service
