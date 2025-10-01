@@ -21,15 +21,17 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ICartService _cartService;
         private readonly ICurrencyService _currencyService;
         private readonly IAddressRepository _addressRepository;
+        private readonly IIyzicoPaymentService _iyzicoPaymentService;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
-        public CartController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository)
+        public CartController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository, IIyzicoPaymentService iyzicoPaymentService)
         {
             _repo = repo;
             _cartService = cartService;
             _currencyService = currencyService;
             _addressRepository = addressRepository;
+            _iyzicoPaymentService = iyzicoPaymentService;
         }
 
         private bool IsCookieConsentRejected()
@@ -100,6 +102,8 @@ namespace ECommerceBatteryShop.Controllers
         [HttpGet]
         public async Task<IActionResult> Checkout()
         {
+            var cancellationToken = HttpContext.RequestAborted;
+
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
             {
@@ -127,16 +131,27 @@ namespace ECommerceBatteryShop.Controllers
                 }
                 owner = CartOwner.FromAnon(anonId);
             }
-            var rate = await _currencyService.GetCachedUsdTryAsync();
-            decimal cartTotalPrice = await _cartService.CartTotalPriceAsync(owner);
-            var subTotal = cartTotalPrice * (rate ?? 41.3m); // 1.2 = KDV
+            var cart = await _cartService.GetAsync(owner, createIfMissing: true, cancellationToken);
+            var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken) ?? 41.3m;
+
+            decimal subTotal = 0m;
+            foreach (var item in cart.Items)
+            {
+                var lineTotal = decimal.Round(item.UnitPrice * item.Quantity * 1.2m * fxRate, 2, MidpointRounding.AwayFromZero);
+                subTotal += lineTotal;
+            }
+            subTotal = decimal.Round(subTotal, 2, MidpointRounding.AwayFromZero);
+
+            var buyerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
             IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
+            AddressViewModel? primaryAddress = null;
             if (User.Identity?.IsAuthenticated == true)
             {
                 var userId = int.Parse(User.FindFirst("sub")!.Value);
-                var addressEntities = await _addressRepository.GetByUserAsync(userId, HttpContext.RequestAborted);
+                var addressEntities = await _addressRepository.GetByUserAsync(userId, cancellationToken);
                 addresses = addressEntities.Select(MapAddress).ToList();
+                primaryAddress = addresses.FirstOrDefault(a => a.IsDefault) ?? addresses.FirstOrDefault();
             }
 
             var model = new CheckoutPageViewModel
@@ -145,7 +160,57 @@ namespace ECommerceBatteryShop.Controllers
                 Addresses = addresses
             };
 
+            var addressLine = primaryAddress is null
+                ? string.Empty
+                : string.Join(" ", new[]
+                {
+                    primaryAddress.FullAddress,
+                    primaryAddress.Neighbourhood,
+                    primaryAddress.State,
+                    primaryAddress.City
+                }.Where(part => !string.IsNullOrWhiteSpace(part)));
+
+            var buyerInfo = new IyzicoBuyerInfo
+            {
+                Id = owner.IsUser ? owner.UserId?.ToString() : owner.AnonId,
+                FirstName = primaryAddress?.Name,
+                LastName = primaryAddress?.Surname,
+                Email = buyerEmail,
+                PhoneNumber = primaryAddress?.PhoneNumber,
+                IdentityNumber = "11111111111",
+                AddressLine = addressLine,
+                City = primaryAddress?.City,
+                Country = "Turkey",
+                ZipCode = primaryAddress?.State
+            };
+
+            var callbackUrl = Url.Action(
+                action: nameof(PaymentCallback),
+                controller: "Cart",
+                values: null,
+                protocol: Request.Scheme);
+
+            var checkoutContext = new IyzicoCheckoutContext
+            {
+                Cart = cart,
+                ItemsTotal = subTotal,
+                ShippingCost = model.ShippingCost,
+                FxRate = fxRate,
+                Buyer = buyerInfo,
+                BuyerIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                CallbackUrl = callbackUrl
+            };
+
+            model.IyzipayCheckoutFormContent = await _iyzicoPaymentService.InitializeCheckoutFormAsync(checkoutContext, cancellationToken);
+
             return View(model);
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public IActionResult PaymentCallback()
+        {
+            return Ok();
         }
 
         [HttpGet]

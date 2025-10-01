@@ -127,6 +127,17 @@
                     <button type="button" @@click="placeOrder" class="mt-4 w-full h-12 rounded-xl bg-amber-300 font-semibold text-gray-900 hover:bg-amber-400 disabled:opacity-60">
                         Siparişi onayla
                     </button>
+
+                    <div class="mt-6" id="iyzico-checkout-container">
+                        @if (!string.IsNullOrWhiteSpace(Model.IyzipayCheckoutFormContent))
+                        {
+                            @Html.Raw(Model.IyzipayCheckoutFormContent)
+                        }
+                        else
+                        {
+                            <p class="text-xs text-rose-500">iyzico ödeme formu şu anda yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>
+                        }
+                    </div>
                 </section>
             </div>
 

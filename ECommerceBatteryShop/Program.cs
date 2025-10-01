@@ -37,8 +37,14 @@ builder.Services.AddOptions<CurrencyOptions>()
               "Currency:BaseUrl and Currency:ApiKey are required")
     .ValidateOnStart();
 
+builder.Services.AddOptions<IyzicoOptions>()
+    .Bind(builder.Configuration.GetSection("Iyzico"))
+    .ValidateOnStart();
+
 // Typed HttpClient for currency service
 builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
+
+builder.Services.AddSingleton<IIyzicoPaymentService, IyzicoPaymentService>();
 
 // Hosted service
 builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
