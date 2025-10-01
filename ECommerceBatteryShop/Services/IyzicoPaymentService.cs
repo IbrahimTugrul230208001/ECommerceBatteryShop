@@ -73,28 +73,22 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             RegistrationAddress = model.Buyer.RegistrationAddress,
             City = model.Buyer.City,
             Country = model.Buyer.Country,
-            ZipCode = model.Buyer.ZipCode,
             Ip = model.Buyer.Ip
         };
         var d = configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
         request.ShippingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.ShippingAddress.ContactName,
-            City = model.ShippingAddress.City ?? d.City,
-            Country = d.Country,
-            ZipCode = model.ShippingAddress.ZipCode ?? d.ZipCode,
-            Description = model.ShippingAddress.Description
+            City = model.ShippingAddress.City,
+            Country = d.Country
         };
         request.BillingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.BillingAddress.ContactName,
-            City = model.BillingAddress.City ?? d.City,
+            City = model.BillingAddress.City,
             Country = d.Country,
-            ZipCode = model.BillingAddress.ZipCode ?? d.ZipCode,
-            Description = model.BillingAddress.Description
         };
         request.Buyer.Country = d.Country;
-        request.Buyer.ZipCode = request.BillingAddress.ZipCode;
         request.BasketItems = model.Items.Select(item => new BasketItem
         {
             Id = item.Id,
@@ -174,7 +168,6 @@ public class IyzicoBuyer
     public required string RegistrationAddress { get; init; }
     public required string City { get; init; } = "Ankara";
     public required string Country { get; init; } = "Türkiye";
-    public string ZipCode { get; init; } = "06000";
     public string Ip { get; init; } = "";
 }
 
@@ -183,8 +176,6 @@ public class IyzicoAddress
     public required string ContactName { get; init; }
     public required string City { get; init; }
     public required string Country { get; init; }
-    public required string Description { get; init; }
-    public string ZipCode { get; init; } = "";
 }
 
 public class IyzicoBasketItem

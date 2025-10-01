@@ -18,7 +18,4 @@ public class IyzicoOptions
 public sealed class IyzicoDefaults
 {
     public string Country { get; init; } = "Türkiye";
-    public string City { get; init; } = "Ankara";
-    public string ZipCode { get; init; } = "06000";
-
 }

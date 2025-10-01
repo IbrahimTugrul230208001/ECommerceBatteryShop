@@ -40,7 +40,7 @@ public class CheckoutController : Controller
     }
 
     [HttpPost]
-    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> PlaceOrder([FromForm] PlaceOrderInputModel input, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -196,11 +196,11 @@ public class CheckoutController : Controller
                 address.City
             }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
-        var phone = NormalizePhone(address?.PhoneNumber) ?? "+900000000000";
+        var phone = NormalizePhone(address?.PhoneNumber) ?? "+95013176653";
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
         if (string.IsNullOrWhiteSpace(email))
         {
-            email = "info@dayilyenerji.com";
+            email = "yigitdayi4502@gmail.com";
         }
 
         var buyer = new IyzicoBuyer
@@ -213,8 +213,7 @@ public class CheckoutController : Controller
             IdentityNumber = DeriveIdentityNumber(address),
             RegistrationAddress = fullAddress,
             City = address?.City ?? "Ankara",
-            Country = "Turkey",
-            ZipCode = "00000",
+            Country = "Türkiye",
             Ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
         };
 
@@ -222,18 +221,14 @@ public class CheckoutController : Controller
         {
             ContactName = contactName,
             City = address?.City ?? "Ankara",
-            Country = "Turkey",
-            Description = fullAddress,
-            ZipCode = "00000"
+            Country = "Turkey"
         };
 
         var shipping = new IyzicoAddress
         {
             ContactName = contactName,
             City = address?.City ?? "Ankara",
-            Country = "Turkey",
-            Description = fullAddress,
-            ZipCode = "00000"
+            Country = "Türkiye"
         };
 
         return (buyer, billing, shipping);
