@@ -19,20 +19,21 @@ public class IyzicoPaymentService : IIyzicoPaymentService
     private readonly IConfiguration _configuration;
     private readonly Iyzipay.Options _options;
     private readonly ILogger<IyzicoPaymentService> _logger;
+    private readonly IyzicoOptions _settings;
 
     public IyzicoPaymentService(IOptions<IyzicoOptions> options, ILogger<IyzicoPaymentService> logger, IConfiguration configuration)
     {
-        var value = options.Value ?? throw new ArgumentNullException(nameof(options));
+        _settings = options.Value ?? throw new ArgumentNullException(nameof(options));
         _options = new Iyzipay.Options
         {
-            ApiKey = value.ApiKey,
-            SecretKey = value.SecretKey,
-            BaseUrl = value.BaseUrl
+            ApiKey = _settings.ApiKey,
+            SecretKey = _settings.SecretKey,
+            BaseUrl = _settings.BaseUrl
         };
         _logger = logger;
         _configuration = configuration;
     }
-   
+
 
     public async Task<IyzicoPaymentResult> CreatePaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default)
     {
@@ -61,6 +62,10 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             Cvc = model.Card.Cvc,
             RegisterCard = model.Card.RegisterCard ? 1 : 0
         };
+        if (!string.IsNullOrWhiteSpace(_settings.CallbackUrl))
+        {
+            request.CallbackUrl = _settings.CallbackUrl;
+        }
 
         request.Buyer = new Buyer
         {
