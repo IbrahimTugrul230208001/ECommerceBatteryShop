@@ -66,7 +66,7 @@
 
                         <button type="button"
                                 @@click="inc()"
-                                class="px-2 h-full text-slate-700 rounded-r-xl hover:bg-slate-200 hover:text-slate-900"
+                                class="px-3 h-full text-slate-700 rounded-r-xl hover:bg-slate-200 hover:text-slate-900"
                                 aria-controls="qty" aria-label="Arttır">
                             +
                         </button>
@@ -139,32 +139,129 @@
                         </div>
                     </button>
                 </div>
+           <div class="mt-6">
+                    <div class="flex items-start gap-2 p-2 bg-white mt-2">
+                        <svg class="w-8 h-8 text-amber-300 flex-shrink-0 mt-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a9 9 0 00-9 9v5a3 3 0 003 3h1a1 1 0 001-1v-7a1 1 0 00-1-1H6a1 1 0 00-1 1v4m13-4a1 1 0 00-1-1h-1a1 1 0 00-1 1v7a1 1 0 001 1h1a3 3 0 003-3v-5a9 9 0 00-9-9z" />
+                        </svg>
+                        <div class="ml-4">
+                            <h3 class="text-md font-semibold text-gray-900">İletişim Hattı</h3>
+                            <p class="text-sm text-gray-600">Whatsapp veya telefon üzerinden ulaşabilirsiniz.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2 p-2 bg-white mt-2">
+                        <svg class="w-8 h-8 text-amber-300 flex-shrink-0 mt-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 7h13v8H3z" />
+                            <path d="M16 7h5l1 2v6h-6V7z" />
+                            <path d="M5 21a2 2 0 100-4 2 2 0 000 4zM17 21a2 2 0 100-4 2 2 0 000 4z" />
+                        </svg>
+                        <div class="ml-4">
+                            <h3 class="text-md font-semibold text-gray-900">Hızlı Teslimat</h3>
+                            <p class="text-sm text-gray-600">Siparişlerde çoklu teslimat seçeği.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2 p-2 bg-white mt-5">
+                        <svg class="h-8 w-8 text-amber-300 flex-shrink-0 mt-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path fill="none" d="M0 0h24v24H0z"></path> <path d="M5.671 4.257c3.928-3.219 9.733-2.995 13.4.672 3.905 3.905 3.905 10.237 0 14.142-3.905 3.905-10.237 3.905-14.142 0A9.993 9.993 0 0 1 2.25 9.767l.077-.313 1.934.51a8 8 0 1 0 3.053-4.45l-.221.166 1.017 1.017-4.596 1.06 1.06-4.596 1.096 1.096zM13 6v2h2.5v2H10a.5.5 0 0 0-.09.992L10 11h4a2.5 2.5 0 1 1 0 5h-1v2h-2v-2H8.5v-2H14a.5.5 0 0 0 .09-.992L14 13h-4a2.5 2.5 0 1 1 0-5h1V6h2z"></path> </g> </g></svg>
+                        <div class="ml-4">
+                            <h3 class="text-md font-semibold text-gray-900">İade Politikası</h3>
+                            <p class="text-sm text-gray-600">Müşteri memnuniyeti odaklı.</p>
+                        </div>
+                    </div>
+           </div>
+                
 
-                <!-- Small trust badges / info -->
-                <ul class="mt-4 text-sm text-slate-600 space-y-1">
-                    <li>• Iyzico ile öde</li>
-                </ul>
+                <div class="flex justify-between items-center mt-6">
+                    <!-- Left: Logo -->
+                    <img class="h-10 w-auto" src="~/img/paywithiyzico.png" alt="iyzico" />
+
+                    <!-- Right: Stock Info -->
+                    <div class="flex items-center space-x-2 text-slate-700">
+                        <span>Stokta var</span>
+                        <svg class="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 12.6111L8.92308 17.5L20 6.5"
+                                  stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                </div>
+
+
+
             </section>
         </div>
     </div>
-    <div class="mt-16 mx-auto max-w-5xl px-4">
-        @if (!string.IsNullOrWhiteSpace(Model.Description))
-        {
-            <div class="rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-sm p-6 sm:p-8 shadow-sm relative">
+    <!-- Alpine v3 -->
+    <div x-data="{
+        tab: 'desc',
+        set(t){ this.tab=t; history.replaceState(null,'',`#${t}`) },
+        init(){ const h=location.hash.replace('#',''); if(['desc','files'].includes(h)) this.tab=h; }
+     }"
+         class="mt-10 mx-auto max-w-7xl px-4">
+
+        <!-- Tabs -->
+        <div role="tablist" aria-label="Ürün sekmeleri" class="mb-4 flex gap-2">
+            <button role="tab" @@click ="set('desc')" :aria-selected="tab==='desc'"
+                    :class="tab==='desc' ? 'bg-white shadow-sm border-slate-300' : 'hover:bg-slate-50 border-slate-200'"
+                    class="cursor-pointer rounded-xl border px-3 py-2 text-sm font-medium text-slate-700">
+                Ürün Açıklaması
+            </button>
+
+            <button role="tab" @@click ="set('files')" :aria-selected="tab==='files'"
+                    :class="tab==='files' ? 'bg-white shadow-sm border-slate-300' : 'hover:bg-slate-50 border-slate-200'"
+                    class="cursor-pointer rounded-xl border px-3 py-2 text-sm font-medium text-slate-700">
+                Dosya Eki
+            </button>
+        </div>
+
+        <!-- Panels -->
+        <div class="relative [&>*]:rounded-2xl [&>*]:border [&>*]:border-slate-200 [&>*]:bg-white/70 [&>*]:backdrop-blur-sm [&>*]:p-6 sm:[&>*]:p-8 [&>*]:shadow-sm">
+            <!-- DESC -->
+            <section x-show="tab==='desc'" x-cloak role="tabpanel" :aria-hidden="tab!=='desc'">
                 <div class="absolute inset-0 pointer-events-none rounded-2xl ring-1 ring-inset ring-white/40"></div>
                 <h2 class="text-xl font-semibold text-slate-900 mb-4">Ürün Açıklaması</h2>
-                <div class="prose prose-slate max-w-none text-slate-700 leading-relaxed">
-                    <p>@Model.Description</p>
-                </div>
-            </div>
-        }
-        else
-        {
-            <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
-                Bu ürün için açıklama eklenmemiştir.
-            </div>
-        }
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <div class="prose prose-slate max-w-none text-slate-700 leading-relaxed">
+                        <p>@Model.Description</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
+                        Bu ürün için açıklama eklenmemiştir.
+                    </div>
+                }
+            </section>
+
+            <!-- FILES -->
+            <section x-show="tab==='files'" x-cloak role="tabpanel" :aria-hidden="tab!=='files'">
+                <div class="absolute inset-0 pointer-events-none rounded-2xl ring-1 ring-inset ring-white/40"></div>
+                <h2 class="text-xl font-semibold text-slate-900 mb-4">Dosya Eki</h2>
+                @if (Model.AttachmentUrl != null)
+                {
+                    <ul class="space-y-3">
+                        <li class="flex items-center justify-between rounded-lg border border-slate-200 p-4">
+                            <div><div class="text-slate-500 text-sm">PDF / Doküman</div></div>
+                            <a href="@Model.AttachmentUrl" target="_blank" rel="noopener"
+                               class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                PDF’i Aç
+                            </a>
+                        </li>
+                    </ul>
+                }
+                else
+                {
+                    <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
+                        Bu ürün için dosya eki yok.
+                    </div>
+                }
+            </section>
+        </div>
     </div>
+
+
+
     </main>
 <style>
     input[type=number]::-webkit-inner-spin-button,

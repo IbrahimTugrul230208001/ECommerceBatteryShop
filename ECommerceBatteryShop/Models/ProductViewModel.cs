@@ -1,3 +1,5 @@
+using System.Net.Mail;
+
 namespace ECommerceBatteryShop.Models
 {
     public class ProductViewModel
@@ -10,5 +12,9 @@ namespace ECommerceBatteryShop.Models
         public string Description { get; set; } = string.Empty;
         public float Rating { get; set; }
         public bool IsFavorite { get; set; }
+
+        // Add this property to fix CS1061
+        public string? AttachmentUrl { get; set; }
+
     }
 }
