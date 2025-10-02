@@ -1,19 +1,32 @@
 @using ECommerceBatteryShop.Domain.Entities
 @using ECommerceBatteryShop.Services
+@using System.Collections.Generic
 @using System.Linq
 @inject ECommerceBatteryShop.DataAccess.Abstract.ICategoryRepository CategoryRepository
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @inject ICartService CartService
 @{
-    var categories = await CategoryRepository.GetCategoriesWithChildrenAsync();
-    categories = categories
-        .Where(c => c.ProductCategories.Any() || c.SubCategories.Any(sc => sc.ProductCategories.Any()))
-        .Select(c =>
+    List<Category> FilterCategories(IEnumerable<Category> source)
+    {
+        var result = new List<Category>();
+
+        foreach (var category in source)
         {
-            c.SubCategories = c.SubCategories.Where(sc => sc.ProductCategories.Any()).ToList();
-            return c;
-        })
-        .ToList();
+            var filteredChildren = FilterCategories(category.SubCategories ?? Enumerable.Empty<Category>());
+            var hasProducts = category.ProductCategories?.Any() == true;
+
+            if (hasProducts || filteredChildren.Any())
+            {
+                category.SubCategories = filteredChildren;
+                result.Add(category);
+            }
+        }
+
+        return result;
+    }
+
+    var categories = await CategoryRepository.GetCategoriesWithChildrenAsync();
+    categories = FilterCategories(categories);
 
     var cartCount = 0;
     var cookieConsent = Context.Request.Cookies["COOKIE_CONSENT"];
@@ -471,34 +484,7 @@
                                                group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
                                     @foreach (var parent in grand.SubCategories)
                                     {
-                                        <li class="relative group/parent">
-                                            <a href="@Url.Action("Index", "Product", new { categoryId = parent.Id })"
-                                               class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100">
-                                                <span>@parent.Name</span>
-                                                @if (parent.SubCategories?.Any() == true)
-                                                {
-                                                    <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11 10l-3.77-3.71a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.06 0z" clip-rule="evenodd" />
-                                                    </svg>
-                                                }
-                                            </a>
-
-                                            @* CHILD flyout *@
-                                            @if (parent.SubCategories?.Any() == true)
-                                            {
-                                                <ul class="absolute top-0 left-full ml-2 min-w-56 rounded-lg border border-gray-200 bg-white shadow-lg z-50 hidden group-hover/parent:block">
-                                                    @foreach (var child in parent.SubCategories)
-                                                    {
-                                                        <li>
-                                                            <a href="@Url.Action("Index", "Product", new { categoryId = child.Id })"
-                                                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900">
-                                                                @child.Name
-                                                            </a>
-                                                        </li>
-                                                    }
-                                                </ul>
-                                            }
-                                        </li>
+                                        @await Html.PartialAsync("_DesktopCategoryNode", (parent, 1))
                                     }
                                 </ul>
                             </li>
