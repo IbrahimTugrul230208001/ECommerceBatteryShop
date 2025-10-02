@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
@@ -120,6 +121,25 @@ public class CheckoutController : Controller
             return BadRequest(new { success = false, message = cardError ?? "Kart bilgileri eksik veya hatalı." });
         }
 
+        if (owner.UserId is not int userId)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Kart ile ödeme için giriş yapmanız gerekmektedir."
+            });
+        }
+
+        var orderAddress = await ResolveAddressAsync(userId, cancellationToken);
+        if (orderAddress is null)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Kartla ödeme için kayıtlı bir adres bulunamadı."
+            });
+        }
+
 
         var lineItems = new List<IyzicoBasketItem>();
         decimal basketTotal = 0m;
@@ -167,13 +187,47 @@ public class CheckoutController : Controller
             return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = errorMessage });
         }
 
+        var orderTotal = CalculateOrderTotal(cart, fxRate);
+        var transactionId = ExtractTransactionId(result.RawResponse, paymentModel.ConversationId);
+
+        var order = new Order
+        {
+            OrderId = GenerateOrderNumber(),
+            UserId = userId,
+            AddressId = orderAddress.Id,
+            Status = "Ödeme alındı",
+            OrderDate = DateTime.UtcNow,
+            TotalAmount = orderTotal,
+            Items = cart.Items.Select(i => new OrderItem
+            {
+                ProductId = i.ProductId,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice
+            }).ToList(),
+            Payments =
+            {
+                new PaymentTransaction
+                {
+                    Amount = orderTotal,
+                    TransactionDate = DateTime.UtcNow,
+                    PaymentMethod = "iyzico",
+                    TransactionId = transactionId
+                }
+            }
+        };
+
+        await _orderRepository.InsertOrderAsync(order, cancellationToken);
         await _cartService.RemoveAllAsync(owner, cancellationToken);
-        _logger.LogInformation("Iyzico payment completed successfully. ConversationId: {ConversationId}", paymentModel.ConversationId);
+
+        _logger.LogInformation(
+            "Iyzico payment completed successfully. ConversationId: {ConversationId}, OrderNumber: {OrderNumber}",
+            paymentModel.ConversationId,
+            order.OrderId);
 
         return Ok(new
         {
             success = true,
-            message = "Ödemeniz başarıyla tamamlandı. Siparişiniz işleme alındı.",
+            message = $"Ödemeniz başarıyla tamamlandı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}",
             raw = result.RawResponse
         });
     }
@@ -416,5 +470,38 @@ public class CheckoutController : Controller
         }
 
         return new string(value.Where(char.IsDigit).ToArray());
+    }
+
+    private static string ExtractTransactionId(string? rawResponse, string fallback)
+    {
+        if (!string.IsNullOrWhiteSpace(rawResponse))
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(rawResponse);
+                var root = document.RootElement;
+                if (root.TryGetProperty("paymentId", out var paymentId))
+                {
+                    return paymentId.ValueKind switch
+                    {
+                        JsonValueKind.String => paymentId.GetString() ?? fallback,
+                        JsonValueKind.Number => paymentId.ToString() ?? fallback,
+                        _ => fallback
+                    };
+                }
+
+                if (root.TryGetProperty("conversationId", out var conversationId)
+                    && conversationId.ValueKind == JsonValueKind.String)
+                {
+                    return conversationId.GetString() ?? fallback;
+                }
+            }
+            catch (JsonException)
+            {
+                // ignored - fall back to supplied value
+            }
+        }
+
+        return fallback;
     }
 }
