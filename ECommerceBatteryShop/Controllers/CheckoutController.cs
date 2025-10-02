@@ -70,27 +70,27 @@ public class CheckoutController : Controller
 
         if (string.Equals(input.PaymentMethod, "iban", StringComparison.OrdinalIgnoreCase))
         {
-            if (owner.UserId is not int userId)
+            if (owner.UserId is not int userId1)
             {
                 return BadRequest(new { success = false, message = "IBAN ile ödeme için giriş yapmanız gerekmektedir." });
             }
 
-            var address = await ResolveAddressAsync(userId, cancellationToken);
+            var address = await ResolveAddressAsync(userId1, cancellationToken);
             if (address is null)
             {
                 return BadRequest(new { success = false, message = "Sipariş oluşturmak için kayıtlı bir adres bulunamadı." });
             }
 
-            var orderTotal = CalculateOrderTotal(cart, fxRate);
+            var orderTotal1 = CalculateOrderTotal(cart, fxRate);
 
-            var order = new Order
+            var order1 = new Order
             {
                 OrderId = GenerateOrderNumber(),
-                UserId = userId,
+                UserId = userId1,
                 AddressId = address.Id,
                 Status = "Sipariş alındı",
                 OrderDate = DateTime.UtcNow,
-                TotalAmount = orderTotal,
+                TotalAmount = orderTotal1,
                 Items = cart.Items.Select(i => new OrderItem
                 {
                     ProductId = i.ProductId,
@@ -99,15 +99,15 @@ public class CheckoutController : Controller
                 }).ToList()
             };
 
-            await _orderRepository.InsertOrderAsync(order, cancellationToken);
+            await _orderRepository.InsertOrderAsync(order1, cancellationToken);
             await _cartService.RemoveAllAsync(owner, cancellationToken);
 
-            _logger.LogInformation("IBAN order created successfully. OrderNumber: {OrderNumber}, UserId: {UserId}", order.OrderId, userId);
+            _logger.LogInformation("IBAN order created successfully. OrderNumber: {OrderNumber}, UserId: {UserId}", order1.OrderId, userId1);
 
             return Ok(new
             {
                 success = true,
-                message = $"Siparişiniz başarıyla alındı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}"
+                message = $"Siparişiniz başarıyla alındı. Sipariş numaranız: {order1.OrderId.ToString("D6", CultureInfo.InvariantCulture)}"
             });
         }
 
