@@ -1,4 +1,5 @@
 @using System.Globalization
+@model OrderViewModel
 @{
     ViewData["Title"] = "Sipariş Yönetimi";
     Layout = "_AdminLayout";
@@ -101,29 +102,7 @@
                 için kullanılacak bileşenleri göstermektedir.
             </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2 rounded-full bg-white/60 p-2 shadow-inner shadow-slate-200">
-            <button class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-slate-900/20" type="button">Bugün</button>
-            <button class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100" type="button">Son 7 Gün</button>
-            <button class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100" type="button">Son 30 Gün</button>
-        </div>
     </header>
-
-    <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        @foreach (var card in statusSummary)
-        {
-            <article class="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50">
-                <div class="space-y-4">
-                    <span class="inline-flex w-max items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold @card.Accent">@card.Title</span>
-                    <p class="text-3xl font-semibold text-slate-900">@card.Count</p>
-                    <p class="text-xs text-slate-500">@card.Description</p>
-                </div>
-                <div class="flex items-center gap-2 text-xs font-semibold @(card.TrendIsPositive ? "text-emerald-600" : "text-rose-600")">
-                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full @(card.TrendIsPositive ? "bg-emerald-100" : "bg-rose-100")">@(card.TrendIsPositive ? "↗" : "↘")</span>
-                    @(card.TrendIsPositive ? "+" : string.Empty)@card.Trend% son 24 saatte
-                </div>
-            </article>
-        }
-    </section>
 
         <article class="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/40">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

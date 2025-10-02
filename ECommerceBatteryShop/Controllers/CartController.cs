@@ -129,7 +129,7 @@ namespace ECommerceBatteryShop.Controllers
             }
             var rate = await _currencyService.GetCachedUsdTryAsync();
             decimal cartTotalPrice = await _cartService.CartTotalPriceAsync(owner);
-            var subTotal = cartTotalPrice * (rate ?? 41.3m); // 1.2 = KDV
+            var subTotal = cartTotalPrice * (rate ?? 41.5m); // 1.2 = KDV
 
             IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
             if (User.Identity?.IsAuthenticated == true)

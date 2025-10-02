@@ -123,7 +123,7 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             var response = await Task.Run(() => Payment.Create(request, _options), cancellationToken);
             var success = string.Equals(response.Status, "success", StringComparison.OrdinalIgnoreCase);
 
-            var rawJson = JsonSerializer.Serialize(response);   // <- replace RawResult
+            var rawJson = JsonSerializer.Serialize(response);
             if (!success)
             {
                 _logger.LogWarning("Iyzico payment failed. ConversationId: {ConversationId}, ErrorCode: {ErrorCode}, Message: {Message}",
@@ -186,7 +186,7 @@ public class IyzicoBuyer
     public required string IdentityNumber { get; init; }
     public required string RegistrationAddress { get; init; }
     public required string City { get; init; } = "Ankara";
-    public required string Country { get; init; } = "Türkiye";
+    public required string Country { get; init; } = "Turkey";
     public string Ip { get; init; } = "";
 }
 
