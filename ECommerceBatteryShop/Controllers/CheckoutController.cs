@@ -187,7 +187,7 @@ public class CheckoutController : Controller
             return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = errorMessage });
         }
 
-        var orderTotal = CalculateOrderTotal(cart, fxRate);
+        var orderTotal = paidPrice; // or basketTotal if your stored order excludes shipping
         var transactionId = ExtractTransactionId(result.RawResponse, paymentModel.ConversationId);
 
         var order = new Order
@@ -310,12 +310,9 @@ public class CheckoutController : Controller
                 address.City
             }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
-        var phone = NormalizePhone(address?.PhoneNumber) ?? "+95013176653";
+        var phone = NormalizePhone(address?.PhoneNumber) ?? "+905555555555";
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            email = "yigitdayi4502@gmail.com";
-        }
+        if (string.IsNullOrWhiteSpace(email)) { email = "no-reply@example.com"; }
 
         var buyer = new IyzicoBuyer
         {
@@ -327,7 +324,7 @@ public class CheckoutController : Controller
             IdentityNumber = DeriveIdentityNumber(address),
             RegistrationAddress = fullAddress,
             City = address?.City ?? "Ankara",
-            Country = "Türkiye",
+            Country = "Turkey",
             Ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
         };
 
@@ -336,7 +333,7 @@ public class CheckoutController : Controller
             ContactName = contactName,
             City = address?.City ?? "Ankara",
             Address = fullAddress,
-            Country = "Türkiye"
+            Country = "Turkey"
         };
 
         var shipping = new IyzicoAddress
@@ -344,7 +341,7 @@ public class CheckoutController : Controller
             ContactName = contactName,
             City = address?.City ?? "Ankara",
             Address = fullAddress,
-            Country = "Türkiye"
+            Country = "Turkey"
         };
 
         return (buyer, billing, shipping);
@@ -394,7 +391,7 @@ public class CheckoutController : Controller
             ExpireMonth = month,
             ExpireYear = year,
             Cvc = cvc,
-            RegisterCard = input.Save
+            RegisterCard = false
         };
 
         return true;
