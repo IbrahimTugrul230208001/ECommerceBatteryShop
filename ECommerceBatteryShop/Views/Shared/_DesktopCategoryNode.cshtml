@@ -1,0 +1,37 @@
+@model (ECommerceBatteryShop.Domain.Entities.Category Category, int Depth)
+@using ECommerceBatteryShop.Domain.Entities
+@using System.Linq
+@{
+    var category = Model.Category;
+    var depth = Model.Depth;
+    var hasChildren = category.SubCategories?.Any() == true;
+    var linkClasses = depth == 1
+        ? "flex items-center justify-between px-3 py-2 rounded-lg text-gray-900 hover:bg-gray-100"
+        : "flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-md";
+    var textClasses = depth == 1 ? "font-semibold text-gray-900" : "text-sm";
+    var groupClass = $"group/level-{depth}";
+    var childListClasses = $"absolute top-0 left-full ml-2 min-w-56 rounded-lg border border-gray-200 bg-white shadow-lg z-50 hidden group-hover/level-{depth}:block py-2 flex flex-col gap-1 font-normal text-sm whitespace-nowrap";
+}
+
+<li class="relative @groupClass">
+    <a href="@Url.Action("Index", "Product", new { categoryId = category.Id })"
+       class="@linkClasses">
+        <span class="@textClasses">@category.Name</span>
+        @if (hasChildren)
+        {
+            <svg class="h-4 w-4 text-gray-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11 10l-3.77-3.71a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.06 0z" clip-rule="evenodd" />
+            </svg>
+        }
+    </a>
+
+    @if (hasChildren)
+    {
+        <ul class="@childListClasses">
+            @foreach (var child in category.SubCategories)
+            {
+                @await Html.PartialAsync("_DesktopCategoryNode", (child, depth + 1))
+            }
+        </ul>
+    }
+</li>
