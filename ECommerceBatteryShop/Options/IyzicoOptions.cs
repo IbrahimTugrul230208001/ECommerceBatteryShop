@@ -17,5 +17,5 @@ public class IyzicoOptions
 }
 public sealed class IyzicoDefaults
 {
-    public string Country { get; init; } = "Türkiye";
+    public string Country { get; init; } = "TÃ¼rkiye";
 }
