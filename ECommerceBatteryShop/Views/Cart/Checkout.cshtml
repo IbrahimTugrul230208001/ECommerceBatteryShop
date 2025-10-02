@@ -17,7 +17,8 @@
         : Url.Action("DistantSelling", "Cart", new { shipping });
     contractUrl ??= "/Cart/DistantSelling";
 }
-<main x-data class="bg-white min-h-screen pt-10 pb-24">
+<main x-data="checkout(@(subTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)), 0.20)"
+      class="bg-white min-h-screen pt-10 pb-24">
     <div class="mx-auto max-w-5xl px-4">
         <!-- Başlık -->
         <header class="mb-8">
@@ -49,16 +50,34 @@
 
                     @await Html.PartialAsync("_AddressListPartial", Model.Addresses)
                 </section>
+                <!-- Kargo Seçimi -->
+                <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 mb-8 ">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-3">Kargo Seçimi</h2>
+                    <fieldset class="space-y-2">
+                        <template x-for="opt in shippingOptions" :key="opt.id">
+                            <label class="flex items-center justify-between rounded-lg border border-slate-700 p-3 hover:bg-slate-50">
+                                <span class="flex items-center gap-3">
+                                    <input type="radio" name="ship" :value="opt.id" x-model="selectedShippingId" class="text-amber-500">
+                                    <span class="text-sm text-slate-800" x-text="opt.name"></span>
+                                </span>
+                                <span class="text-sm font-medium" x-text="'₺' + format(opt.price)"></span>
+                            </label>
+                        </template>
+                    </fieldset>
+                </section>
 
                 <!-- Ödeme Yöntemi -->
                 <section x-data="payUi()" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-slate-900">Ödeme Yöntemi</h2>
-                        <span class="text-xs text-slate-500">Güvenli ödeme</span>
-                        <img src="/img/paywithiyzico.png"
-                             alt="Pay with iyzico"
-                             class="h-12 w-auto"
-                             loading="lazy" />
+                        <div class="flex items-center space-x-5">
+                            <span class="text-xs text-slate-600">Güvenli ödeme</span>
+                            <img src="/img/paywithiyzico.png"
+                                 alt="Pay with iyzico"
+                                 class="h-20 w-auto"
+                                 loading="lazy" />
+                        </div>
+               
                     </div>
 
                     <fieldset class="space-y-3">
@@ -151,12 +170,22 @@
                 <div class="lg:sticky lg:top-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <h3 class="text-base font-semibold text-slate-900 mb-4">Sipariş Özeti</h3>
                     <dl class="space-y-2 text-sm">
-                        <div class="flex justify-between"><dt class="text-slate-600">Ara Toplam</dt><dd class="text-slate-900 font-medium">₺@subTotal</dd></div>
-                        <div class="flex justify-between"><dt class="text-slate-600">Kargo</dt><dd class="text-slate-900 font-medium">₺@shipping</dd></div>
-                        <div class="flex justify-between"><dt class="text-slate-600">KDV (dahil)</dt><dd class="text-slate-900 font-medium">₺@tax</dd></div>
+                        <div class="flex justify-between">
+                            <dt class="text-slate-600">Ara Toplam</dt>
+                            <dd class="text-slate-900 font-medium"><span x-text="'₺' + format(subTotal)"></span></dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-slate-600">Kargo</dt>
+                            <dd class="text-slate-900 font-medium"><span x-text="'₺' + format(shipping)"></span></dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-slate-600">KDV (dahil)</dt>
+                            <dd class="text-slate-900 font-medium"><span x-text="'₺' + format(vatAmount)"></span></dd>
+                        </div>
                         <div class="h-px bg-slate-200 my-2"></div>
                         <div class="flex justify-between text-base">
-                            <dt class="text-slate-900 font-semibold">Genel Toplam</dt><dd class="text-slate-900 font-semibold">₺@(subTotal + shipping)</dd>
+                            <dt class="text-slate-900 font-semibold">Genel Toplam</dt>
+                            <dd class="text-slate-900 font-semibold"><span x-text="'₺' + format(grand)"></span></dd>
                         </div>
                     </dl>
                     <p class="text-xs text-slate-500 mt-4">Adres ve ödeme bilgilerinizi doğrulamadan sipariş oluşturulmaz.</p>
@@ -168,7 +197,44 @@
 
     @await Html.PartialAsync("_AddressModalPartial")
 <script>
+        function checkout(subTotal, vat){
+      return {
+        // inputs
+        subTotal: Number(subTotal || 0),
+        vat: Number(vat || 0.20),
 
+        // shipping catalog
+        shippingOptions: [
+          { id:'aras',     name:'Aras Kargo',   price:159.90 },
+          { id:'hepsijet', name:'HepsiJET',     price:129.90 },
+          { id:'yurtici',  name:'Yurtiçi Kargo',price:199.61 }
+        ],
+
+        // select cheapest by default
+        selectedShippingId: 'hepsijet',
+
+        // derived getters
+        get selectedShipping(){ return this.shippingOptions.find(o => o.id === this.selectedShippingId) || null; },
+        get shipping(){ return this.selectedShipping ? this.selectedShipping.price : 0; },
+        // KDV includes shipment now
+        get vatAmount(){ return this.round((this.subTotal + this.shipping) * this.vat); },
+        // keep your UI total behavior (subtotal + shipping)
+        get grand(){ return this.round(this.subTotal + this.shipping); },
+
+        // helpers
+        format(n){ return new Intl.NumberFormat('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}).format(Number(n||0)); },
+        round(n){ return Math.round(Number(n||0) * 100) / 100; },
+
+        // optional: ensure the contract link always carries current shipping
+        contractWithShipping(href){
+          try{
+            const u = new URL(href, window.location.origin);
+            u.searchParams.set('shipping', this.shipping.toFixed(2));
+            return u.toString();
+          }catch{ return href; }
+        }
+      }
+    }
 
     // IBAN copy
     (function () {
