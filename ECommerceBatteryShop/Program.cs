@@ -30,7 +30,7 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
   builder.Services.AddScoped<ICartService, CartService>();
   builder.Services.AddScoped<IFavoritesService, FavoritesService>();
   builder.Services.AddScoped<IIyzicoPaymentService, IyzicoPaymentService>();
-builder.Services.AddMemoryCache();
+  builder.Services.AddMemoryCache();
 
 // Options
 builder.Services.AddOptions<CurrencyOptions>()
