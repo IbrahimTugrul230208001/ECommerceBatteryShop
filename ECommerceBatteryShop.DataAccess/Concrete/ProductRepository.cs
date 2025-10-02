@@ -199,5 +199,13 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
 
             return (items, totalCount);
         }
+        public async Task<List<Product>> GetLatestProductsAsync()
+        {
+            return await _ctx.Products
+                .AsNoTracking()
+                .OrderByDescending(p => p.Id)
+                .Take(8)
+                .ToListAsync();
+        }
     }
 }

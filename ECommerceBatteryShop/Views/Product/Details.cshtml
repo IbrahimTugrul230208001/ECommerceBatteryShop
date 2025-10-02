@@ -1,6 +1,7 @@
-﻿@model ECommerceBatteryShop.Models.ProductViewModel
+﻿@using System.Globalization
+@model ECommerceBatteryShop.Models.ProductDetailsViewModel
 @{
-    ViewBag.Title = Model.Name;
+    
 }
 
 <main class="bg-white min-h-screen pt-28 pb-24">
@@ -12,8 +13,8 @@
             <!-- Left: Image / gallery -->
             <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
                 <div class="relative rounded-xl bg-white transition-transform duration-200 overflow-hidden h-[420px] flex items-center justify-center hover:scale-[1.03]">
-                    <img src="/img/@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "temsili.png" : Model.ImageUrl)"
-                         alt="@(string.IsNullOrWhiteSpace(Model.Name) ? "Görsel yok" : Model.Name)"
+                    <img src="/img/@(string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "temsili.png" : Model.product.ImageUrl)"
+                         alt="@(string.IsNullOrWhiteSpace(Model.product.Name) ? "Görsel yok" : Model.product.Name)"
                          class="max-h-full max-w-full object-contain transition-transform duration-200" />
                 </div>
             </section>
@@ -21,7 +22,7 @@
 
             <!-- Right: Details -->
             <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
-                <h1 class="text-2xl font-semibold text-slate-900">@Model.Name</h1>
+                <h1 class="text-2xl font-semibold text-slate-900">@Model.product.Name</h1>
                 @*
                 <!-- Rating -->
                 <div class="mt-2 flex items-center gap-2">
@@ -43,7 +44,7 @@
                 *@
                 <!-- Price -->
                 <div class="mt-3 text-3xl font-bold tracking-tight text-slate-900">
-                    @Model.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))
+                    @Model.product.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))
                 </div>
 
                 <!-- Qty + Actions -->
@@ -74,7 +75,7 @@
 
                     <!-- CTA buttons -->
                     <button hx-post="/Cart/Add"
-                            :hx-vals="JSON.stringify({ productId: @Model.Id, quantity: qty })"
+                            :hx-vals="JSON.stringify({ productId: @Model.product.Id, quantity: qty })"
                             hx-swap="none"
                             x-data="{ added: false }"
                             @@click="if (added) return; added = true; setTimeout(() => added = false, 1600);"
@@ -112,10 +113,10 @@
                     </button>
 
                     <button type="button"
-                            x-data="{ fav: @(Model.IsFavorite ? "true" : "false"), busy: false }"
+                            x-data="{ fav: @(Model.product.IsFavorite ? "true" : "false"), busy: false }"
                             @@click="if (busy) return; busy=true; fav=!fav; setTimeout(()=> busy=false, 300);"
                             hx-post="/Favorites/Toggle"
-                            :hx-vals="JSON.stringify({ productId: @Model.Id})"
+                            :hx-vals="JSON.stringify({ productId: @Model.product.Id})"
                             hx-swap="none"
                             :aria-pressed="fav.toString()"
                             :class="fav ? 'text-rose-600 border-rose-300 bg-rose-50' : 'text-gray-700 border-gray-300 hover:bg-gray-100'"
@@ -220,10 +221,10 @@
             <section x-show="tab==='desc'" x-cloak role="tabpanel" :aria-hidden="tab!=='desc'">
                 <div class="absolute inset-0 pointer-events-none rounded-2xl ring-1 ring-inset ring-white/40"></div>
                 <h2 class="text-xl font-semibold text-slate-900 mb-4">Ürün Açıklaması</h2>
-                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                @if (!string.IsNullOrWhiteSpace(Model.product.Description))
                 {
                     <div class="prose prose-slate max-w-none text-slate-700 leading-relaxed">
-                        <p>@Model.Description</p>
+                        <p>@Model.product.Description</p>
                     </div>
                 }
                 else
@@ -238,12 +239,12 @@
             <section x-show="tab==='files'" x-cloak role="tabpanel" :aria-hidden="tab!=='files'">
                 <div class="absolute inset-0 pointer-events-none rounded-2xl ring-1 ring-inset ring-white/40"></div>
                 <h2 class="text-xl font-semibold text-slate-900 mb-4">Dosya Eki</h2>
-                @if (Model.AttachmentUrl != null)
+                @if (Model.product.AttachmentUrl != null)
                 {
                     <ul class="space-y-3">
                         <li class="flex items-center justify-between rounded-lg border border-slate-200 p-4">
                             <div><div class="text-slate-500 text-sm">PDF / Doküman</div></div>
-                            <a href="@Model.AttachmentUrl" target="_blank" rel="noopener"
+                            <a href="@Model.product.AttachmentUrl" target="_blank" rel="noopener"
                                class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                                 PDF’i Aç
                             </a>
@@ -259,11 +260,221 @@
             </section>
         </div>
     </div>
+    
+    <section class="space-y-6 my-12">
+        <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-bold text-gray-900">İlginizi Çekebilecek Ürünler</h2>
 
+            <a href="/Product/Index"
+               class="group inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800 hover:text-amber-500">
+                Tüm Ürünler
+                <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                     viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </a>
+        </div>
+
+        <div x-data="{
+             atStart: true, atEnd: false,
+             onScroll(){ const el=$refs.scroller; this.atStart=el.scrollLeft<=5; this.atEnd = el.scrollLeft+el.clientWidth>=el.scrollWidth-5; },
+               next(){ const el=$refs.scroller; el.scrollBy({left: el.clientWidth, behavior:'smooth'}); },
+               prev(){ const el=$refs.scroller; el.scrollBy({left: -el.clientWidth, behavior:'smooth'}); }
+             }"
+             x-init="onScroll()"
+             class="relative">
+
+            <!-- Controls -->
+            <button type="button" @@click="prev" :class="{'opacity-40 pointer-events-none': atStart}"
+                                    class="absolute left-2 top-1/2 hover:bg-amber-400 hover:text-white cursor-pointer -translate-y-1/2 z-10 h-10 w-10 grid place-items-center border border-slate-300 rounded-full bg-white shadow-xl"
+                    aria-label="Önceki">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(180)">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.29289 4.29289C8.68342 3.90237 9.31658 3.90237 9.70711 4.29289L16.7071 11.2929C17.0976 11.6834 17.0976 12.3166 16.7071 12.7071L9.70711 19.7071C9.31658 20.0976 8.68342 20.0976 8.29289 19.7071C7.90237 19.3166 7.90237 18.6834 8.29289 18.2929L14.5858 12L8.29289 5.70711C7.90237 5.31658 7.90237 4.68342 8.29289 4.29289Z" fill="currentColor"/>
+                </svg>
+            </button>
+
+            <button type="button" @@click="next" :class="{'opacity-40 pointer-events-none': atEnd}"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 hover:text-white grid place-items-center text-xl rounded-full bg-white shadow-xl border border-slate-300 hover:bg-amber-400 cursor-pointer"
+                    aria-label="Sonraki">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8.29289 4.29289C8.68342 3.90237 9.31658 3.90237 9.70711 4.29289L16.7071 11.2929C17.0976 11.6834 17.0976 12.3166 16.7071 12.7071L9.70711 19.7071C9.31658 20.0976 8.68342 20.0976 8.29289 19.7071C7.90237 19.3166 7.90237 18.6834 8.29289 18.2929L14.5858 12L8.29289 5.70711C7.90237 5.31658 7.90237 4.68342 8.29289 4.29289Z" fill="currentColor"/>
+                </svg>
+            </button>
+
+            <!-- Track -->
+            <div x-ref="scroller" style="--g:12px" @@scroll.passive="onScroll"
+                 class="flex gap-[var(--g)] overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar px-1 py-2">
+
+                @foreach (var product in Model.RelatedProducts)
+                {
+                            <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
+                                <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                                    <!-- Image -->
+                                    <a href="/Product/Details/@product.Id" class="block p-3 pb-0">
+                                              <div class="h-32 grid place-items-center overflow-hidden">
+                <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
+                     alt="@(string.IsNullOrWhiteSpace(product.Name) ? "Görsel yok" : product.Name)"
+                     class="h-28 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]" />
+            </div>
+
+                                    </a>
+
+                                    <!-- Content -->
+                                    <div class="px-3 pt-2 flex-1 flex flex-col">
+                                       <a class="hover:underline" href="/Product/Details/@product.Id"><h3 class="text-sm font-semibold text-gray-900 line-clamp-2 min-h-[2.75rem]">@product.Name</h3></a>
+
+                                        <!-- Rating + Price -->
+                                        <div class="mt-1 flex items-center justify-between">
+                                            @*
+                                        <div class="flex items-center gap-0.5 text-yellow-400">
+                                            @{
+                                                    // Safer star count from float rating [0..5]
+                                                    var r = product.Rating;
+                                                    var full = r < 0 ? 0 : r > 5 ? 5 : (int)Math.Floor(r);
+                                                    for (var i = 0; i < 5; i++)
+                                                    {
+                                                            var filled = i < full;
+                                                        <text>
+                                                            <svg class="h-4 w-4 @(filled ? "" : "text-gray-300")" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z" />
+                                                            </svg>
+                                                        </text>
+                                                    ;
+                                                    }
+                                            }
+                                            
+                                        </div>
+                                        *@
+                                            <div class="text-right">
+                                                <div class="text-lg font-bold text-gray-900">
+                                                    @product.Price.ToString("C", new CultureInfo("tr-TR"))
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Actions -->
+                                        <div class="mt-3 mb-3 flex items-center gap-2">
+                                            <button
+                                                hx-post="/Cart/Add"
+                                                hx-vals='{"productId": @product.Id, "quantity": 1}'
+                                                hx-swap="none"
+                                                x-data="{ added: false }"
+                                                @@click="if (added) return; added = true; setTimeout(() => added = false, 1600);"
+                                                :class="added ? 'bg-green-500 text-white' : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
+                                                class="flex-1 h-9 rounded-md text-sm font-semibold shadow transition-colors duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 cursor-pointer">
+                                                <span x-show="!added"
+                                                      x-transition:enter="transition transform ease-out duration-250"
+                                                      x-transition:enter-start="-translate-y-3 opacity-0"
+                                                      x-transition:enter-end="translate-y-0 opacity-100"
+                                                      x-transition:leave="transition transform ease-in duration-200"
+                                                      x-transition:leave-start="translate-y-0 opacity-100"
+                                                      x-transition:leave-end="translate-y-3 opacity-0"
+                                                      class="block">
+                                                    Sepete ekle
+                                                </span>
+
+                                                <span x-show="added"
+                                                      x-transition:enter="transition transform ease-out duration-250"
+                                                      x-transition:enter-start="translate-y-3 opacity-0"
+                                                      x-transition:enter-end="translate-y-0 opacity-100"
+                                                      x-transition:leave="transition transform ease-in duration-200"
+                                                      x-transition:leave-start="translate-y-0 opacity-100"
+                                                      x-transition:leave-end="-translate-y-3 opacity-0"
+                                                      class="absolute inset-0 flex items-center justify-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path d="M20 6L9 17l-5-5"/>
+                                                    </svg>
+                                                    <span class="align-middle text-white">Sepete eklendi</span>
+                                                </span>
+                                            </button>
+
+                                       <!-- Favorite (Heart) -->
+            <button
+              type="button"
+              x-data="{ fav: @(product.IsFavorite ? "true" : "false"), busy: false }"
+              @@click="
+                if (busy) return;
+                busy = true;
+                fav = !fav;
+                setTimeout(() => busy = false, 300);
+              "
+              hx-post="/Favorites/Toggle"
+              :hx-vals="JSON.stringify({ productId: @product.Id})"
+               hx-swap="none"
+              :aria-pressed="fav.toString()"
+              :class="fav ? 'text-rose-600 border-rose-300 bg-rose-50' : 'text-gray-700 border-gray-300 hover:bg-gray-100'"
+              class="relative h-9 w-9 grid place-items-center rounded-md border cursor-pointer
+                     transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">
+              <span class="sr-only" x-text="fav ? 'Favorilerden çıkar' : 'Favorilere ekle'"></span>
+
+              <!-- Stack both icons; animate opacity/scale only (no x-show) -->
+              <div class="relative h-5 w-5">
+                <!-- Outline -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="absolute inset-0 h-5 w-5 transition-all duration-200 ease-out"
+                     :class="fav ? 'opacity-0 scale-90' : 'opacity-100 scale-100'"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+
+                <!-- Filled -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="absolute inset-0 h-5 w-5 transition-all duration-220 ease-out"
+                     :class="fav ? 'opacity-100 scale-100' : 'opacity-0 scale-110'"
+                     viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+            </button>
+
+
+
+
+
+
+
+                                        </div>
+                                    </div>
+       </article>
+                            </div>
+                }
+            </div>
+        </div>
+    </section>
 
 
     </main>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('carousel', ({ visible = 4 } = {}) => ({
+            i: 0, visible, maxIndex: 0,
+            init() {
+                this.$nextTick(() => {
+                    const track = this.$refs.track;
+                    const items = track.querySelectorAll('[data-item]');
+                    const gap = parseFloat(getComputedStyle(track).gap || 16);
+                    this.itemWidth = items[0]?.offsetWidth + gap || 0;
+                    this.count = items.length;
+                    this.maxIndex = Math.max(0, this.count - this.visible);
+                });
+            },
+            move(dir) {
+                this.i = Math.max(0, Math.min(this.i + dir, this.maxIndex));
+                this.$refs.track.scrollTo({ left: this.i * this.itemWidth, behavior: 'smooth' });
+            }
+        }));
+    });
+</script>
 <style>
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none;
