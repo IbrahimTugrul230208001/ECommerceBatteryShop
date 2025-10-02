@@ -16,7 +16,7 @@ public interface IIyzicoPaymentService
 
 public class IyzicoPaymentService : IIyzicoPaymentService
 {
-    private readonly IConfiguration configuration;
+    private readonly IConfiguration _configuration;
     private readonly Iyzipay.Options _options;
     private readonly ILogger<IyzicoPaymentService> _logger;
 
@@ -30,7 +30,7 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             BaseUrl = value.BaseUrl
         };
         _logger = logger;
-        this.configuration = configuration;
+        _configuration = configuration;
     }
    
 
@@ -75,7 +75,7 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             Country = model.Buyer.Country,
             Ip = model.Buyer.Ip
         };
-        var d = configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
+        var d = _configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
         request.ShippingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.ShippingAddress.ContactName,
