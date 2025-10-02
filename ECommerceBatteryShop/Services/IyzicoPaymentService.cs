@@ -2,7 +2,6 @@ using ECommerceBatteryShop.Options;
 using Iyzipay.Model;
 using Iyzipay.Request;
 using Microsoft.Extensions.Options;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
@@ -67,6 +66,8 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             request.CallbackUrl = _settings.CallbackUrl;
         }
 
+        var defaults = _configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
+
         request.Buyer = new Buyer
         {
             Id = model.Buyer.Id,
@@ -77,23 +78,36 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             IdentityNumber = model.Buyer.IdentityNumber,
             RegistrationAddress = model.Buyer.RegistrationAddress,
             City = model.Buyer.City,
-            Country = model.Buyer.Country,
+            Country = string.IsNullOrWhiteSpace(model.Buyer.Country)
+                ? defaults.Country
+                : model.Buyer.Country,
             Ip = model.Buyer.Ip
         };
-        var d = _configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
         request.ShippingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.ShippingAddress.ContactName,
             City = model.ShippingAddress.City,
-            Country = d.Country
+            Country = string.IsNullOrWhiteSpace(model.ShippingAddress.Country)
+                ? defaults.Country
+                : model.ShippingAddress.Country,
+            Address = string.IsNullOrWhiteSpace(model.ShippingAddress.Address)
+                ? "Adres belirtilmedi"
+                : model.ShippingAddress.Address
         };
         request.BillingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.BillingAddress.ContactName,
             City = model.BillingAddress.City,
-            Country = d.Country,
+            Country = string.IsNullOrWhiteSpace(model.BillingAddress.Country)
+                ? defaults.Country
+                : model.BillingAddress.Country,
+            Address = string.IsNullOrWhiteSpace(model.BillingAddress.Address)
+                ? "Adres belirtilmedi"
+                : model.BillingAddress.Address
         };
-        request.Buyer.Country = d.Country;
+        request.Buyer.Country = string.IsNullOrWhiteSpace(request.Buyer.Country)
+            ? defaults.Country
+            : request.Buyer.Country;
         request.BasketItems = model.Items.Select(item => new BasketItem
         {
             Id = item.Id,
@@ -172,7 +186,7 @@ public class IyzicoBuyer
     public required string IdentityNumber { get; init; }
     public required string RegistrationAddress { get; init; }
     public required string City { get; init; } = "Ankara";
-    public required string Country { get; init; } = "Türkiye";
+    public required string Country { get; init; } = "TÃ¼rkiye";
     public string Ip { get; init; } = "";
 }
 
@@ -180,6 +194,7 @@ public class IyzicoAddress
 {
     public required string ContactName { get; init; }
     public required string City { get; init; }
+    public required string Address { get; init; }
     public required string Country { get; init; }
 }
 

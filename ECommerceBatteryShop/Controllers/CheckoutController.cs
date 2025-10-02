@@ -281,13 +281,15 @@ public class CheckoutController : Controller
         {
             ContactName = contactName,
             City = address?.City ?? "Ankara",
-            Country = "Turkey"
+            Address = fullAddress,
+            Country = "Türkiye"
         };
 
         var shipping = new IyzicoAddress
         {
             ContactName = contactName,
             City = address?.City ?? "Ankara",
+            Address = fullAddress,
             Country = "Türkiye"
         };
 
