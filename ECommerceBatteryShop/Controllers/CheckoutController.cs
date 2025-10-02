@@ -47,6 +47,8 @@ public class CheckoutController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PlaceOrder([FromForm] PlaceOrderInputModel input, CancellationToken cancellationToken)
     {
+        var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken) ?? DefaultExchangeRate;
+
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
@@ -78,7 +80,6 @@ public class CheckoutController : Controller
                 return BadRequest(new { success = false, message = "Sipariş oluşturmak için kayıtlı bir adres bulunamadı." });
             }
 
-            var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken) ?? DefaultExchangeRate;
             var orderTotal = CalculateOrderTotal(cart, fxRate);
 
             var order = new Order
@@ -119,7 +120,6 @@ public class CheckoutController : Controller
             return BadRequest(new { success = false, message = cardError ?? "Kart bilgileri eksik veya hatalı." });
         }
 
-        var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken) ?? DefaultExchangeRate;
 
         var lineItems = new List<IyzicoBasketItem>();
         decimal basketTotal = 0m;
