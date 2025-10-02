@@ -32,5 +32,21 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 await _ctx.SaveChangesAsync();
             }
         }
+        public async Task<List<Order>> GetOrders()
+        {
+            return await _ctx.Orders
+                .Include(o => o.Items)
+                .Include(o => o.Shipment)
+                .Include(o => o.Address)
+                .ToListAsync();
+        }
+        public async Task<Order?> GetOrdersByUserIdAsync(int userId)
+        {
+            return await _ctx.Orders
+                .Include(o => o.Items)
+                .Include(o => o.Shipment)
+                .Include(o => o.Address)
+                .FirstOrDefaultAsync(o => o.UserId == userId);
+        }
     }
 }
