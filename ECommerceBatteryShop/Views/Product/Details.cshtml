@@ -46,11 +46,6 @@
                     @Model.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))
                 </div>
 
-                <!-- Description -->
-                <div class="mt-4 prose prose-slate max-w-none text-slate-700">
-                    <p>@Model.Description</p>
-                </div>
-
                 <!-- Qty + Actions -->
                 <div class="mt-6 flex flex-wrap items-center gap-3">
                     <!-- Qty input -->
@@ -147,13 +142,29 @@
 
                 <!-- Small trust badges / info -->
                 <ul class="mt-4 text-sm text-slate-600 space-y-1">
-                    <li>• 3D Secure desteklenir</li>
-                    <li>• Aynı gün kargo (12:00 öncesi)</li>
+                    <li>• Iyzico ile öde</li>
                 </ul>
             </section>
         </div>
     </div>
-
+    <div class="mt-16 mx-auto max-w-5xl px-4">
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <div class="rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-sm p-6 sm:p-8 shadow-sm relative">
+                <div class="absolute inset-0 pointer-events-none rounded-2xl ring-1 ring-inset ring-white/40"></div>
+                <h2 class="text-xl font-semibold text-slate-900 mb-4">Ürün Açıklaması</h2>
+                <div class="prose prose-slate max-w-none text-slate-700 leading-relaxed">
+                    <p>@Model.Description</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
+                Bu ürün için açıklama eklenmemiştir.
+            </div>
+        }
+    </div>
     </main>
 <style>
     input[type=number]::-webkit-inner-spin-button,

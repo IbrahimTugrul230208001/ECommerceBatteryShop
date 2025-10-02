@@ -90,7 +90,7 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             Country = string.IsNullOrWhiteSpace(model.ShippingAddress.Country)
                 ? defaults.Country
                 : model.ShippingAddress.Country,
-            Address = string.IsNullOrWhiteSpace(model.ShippingAddress.Address)
+            Description = string.IsNullOrWhiteSpace(model.ShippingAddress.Address)
                 ? "Adres belirtilmedi"
                 : model.ShippingAddress.Address
         };
@@ -101,7 +101,7 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             Country = string.IsNullOrWhiteSpace(model.BillingAddress.Country)
                 ? defaults.Country
                 : model.BillingAddress.Country,
-            Address = string.IsNullOrWhiteSpace(model.BillingAddress.Address)
+            Description = string.IsNullOrWhiteSpace(model.BillingAddress.Address)
                 ? "Adres belirtilmedi"
                 : model.BillingAddress.Address
         };
