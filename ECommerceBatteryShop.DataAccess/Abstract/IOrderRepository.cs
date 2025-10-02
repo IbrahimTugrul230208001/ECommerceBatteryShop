@@ -9,6 +9,10 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
 {
     public interface IOrderRepository
     {
-        Task<Order> InsertOrderAsync(Order order, CancellationToken ct=default);
+        public Task<Order> InsertOrderAsync(Order order, CancellationToken ct=default);
+        public Task CancelOrder(int orderId);
+        public Task<List<Order>> GetOrdersAsync();
+        public Task<Order?> GetOrdersByUserIdAsync(int userId);
+
     }
 }

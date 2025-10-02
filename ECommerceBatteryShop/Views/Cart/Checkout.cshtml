@@ -7,6 +7,10 @@
     decimal subTotal = Model.SubTotal;
     decimal tax = subTotal * 0.2m;
     decimal shipping = Model.ShippingCost;
+    if(subTotal >= 2500)
+    {
+        shipping = 0;
+    }
     subTotal = Math.Round(subTotal, 2);
     tax = Math.Round(tax, 2);
     shipping = Math.Round(shipping, 2);
@@ -176,7 +180,9 @@
                         </div>
                         <div class="flex justify-between">
                             <dt class="text-slate-600">Kargo</dt>
-                            <dd class="text-slate-900 font-medium"><span x-text="'₺' + format(shipping)"></span></dd>
+                            <dd class="text-slate-900 font-medium">
+                                <span x-text="isFree ? 'Ücretsiz!' : ('₺' + format(shipping))"></span>
+                            </dd>
                         </div>
                         <div class="flex justify-between">
                             <dt class="text-slate-600">KDV (dahil)</dt>
@@ -197,36 +203,33 @@
 
     @await Html.PartialAsync("_AddressModalPartial")
 <script>
-        function checkout(subTotal, vat){
+            function checkout(subTotal, vat, threshold){
       return {
         // inputs
         subTotal: Number(subTotal || 0),
         vat: Number(vat || 0.20),
+        freeShipThreshold: Number(threshold || 2500),
 
         // shipping catalog
         shippingOptions: [
-          { id:'aras',     name:'Aras Kargo',   price:159.90 },
-          { id:'hepsijet', name:'HepsiJET',     price:129.90 },
-          { id:'yurtici',  name:'Yurtiçi Kargo',price:199.61 },
-          { id:'bedava',    name:'Bedava',  price:0.00 }
+          { id:'aras',     name:'Aras Kargo',    price:159.90 },
+          { id:'hepsijet', name:'HepsiJET',      price:129.90 },
+          { id:'yurtici',  name:'Yurtiçi Kargo', price:199.61 }
         ],
-
-        // select cheapest by default
         selectedShippingId: 'hepsijet',
 
-        // derived getters
+        // derived
+        get isFree(){ return this.subTotal >= this.freeShipThreshold; },
         get selectedShipping(){ return this.shippingOptions.find(o => o.id === this.selectedShippingId) || null; },
-        get shipping(){ return this.selectedShipping ? this.selectedShipping.price : 0; },
-        // KDV includes shipment now
+        get shipping(){ return this.isFree ? 0 : (this.selectedShipping ? this.selectedShipping.price : 0); },
         get vatAmount(){ return this.round((this.subTotal + this.shipping) * this.vat); },
-        // keep your UI total behavior (subtotal + shipping)
         get grand(){ return this.round(this.subTotal + this.shipping); },
 
         // helpers
         format(n){ return new Intl.NumberFormat('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}).format(Number(n||0)); },
         round(n){ return Math.round(Number(n||0) * 100) / 100; },
 
-        // optional: ensure the contract link always carries current shipping
+        // keep contract param accurate
         contractWithShipping(href){
           try{
             const u = new URL(href, window.location.origin);

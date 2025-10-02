@@ -1,6 +1,7 @@
 ﻿using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,9 +33,10 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 await _ctx.SaveChangesAsync();
             }
         }
-        public async Task<List<Order>> GetOrders()
+        public async Task<List<Order>> GetOrdersAsync()
         {
             return await _ctx.Orders
+                .Include(o => o.User)
                 .Include(o => o.Items)
                 .Include(o => o.Shipment)
                 .Include(o => o.Address)
@@ -48,5 +50,6 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 .Include(o => o.Address)
                 .FirstOrDefaultAsync(o => o.UserId == userId);
         }
+ 
     }
 }

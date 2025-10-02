@@ -20,6 +20,7 @@ namespace ECommerceBatteryShop.Controllers
         private readonly BatteryShopContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly ICategoryRepository _categoryRepository;  
+        private readonly IOrderRepository _orderRepository;
         public AdminController(BatteryShopContext context, IWebHostEnvironment environment, ICategoryRepository categoryRepository)
         {
             _context = context;
@@ -56,8 +57,18 @@ namespace ECommerceBatteryShop.Controllers
              return View();
         }
         [HttpGet]
-        public IActionResult Orders()
+        public async Task<IActionResult> GetOrdersAsync()
         {
+            var orders = await _orderRepository.GetOrdersAsync();
+            OrderViewModel orderViewModel = new OrderViewModel
+            {
+                User = orders.Select(o=>o.User).FirstOrDefault(),
+                FullAddress = orders.Select(o => o.Address.FullAddress).FirstOrDefault(),
+                Status = orders.Select(o=>o.Status).FirstOrDefault(),
+                TotalAmount = orders.Select(o=>o.TotalAmount).FirstOrDefault(),
+                OrderDate = orders.Select(o=>o.OrderDate).FirstOrDefault(),
+                Items = orders.SelectMany(o => o.Items).ToList()
+            };
             return View();
         }
         [HttpGet]

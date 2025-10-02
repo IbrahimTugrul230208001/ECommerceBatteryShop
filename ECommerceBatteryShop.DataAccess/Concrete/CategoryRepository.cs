@@ -55,30 +55,13 @@ public sealed class CategoryRepository : ICategoryRepository
     }
     public async Task<List<Category>> GetCategoriesWithChildrenAsync(CancellationToken ct = default)
     {
-        var allCategories = await _ctx.Categories
+        return await _ctx.Categories
             .AsNoTracking()
+            .Where(c => c.ParentCategoryId == null)
             .Include(c => c.ProductCategories)
+            .Include(c => c.SubCategories)
+                .ThenInclude(sc => sc.ProductCategories)
             .OrderBy(c => c.Id)
             .ToListAsync(ct);
-
-        var categoriesByParent = allCategories
-            .GroupBy(c => c.ParentCategoryId)
-            .ToDictionary(g => g.Key, g => g.ToList());
-
-        foreach (var category in allCategories)
-        {
-            if (categoriesByParent.TryGetValue(category.Id, out var children))
-            {
-                category.SubCategories = children;
-            }
-            else
-            {
-                category.SubCategories = new List<Category>();
-            }
-        }
-
-        return categoriesByParent.TryGetValue(null, out var rootCategories)
-            ? rootCategories
-            : new List<Category>();
     }
 }

@@ -157,16 +157,31 @@ namespace ECommerceBatteryShop.Controllers
             var rate = await _currency.GetCachedUsdTryAsync(ct);
             var fx = rate ?? 1m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
-
-            var vm = new ProductViewModel
+            var relatedProducts = await _repo.GetLatestProductsAsync();
+            var vm = new ProductDetailsViewModel
             {
-                Id = product.Id,
-                Name = product.Name,
-                Price = (_currency.ConvertUsdToTry(product.Price, fx)+product.ExtraAmount) * (1 + KdvRate),
-                Rating = product.Rating,
-                ImageUrl = product.ImageUrl,
-                IsFavorite = favoriteIds.Contains(product.Id),
-                Description = product.Description
+                product = new ProductViewModel
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Price = (_currency.ConvertUsdToTry(product.Price, fx) + product.ExtraAmount) * (1 + KdvRate),
+                    Rating = product.Rating,
+                    ImageUrl = product.ImageUrl ?? string.Empty,
+                    IsFavorite = favoriteIds.Contains(product.Id),
+                    Description = product.Description ?? string.Empty
+                },
+                RelatedProducts = relatedProducts
+                    .Where(p => p.Id != product.Id)
+                    .Take(8)
+                    .Select(p => new ProductViewModel
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Price = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate),
+                        Rating = p.Rating,
+                        ImageUrl = p.ImageUrl ?? string.Empty,
+                        IsFavorite = favoriteIds.Contains(p.Id)
+                    }).ToList()
             };
 
             return View("Details", vm); // full view under _Layout

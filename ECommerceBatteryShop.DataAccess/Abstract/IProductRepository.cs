@@ -31,5 +31,6 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
             decimal? minUsd = null,
             decimal? maxUsd = null,
             CancellationToken ct = default);
+        Task<List<Product>> GetLatestProductsAsync();
     }
 }
