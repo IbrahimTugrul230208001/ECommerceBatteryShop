@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
@@ -22,6 +23,7 @@ public class CheckoutController : Controller
     private readonly ICartService _cartService;
     private readonly ICurrencyService _currencyService;
     private readonly IAddressRepository _addressRepository;
+    private readonly IOrderRepository _orderRepository;
     private readonly IIyzicoPaymentService _paymentService;
     private readonly ILogger<CheckoutController> _logger;
 
@@ -29,12 +31,14 @@ public class CheckoutController : Controller
         ICartService cartService,
         ICurrencyService currencyService,
         IAddressRepository addressRepository,
+        IOrderRepository orderRepository,
         IIyzicoPaymentService paymentService,
         ILogger<CheckoutController> logger)
     {
         _cartService = cartService;
         _currencyService = currencyService;
         _addressRepository = addressRepository;
+        _orderRepository = orderRepository;
         _paymentService = paymentService;
         _logger = logger;
     }
@@ -50,20 +54,6 @@ public class CheckoutController : Controller
             return BadRequest(new { success = false, message = firstError });
         }
 
-        if (string.Equals(input.PaymentMethod, "iban", StringComparison.OrdinalIgnoreCase))
-        {
-            return Ok(new
-            {
-                success = true,
-                message = "Havale/EFT seçildi. Siparişinizi tamamlamak için belirtilen IBAN’a ödeme yapabilirsiniz."
-            });
-        }
-
-        if (!string.Equals(input.PaymentMethod, "card_new", StringComparison.OrdinalIgnoreCase))
-        {
-            return BadRequest(new { success = false, message = "Seçilen ödeme yöntemi şu anda desteklenmiyor." });
-        }
-
         if (!TryResolveOwner(out var owner, out var errorResult))
         {
             return errorResult ?? BadRequest(new { success = false, message = "Sepet bulunamadı." });
@@ -73,6 +63,55 @@ public class CheckoutController : Controller
         if (cart is null || cart.Items.Count == 0)
         {
             return BadRequest(new { success = false, message = "Sepetiniz boş olduğu için ödeme alınamadı." });
+        }
+
+        if (string.Equals(input.PaymentMethod, "iban", StringComparison.OrdinalIgnoreCase))
+        {
+            if (owner.UserId is not int userId)
+            {
+                return BadRequest(new { success = false, message = "IBAN ile ödeme için giriş yapmanız gerekmektedir." });
+            }
+
+            var address = await ResolveAddressAsync(userId, cancellationToken);
+            if (address is null)
+            {
+                return BadRequest(new { success = false, message = "Sipariş oluşturmak için kayıtlı bir adres bulunamadı." });
+            }
+
+            var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken) ?? DefaultExchangeRate;
+            var orderTotal = CalculateOrderTotal(cart, fxRate);
+
+            var order = new Order
+            {
+                OrderId = GenerateOrderNumber(),
+                UserId = userId,
+                AddressId = address.Id,
+                Status = "Sipariş alındı",
+                OrderDate = DateTime.UtcNow,
+                TotalAmount = orderTotal,
+                Items = cart.Items.Select(i => new OrderItem
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            };
+
+            await _orderRepository.InsertOrderAsync(order, cancellationToken);
+            await _cartService.RemoveAllAsync(owner, cancellationToken);
+
+            _logger.LogInformation("IBAN order created successfully. OrderNumber: {OrderNumber}, UserId: {UserId}", order.OrderId, userId);
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Siparişiniz başarıyla alındı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}"
+            });
+        }
+
+        if (!string.Equals(input.PaymentMethod, "card_new", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { success = false, message = "Seçilen ödeme yöntemi şu anda desteklenmiyor." });
         }
 
         if (!TryParseCard(input, out var cardInfo, out var cardError))
@@ -138,6 +177,27 @@ public class CheckoutController : Controller
             raw = result.RawResponse
         });
     }
+
+    private static decimal CalculateOrderTotal(Cart cart, decimal fxRate)
+    {
+        decimal total = 0m;
+        foreach (var item in cart.Items)
+        {
+            var unitPriceTry = item.UnitPrice * (1 + KdvRate) * fxRate;
+            var linePrice = decimal.Round(unitPriceTry * item.Quantity, 2, MidpointRounding.AwayFromZero);
+            total += linePrice;
+        }
+
+        if (cart.Items.Count > 0)
+        {
+            total += ShippingFee;
+        }
+
+        return total;
+    }
+
+    private static int GenerateOrderNumber()
+        => RandomNumberGenerator.GetInt32(100000, 1_000_000);
 
     private bool TryResolveOwner(out CartOwner owner, out IActionResult? errorResult)
     {
