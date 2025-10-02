@@ -44,7 +44,7 @@ public class CheckoutController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [AllowAnonymous]
     public async Task<IActionResult> PlaceOrder([FromForm] PlaceOrderInputModel input, CancellationToken cancellationToken)
     {
         var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken) ?? DefaultExchangeRate;
