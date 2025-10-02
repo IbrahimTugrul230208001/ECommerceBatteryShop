@@ -204,7 +204,7 @@ else
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-slate-600">Kargo</dt>
-                        <dd class="text-slate-900" x-text="shippingCents>0 ? formatCents(shippingCents) : 'Ücretsiz'"></dd>
+                            <dd class="text-slate-900">Kargo seçimi bir sonraki adımda yapılacaktır.</dd>
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-slate-600">KDV (dahil)</dt>
@@ -242,7 +242,6 @@ else
         activeCoupon: null,
         freeShipOverride: false,
         thresholdCents: 250000, // 500 TL – ücretsiz kargo eşiği
-        shipFeeCents: 3990,    // 39,90 TL
         lastRemoved: null,
         toast: { show:false, text:'', type:'info', t:null },
 
@@ -268,7 +267,7 @@ else
           if(this.activeCoupon === 'TRY50') return 5000; // 50 TL
           return 0;
         },
-        get totalCents(){ return Math.max(0, this.subtotalCents + this.shippingCents - this.discountCents); },
+        get totalCents(){ return Math.max(0, this.subtotalCents - this.discountCents); },
 
         // helpers
         toCents(n){ return Math.round(Number(n) * 100); },
