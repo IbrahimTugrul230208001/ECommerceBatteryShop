@@ -24,12 +24,14 @@ public class AccountController : Controller
     private readonly IConfiguration _configuration;
     private readonly IUserService _userService;
     private readonly IAddressRepository _addressRepository;
-    public AccountController(IAccountRepository accountRepository, IConfiguration configuration, IUserService userService, IAddressRepository addressRepository)
+    private readonly ICartService _cartService;
+    public AccountController(IAccountRepository accountRepository, IConfiguration configuration, IUserService userService, IAddressRepository addressRepository, ICartService cartService)
     {
         _accountRepository = accountRepository;
         _configuration = configuration;
         _userService = userService;
         _addressRepository = addressRepository;
+        _cartService = cartService;
     }
 
     [HttpPost]
@@ -138,6 +140,13 @@ public class AccountController : Controller
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+        var anonId = Request.Cookies["ANON_ID"];
+        if (!string.IsNullOrWhiteSpace(anonId))
+        {
+            await _cartService.MergeGuestIntoUserAsync(anonId, user.Id, ct);
+            Response.Cookies.Delete("ANON_ID");
+        }
 
         return RedirectToAction("Index", "Home");
     }
