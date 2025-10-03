@@ -7,6 +7,9 @@ public class Category
     public string? Description { get; set; }
     public int? ParentCategoryId { get; set; }
     public Category? ParentCategory { get; set; }
+    public string Depth { get; set; } = string.Empty;
+    public string Slug  { get; set; } = string.Empty;
+    public string Path { get; set; } = string.Empty;
     public ICollection<Category> SubCategories { get; set; } = new List<Category>();
     public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
 }

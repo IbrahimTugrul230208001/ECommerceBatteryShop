@@ -7,6 +7,4 @@ public interface ICategoryRepository
 {
     /// Returns top-level categories with their child categories.
     Task<List<Category>> GetCategoriesWithChildrenAsync(CancellationToken ct = default);
-    Task<Categories3Tier> GetCategories3TierAsync(CancellationToken ct = default);
-
 }
