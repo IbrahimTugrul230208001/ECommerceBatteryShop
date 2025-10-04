@@ -64,9 +64,6 @@
                 </div>
 
             </header>
-
-
-
     @if (TempData["StockUpdateSuccess"] is string successMessage)
     {
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-900 shadow-sm">
@@ -90,7 +87,7 @@
                 <thead class="bg-slate-50/80">
                     <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                         <th scope="col" class="px-6 py-4">Ürün</th>
-                        <th scope="col" class="px-6 py-4">Durum</th>
+                        <th scope="col" class="px-6 py-4">Adet</th>
                     </tr>
                 </thead>
                <tbody id="stock-rows" class="divide-y divide-slate-100 text-sm text-slate-700">
@@ -117,7 +114,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <label class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-                                          <input asp-for="Items[i].Quantity" type="number" />
+                                          <input asp-for="Items[i].Quantity" type="number" min="0" step="1" class="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200" />
                                     </label>
                                 </td>
                             </tr>
@@ -127,17 +124,14 @@
             </table>
         </div>
 
-        @if (Model.Items.Count > 0)
-        {
-            <div class="flex items-center justify-end">
-                <button id="kaydet" type="submit" class="inline-flex items-center gap-3 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-slate-900/25 transition hover:bg-slate-800">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12l5 5L20 7" />
-                    </svg>
-                    Stok Durumlarını Kaydet
-                </button>
-            </div>
-        }
+        <div class="flex items-center justify-end">
+            <button id="kaydet" type="submit" class="inline-flex items-center gap-3 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-slate-900/25 transition hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled="@(Model.Items.Count == 0 ? "disabled" : null)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12l5 5L20 7" />
+                </svg>
+                Stok Adetlerini Kaydet
+            </button>
+        </div>
     </form>
 </section>
 </div>
@@ -154,9 +148,16 @@
             const form = document.querySelector('form[data-stock-form]');
             const searchUrl = '@Url.Action("StockSearch", "Admin")';
             const minQueryLength = 2;
+            const saveButton = document.getElementById('kaydet');
 
             let currentRequest = null;
             let debounceTimer = null;
+
+            function updateSaveState() {
+                if (!saveButton) return;
+                const hasRows = !!tableBody.querySelector('tr[data-stock-row]');
+                saveButton.disabled = !hasRows;
+            }
 
             function escapeHtml(value) {
                 return String(value)
@@ -169,6 +170,7 @@
 
             function setTableContent(markup) {
                 tableBody.innerHTML = markup;
+                updateSaveState();
             }
 
             function renderPlaceholder(message) {
@@ -196,11 +198,11 @@
                 }
 
                 const rows = items.map((item, index) => {
-                    const inStockRaw = item.inStock ?? item.InStock;
+                    const quantityRaw = item.quantity ?? item.Quantity ?? 0;
                     const productIdRaw = item.productId ?? item.ProductId;
                     const productNameRaw = item.productName ?? item.ProductName ?? '';
 
-                    const inStock = Boolean(inStockRaw);
+                    const quantity = Number.isFinite(quantityRaw) ? quantityRaw : parseInt(quantityRaw, 10) || 0;
                     const productId = Number.isFinite(productIdRaw) ? productIdRaw : parseInt(productIdRaw, 10);
                     const productIdValue = Number.isFinite(productId) ? productId : (productIdRaw ?? '');
                     const productNameSafe = escapeHtml(productNameRaw);
@@ -217,10 +219,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <label class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-                                    <select name="Items[${index}].InStock" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200">
-                                        <option value="true" ${inStock ? 'selected' : ''}>Stok var</option>
-                                        <option value="false" ${!inStock ? 'selected' : ''}>Stok yok</option>
-                                    </select>
+                                    <input type="number" name="Items[${index}].Quantity" min="0" step="1" value="${escapeHtml(quantity)}" class="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200" />
                                 </label>
                             </td>
                         </tr>
@@ -316,7 +315,7 @@
 
             if (form) {
                 form.addEventListener('submit', function () {
-                    // ensure indexes remain consistent by renumbering selects
+                    // ensure indexes remain consistent by renumbering inputs
                     const rows = tableBody.querySelectorAll('tr[data-stock-row]');
                     rows.forEach((row, index) => {
                         const hiddenInputs = row.querySelectorAll('input[type="hidden"]');
@@ -325,9 +324,9 @@
                             input.name = `Items[${index}].${field}`;
                         });
 
-                        const select = row.querySelector('select');
-                        if (select) {
-                            select.name = `Items[${index}].InStock`;
+                        const qtyInput = row.querySelector('input[type="number"]');
+                        if (qtyInput) {
+                            qtyInput.name = `Items[${index}].Quantity`;
                         }
                     });
                 });
@@ -350,6 +349,7 @@
             }
 
             const hasServerRows = tableBody.querySelector('tr[data-stock-row]');
+            updateSaveState();
             if (initialTerm.length === 0 && !hasServerRows) {
                 renderPlaceholder('Arama yaparak ürünleri görüntüleyin.');
             } else if (initialTerm.length >= minQueryLength && !hasServerRows) {

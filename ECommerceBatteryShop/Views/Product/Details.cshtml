@@ -124,7 +124,6 @@
                                 Stokta yok
                             </button>
                         }
-                        <span class="text-xs font-medium @productStockClass">@productStockText</span>
                     </div>
 
                     <button type="button"
@@ -186,22 +185,8 @@
            </div>
                 
 
-                <div class="flex justify-between items-center mt-6">
-                    <!-- Left: Logo -->
-                    <img class="h-10 w-auto" src="~/img/paywithiyzico.png" alt="iyzico" />
-                   @*
-                    <!-- Right: Stock Info -->
-                    <div class="flex items-center space-x-2 text-slate-700">
-                        <span>Stok bilgisi için arayınız</span>
-                        <svg class="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 12.6111L8.92308 17.5L20 6.5"
-                                  stroke="currentColor" stroke-width="2"
-                                  stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                    </div>
-                    *@
-                </div>
+                    <img class="h-10 w-auto mt-6" src="~/img/paywithiyzico.png" alt="iyzico" />
+              
 
 
 
@@ -323,11 +308,11 @@
 
                 @foreach (var product in Model.RelatedProducts)
                 {
-                    @{ 
+                     
                         var inStock = product.StockQuantity > 0;
                         var stockText = inStock ? "Stokta var" : "Stokta yok";
                         var stockClass = inStock ? "text-emerald-600" : "text-rose-600"; 
-                    }
+                    
                             <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
                                 <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                                     <!-- Image -->
@@ -420,7 +405,6 @@
                                                         Stokta yok
                                                     </button>
                                                 }
-                                                <span class="text-xs font-medium @stockClass">@stockText</span>
                                             </div>
 
                                        <!-- Favorite (Heart) -->
