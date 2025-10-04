@@ -117,10 +117,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <label class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-                                        <select asp-for="Items[i].InStock" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200">
-                                            <option value="true">Stok var</option>
-                                            <option value="false">Stok yok</option>
-                                        </select>
+                                          <input asp-for="Items[i].Quantity" type="number" />
                                     </label>
                                 </td>
                             </tr>
