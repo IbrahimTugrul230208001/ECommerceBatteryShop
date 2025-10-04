@@ -87,7 +87,8 @@ namespace ECommerceBatteryShop.Controllers
                 Price = (_currency.ConvertUsdToTry(p.Price /* USD */, fx) + p.ExtraAmount)* (1 + KdvRate), // displayed in TRY or USD
                 Rating = p.Rating,
                 ImageUrl = p.ImageUrl,
-                IsFavorite = favoriteIds.Contains(p.Id)
+                IsFavorite = favoriteIds.Contains(p.Id),
+                StockQuantity = p.Inventory?.Quantity ?? 0
             }).OrderBy(p=>p.Id).ToList();
 
             // for the view to persist current filters & "clear" button state
@@ -168,7 +169,8 @@ namespace ECommerceBatteryShop.Controllers
                     Rating = product.Rating,
                     ImageUrl = product.ImageUrl ?? string.Empty,
                     IsFavorite = favoriteIds.Contains(product.Id),
-                    Description = product.Description ?? string.Empty
+                    Description = product.Description ?? string.Empty,
+                    StockQuantity = product.Inventory?.Quantity ?? 0
                 },
                 RelatedProducts = relatedProducts
                     .Where(p => p.Id != product.Id)
@@ -180,7 +182,8 @@ namespace ECommerceBatteryShop.Controllers
                         Price = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate),
                         Rating = p.Rating,
                         ImageUrl = p.ImageUrl ?? string.Empty,
-                        IsFavorite = favoriteIds.Contains(p.Id)
+                        IsFavorite = favoriteIds.Contains(p.Id),
+                        StockQuantity = p.Inventory?.Quantity ?? 0
                     }).ToList()
             };
 

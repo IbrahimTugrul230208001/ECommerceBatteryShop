@@ -16,5 +16,8 @@ namespace ECommerceBatteryShop.Models
         // Add this property to fix CS1061
         public string? AttachmentUrl { get; set; }
 
+        public int StockQuantity { get; set; }
+        public bool IsInStock => StockQuantity > 0;
+
     }
 }
