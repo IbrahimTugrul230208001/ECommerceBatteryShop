@@ -167,11 +167,11 @@
 
                 @foreach (var product in s.Products)
                 {
-                    @{ 
+                  
                         var inStock = product.StockQuantity > 0;
                         var stockText = inStock ? "Stokta var" : "Stokta yok";
                         var stockClass = inStock ? "text-emerald-600" : "text-rose-600"; 
-                    }
+                    
                         <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
                             <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                                 <!-- Image -->
@@ -264,7 +264,6 @@
                                                     Stokta yok
                                                 </button>
                                             }
-                                            <span class="text-xs font-medium @stockClass">@stockText</span>
                                         </div>
 
                                    <!-- Favorite (Heart) -->

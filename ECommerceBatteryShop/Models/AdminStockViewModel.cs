@@ -17,7 +17,6 @@ namespace ECommerceBatteryShop.Models
 
         public string ProductName { get; set; } = string.Empty;
 
-        [Display(Name = "Stok Durumu")]
         public int Quantity { get; set; }
     }
 }
