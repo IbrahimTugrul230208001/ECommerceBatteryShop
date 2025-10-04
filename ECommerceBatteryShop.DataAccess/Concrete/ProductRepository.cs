@@ -36,6 +36,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             {
                 IQueryable<Product> query = _ctx.Products
       .AsNoTracking()
+      .Include(p => p.Inventory)
       .Include(p => p.Variants)
       .OrderBy(p => p.Id)
       .ThenBy(p => p.Name);
@@ -75,6 +76,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
         public async Task<Product?> GetProductAsync(int id, CancellationToken ct)
         {
             return await _ctx.Products
+                .Include(p => p.Inventory)
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
         }
 
@@ -91,7 +93,9 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
 
             try
             {
-                IQueryable<Product> query = _ctx.Products.AsNoTracking();
+                IQueryable<Product> query = _ctx.Products
+                    .AsNoTracking()
+                    .Include(p => p.Inventory);
 
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
@@ -167,14 +171,10 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 30;
 
-            var baseQuery = _ctx.ProductCategories
+            var query = _ctx.Products
                 .AsNoTracking()
-                .Where(pc => pc.CategoryId == categoryId)
-                .Select(pc => pc.Product);
-
-            var query = baseQuery
-                .Where(p => p != null)
-                .Select(p => p!);
+                .Include(p => p.Inventory)
+                .Where(p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId));
 
             if (minUsd.HasValue)
             {
@@ -203,6 +203,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
         {
             return await _ctx.Products
                 .AsNoTracking()
+                .Include(p => p.Inventory)
                 .OrderByDescending(p => p.Id)
                 .Take(8)
                 .ToListAsync();

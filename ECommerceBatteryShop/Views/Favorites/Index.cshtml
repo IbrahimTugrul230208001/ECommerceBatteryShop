@@ -85,6 +85,9 @@ else
                 var image = string.IsNullOrWhiteSpace(p.ImageUrl)
                 ? "/img/placeholder.png"
                 : (p.ImageUrl!.StartsWith("/img/") ? p.ImageUrl : "/img/" + p.ImageUrl);
+                var inStock = p.StockQuantity > 0;
+                var stockText = inStock ? "Stokta var" : "Stokta yok";
+                var stockClass = inStock ? "text-emerald-600" : "text-rose-600";
 
                 <li id="fav-@id"
                     x-data="{ removing:false }"
@@ -112,23 +115,37 @@ else
                                 <!-- Add to cart -->
                                 <form class="contents" id="cart-form-@id">
                                     @Html.AntiForgeryToken()
-                                    <button hx-post="/Cart/Add"
-                                            hx-include="#cart-form-@id"
-                                            hx-vals='{"productId": @id, "quantity": 1}'
-                                            hx-swap="none"
-                                            x-data="{ added:false }"
-                                            @@click="if(added) return; added=true; setTimeout(()=>added=false,1600)"
-                                            :class="added ? 'bg-green-500 text-white' : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
-                                            :disabled="added"
-                                            class="flex-1 h-9 rounded-md text-sm font-semibold shadow transition-colors duration-300
-                           relative overflow-hidden focus-visible:outline-none focus-visible:ring-2
-                           focus-visible:ring-yellow-400 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <span x-cloak x-show="!added">Sepete ekle</span>
-                                        <span x-cloak x-show="added" class="absolute inset-0 flex items-center justify-center gap-1">
-                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5" /></svg>
-                                            <span>Sepete eklendi</span>
-                                        </span>
-                                    </button>
+                                    <div class="flex flex-1 flex-col gap-1">
+                                        @if (inStock)
+                                        {
+                                            <button hx-post="/Cart/Add"
+                                                    hx-include="#cart-form-@id"
+                                                    hx-vals='{"productId": @id, "quantity": 1}'
+                                                    hx-swap="none"
+                                                    x-data="{ added:false }"
+                                                    @@click="if(added) return; added=true; setTimeout(()=>added=false,1600)"
+                                                    :class="added ? 'bg-green-500 text-white' : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
+                                                    :disabled="added"
+                                                    class="h-9 w-full rounded-md text-sm font-semibold shadow transition-colors duration-300
+                                   relative overflow-hidden focus-visible:outline-none focus-visible:ring-2
+                                   focus-visible:ring-yellow-400 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <span x-cloak x-show="!added">Sepete ekle</span>
+                                                <span x-cloak x-show="added" class="absolute inset-0 flex items-center justify-center gap-1">
+                                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5" /></svg>
+                                                    <span>Sepete eklendi</span>
+                                                </span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    disabled
+                                                    class="h-9 w-full rounded-md bg-gray-300 text-sm font-semibold text-gray-500 shadow cursor-not-allowed">
+                                                Stokta yok
+                                            </button>
+                                        }
+                                        <span class="text-xs font-medium @stockClass">@stockText</span>
+                                    </div>
                                 </form>
 
                                 <!-- Remove from favorites -->

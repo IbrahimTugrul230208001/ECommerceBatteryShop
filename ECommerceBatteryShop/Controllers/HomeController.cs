@@ -55,7 +55,8 @@ namespace ECommerceBatteryShop.Controllers
                 ImageUrl = p.ImageUrl ?? string.Empty,
                 ExtraAmount = p.ExtraAmount,
                 Description = p.Description ?? string.Empty,
-                IsFavorite = favoriteIds.Contains(p.Id)
+                IsFavorite = favoriteIds.Contains(p.Id),
+                StockQuantity = p.Inventory?.Quantity ?? 0
             };
             var plan = new[]
             {

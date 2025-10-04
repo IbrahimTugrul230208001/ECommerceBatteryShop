@@ -90,7 +90,8 @@ namespace ECommerceBatteryShop.Controllers
                         ProductId = i.ProductId,
                         UnitPrice = (decimal)priceWithKdvAndRate,
                         Name = i.Product?.Name ?? string.Empty,
-                        ImageUrl = i.Product?.ImageUrl
+                        ImageUrl = i.Product?.ImageUrl,
+                        StockQuantity = i.Product?.Inventory?.Quantity ?? 0
                     };
                 }).ToList()
             };
