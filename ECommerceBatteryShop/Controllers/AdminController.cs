@@ -69,7 +69,7 @@ namespace ECommerceBatteryShop.Controllers
                 OrderDate = orders.Select(o=>o.OrderDate).FirstOrDefault(),
                 Items = orders.SelectMany(o => o.Items).ToList()
             };
-            return View();
+            return View(orders);
         }
         [HttpGet]
         public async Task<IActionResult> Stocks(string? search, CancellationToken cancellationToken)
@@ -128,7 +128,7 @@ namespace ECommerceBatteryShop.Controllers
 
                 if (inventories.TryGetValue(item.ProductId, out var inventory))
                 {
-                    inventory.Exists = item.InStock;
+                    inventory.Quantity = item.Quantity;
                     inventory.LastUpdated = now;
                 }
                 else
@@ -136,7 +136,7 @@ namespace ECommerceBatteryShop.Controllers
                     _context.Inventories.Add(new Inventory
                     {
                         ProductId = item.ProductId,
-                        Exists = item.InStock,
+                        Quantity = item.Quantity,
                         LastUpdated = now
                     });
                 }
@@ -313,7 +313,7 @@ namespace ECommerceBatteryShop.Controllers
                 {
                     ProductId = p.Id,
                     ProductName = p.Name,
-                    InStock = p.Inventory != null && p.Inventory.Exists
+                    Quantity = p.Inventory != null && p.Inventory.Quantity >= 0 ? p.Inventory.Quantity : 0
                 })
                 .ToListAsync(cancellationToken);
         }
