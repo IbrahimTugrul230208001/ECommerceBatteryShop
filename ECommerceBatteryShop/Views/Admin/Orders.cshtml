@@ -5,91 +5,16 @@
     Layout = "_AdminLayout";
 
     var culture = new CultureInfo("tr-TR");
-
-    var statusSummary = new[]
-    {
-        new { Title = "Yeni Sipariş", Count = 18, Description = "Onay bekleyen yeni sipariş", Trend = 6.2m, TrendIsPositive = true, Accent = "bg-sky-100 text-sky-700" },
-        new { Title = "Hazırlanıyor", Count = 27, Description = "Paketleme aşamasındaki sipariş", Trend = 2.4m, TrendIsPositive = true, Accent = "bg-amber-100 text-amber-700" },
-        new { Title = "Kargoya Verildi", Count = 37, Description = "Kargo firmasına teslim edildi", Trend = -1.8m, TrendIsPositive = false, Accent = "bg-indigo-100 text-indigo-700" },
-        new { Title = "Tamamlandı", Count = 264, Description = "Son 30 günde başarıyla teslim edildi", Trend = 12.3m, TrendIsPositive = true, Accent = "bg-emerald-100 text-emerald-700" }
-    };
-
-    var fulfillmentQueues = new[]
-    {
-        new { Label = "Pazaryeri", Pending = 9, AvgHandling = "38 dk", LastUpdate = "12 dk önce" },
-        new { Label = "Web Siparişleri", Pending = 6, AvgHandling = "52 dk", LastUpdate = "8 dk önce" },
-        new { Label = "Kurumsal", Pending = 3, AvgHandling = "1 sa 14 dk", LastUpdate = "22 dk önce" }
-    };
-
-    var shipmentProviders = new[]
-    {
-        new { Name = "Yurtiçi Kargo", DispatchRate = 0.82m, AvgDelivery = "1.8 gün", Contact = "Müşteri Temsilcisi - Ayşe Hanım" },
-        new { Name = "Trendyol Express", DispatchRate = 0.91m, AvgDelivery = "1.2 gün", Contact = "Operasyon Sorumlusu - Murat" },
-        new { Name = "Aras Kargo", DispatchRate = 0.76m, AvgDelivery = "2.3 gün", Contact = "Bölge Yetkilisi - Derya" }
-    };
-
     var workflowStatusOptions = new[]
-    {
-        "Ödeme Onayı Bekliyor",
+   {
+        "Ödeme alındı",
         "Hazırlanıyor",
-        "Kargoya Verildi",
-        "Teslim Edildi",
-        "İade Sürecinde"
+        "Kargoya verildi",
+        "Teslim edildi",
+        "İade sürecinde",
+        "İade tamamlandı"
     };
-
-    var orders = new[]
-    {
-        new
-        {
-            OrderNo = "ORD-20240128",
-            Customer = "Mehmet Yılmaz",
-            Email = "mehmet.yilmaz@example.com",
-            Total = 2850.50m,
-            Status = "Hazırlanıyor",
-            Payment = "Kredi Kartı",
-            CreatedAt = DateTime.Today.AddHours(-4),
-            Notes = "Powerbank stok kontrolü tamamlandı. Kutu içeriği hazır.",
-            Items = new[]
-            {
-                new { Name = "Ultra Güçlü Alkalin AA", Quantity = 2, Amount = 340m },
-                new { Name = "Hızlı Şarjlı Powerbank 20.000 mAh", Quantity = 1, Amount = 1250.50m },
-                new { Name = "USB-C Hızlı Şarj Adaptörü", Quantity = 1, Amount = 420m }
-            }
-        },
-        new
-        {
-            OrderNo = "ORD-20240127",
-            Customer = "Elif",
-            Email = "elif.demir@example.com",
-            Total = 1680m,
-            Status = "Kargoya Verildi",
-            Payment = "Kapıda Ödeme",
-            CreatedAt = DateTime.Today.AddHours(-9),
-            Notes = "Müşteri ile teslimat adresi teyit edildi.",
-            Items = new[]
-            {
-                new { Name = "Uzun Ömürlü Lityum 18650", Quantity = 4, Amount = 980m },
-                new { Name = "Akıllı Cihaz Pili CR2032", Quantity = 5, Amount = 350m }
-            }
-        },
-        new
-        {
-            OrderNo = "ORD-20240126",
-            Customer = "Can Kaya",
-            Email = "can.kaya@example.com",
-            Total = 940m,
-            Status = "Ödeme Onayı Bekliyor",
-            Payment = "Havale/EFT",
-            CreatedAt = DateTime.Today.AddHours(-16),
-            Notes = "Ödeme dekontu bekleniyor. Finans ile paylaşılacak.",
-            Items = new[]
-            {
-                new { Name = "Profesyonel Drone Bataryası", Quantity = 1, Amount = 740m },
-                new { Name = "Drone Şarj Ünitesi", Quantity = 1, Amount = 200m }
-            }
-        }
-    };
-}
+ }
 
 <div class="mx-auto max-w-7xl space-y-10">
     <header class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -105,22 +30,22 @@
     </header>
 
         <article class="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/40">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h2 class="text-lg font-semibold text-slate-900">Sipariş Akışı</h2>
-                    <p class="text-sm text-slate-500">OrdersRepository üzerinden alınan veriler burada listelenecek. Satırlar üzerinden durum güncelleyebilirsiniz.</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Durum Filtrele</label>
-                    <select class="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200">
-                        <option value="">Tümü</option>
-                        @foreach (var option in workflowStatusOptions)
-                        {
-                            <option value="@option">@option</option>
-                        }
-                    </select>
-                </div>
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Sipariş Akışı</h2>
+                <p class="text-sm text-slate-500">OrdersRepository üzerinden alınan veriler burada listelenecek. Satırlar üzerinden durum güncelleyebilirsiniz.</p>
             </div>
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Durum Filtrele</label>
+                <select class="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                    <option value="">Tümü</option>
+                    @foreach (var option in workflowStatusOptions)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </div>
+        </div>
 
             <div class="overflow-hidden rounded-2xl border border-slate-100">
                 <table class="min-w-full divide-y divide-slate-100 text-sm">
@@ -132,45 +57,43 @@
                             <th class="px-4 py-3">Ödeme</th>
                             <th class="px-4 py-3">Durum</th>
                             <th class="px-4 py-3">Son İşlem</th>
-                            <th class="px-4 py-3 text-right">Aksiyon</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
-                        @foreach (var order in orders)
+                        @foreach (var order in Model.Orders)
                         {
-                            <tr class="transition hover:bg-slate-50/80">
+                            var method = order.Payments
+                                .OrderByDescending(p => p.TransactionDate)
+                                .Select(p => p.PaymentMethod)
+                                .FirstOrDefault();
+                            <tr>
                                 <td class="px-4 py-4 align-top font-semibold text-slate-900">
                                     <div class="space-y-1">
-                                        <p>@order.OrderNo</p>
-                                        <p class="text-xs font-medium text-slate-500">@order.CreatedAt.ToString("dd MMM yyyy HH:mm", culture)</p>
+                                        <p>@order.OrderId</p>
+                                        <p class="text-xs font-medium text-slate-500">@order.OrderDate.ToString("dd MMM yyyy HH:mm", culture)</p>
                                     </div>
                                 </td>
                                 <td class="px-4 py-4 align-top">
                                     <div class="space-y-1 text-sm">
-                                        <p class="font-semibold text-slate-900">@order.Customer</p>
-                                        <p class="text-xs text-slate-500">@order.Email</p>
+                                        <p class="font-semibold text-slate-900">@order.User?.UserName</p>
+                                    <p class="text-xs text-slate-500">@order.User?.Email</p>
                                     </div>
                                 </td>
-                                <td class="px-4 py-4 align-top font-semibold text-slate-900">@order.Total.ToString("C", culture)</td>
-                                <td class="px-4 py-4 align-top text-sm font-medium text-slate-700">@order.Payment</td>
-                            <td class="px-4 py-4 align-top" data-order-status="@order.OrderNo">
-                                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                    <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                                    @order.Status
-                                </span>
-                            </td>
-                                <td class="px-4 py-4 align-top text-xs text-slate-500">@order.Notes</td>
+                                <td class="px-4 py-4 align-top font-semibold text-slate-900">@order.TotalAmount.ToString("C", culture)</td>
+                                <td class="px-4 py-4 align-top text-sm font-medium text-slate-700">@(string.IsNullOrWhiteSpace(method) ? "-" : method)</td>
+                                <td class="px-4 py-4 align-top" data-order-status="@order.OrderId">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                                        @order.Status
+                                    </span>
+                                </td>
                                 <td class="px-4 py-4 align-top">
-                                    <div class="flex items-center justify-end gap-2">
-                                    <button class="apply-status inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-100"
+                                    <div class="flex items-center">
+                                    <button class="apply-status bg-gray-900 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-slate-100 transition hover:opacity-70 trasition duration-100"
                                             type="button"
-                                            data-order="@order.OrderNo">
+                                            data-order="@order.OrderId">
                                         Durumu Güncelle
                                     </button>
-
-                                        <button class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-slate-900/20" type="button">
-                                            Detay
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -178,33 +101,30 @@
                                 <td colspan="7" class="px-4 pb-6">
                                     <div class="grid gap-4 rounded-2xl border border-slate-100 bg-white/70 p-4 md:grid-cols-[minmax(0,1fr)_240px]">
                                         <ul class="space-y-2 text-sm text-slate-600">
-                                            @foreach (var item in order.Items)
+                                            @foreach (var item in Model.Items)
                                             {
                                                 <li class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                                                    <span class="font-medium text-slate-700">@item.Name</span>
+                                                    <span class="font-medium text-slate-700">@item.ProductName</span>
                                                     <span class="text-xs text-slate-500">@item.Quantity adet</span>
-                                                    <span class="font-semibold text-slate-900">@item.Amount.ToString("C", culture)</span>
+                                                <span class="font-semibold text-slate-900">@item.UnitPrice.ToString("C", culture)</span>
                                                 </li>
                                             }
                                         </ul>
                                     <div class="space-y-3 rounded-2xl bg-slate-900/90 p-4 text-xs text-white"
-                                         data-order="@order.OrderNo">
+                                         data-order="@order.OrderId">
                                         <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-300">Hızlı Aksiyonlar</p>
 
                                         @foreach (var option in workflowStatusOptions)
                                         {
                                             var isCurrent = option == order.Status;
-                                            <button type="button"
+                                            <button type="button" id="currentOption"
                                                     class="status-option w-full rounded-xl px-3 py-2 text-left font-semibold transition
-                           @(isCurrent ? "ring-2 ring-emerald-400 bg-white/20 text-white"
-                                                                                   : "bg-white/10 text-white hover:bg-white/20")"
+                                   @(isCurrent ? "ring-2 ring-emerald-400 bg-white/20 text-white"
+                                                                                                                                       : "bg-white/10 text-white hover:bg-white/20")"
                                             data-status="@option">
                                         @option
                                     </button>
                                                                         }
-
-                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-300 mt-2">İç Not</p>
-                                        <p class="text-[11px] leading-4 text-slate-200">@order.Notes</p>
                                     </div>
 
                                     </div>
@@ -256,10 +176,10 @@
         const applyBtn = e.target.closest('.apply-status');
         if (!applyBtn) return;
 
-        const orderNo = applyBtn.dataset.order;
-        if (!orderNo) return;
+        const orderId = applyBtn.dataset.order;
+        if (!orderId) return;
 
-        const nextStatus = pending.get(orderNo);
+        const nextStatus = pending.get(orderId);
         if (!nextStatus) {
           // Seçim yapılmadıysa hiç bir şey yapma (isterseniz ufak bir uyarı gösterebilirsiniz)
           applyBtn.classList.add('animate-pulse');
@@ -267,39 +187,17 @@
           return;
         }
 
-        // (A) Backend’e gönder – gerçek endpoint ile değiştirin:
-        // try {
-        //   const res = await fetch('/Admin/Orders/UpdateStatus', {
-        //     method: 'POST',
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //       'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? ''
-        //     },
-        //     body: JSON.stringify({ orderNo, status: nextStatus })
-        //   });
-        //   if (!res.ok) throw new Error('Update failed');
-        // } catch (err) {
-        //   console.error(err);
-        //   return; // başarısızsa UI’yi değiştirmeyin
-        // }
+      const form = new URLSearchParams();
+    form.append('orderId', orderId);
+    form.append('newStatus', nextStatus);
 
-        // (B) Demo/UI: backend başarılı varsayılarak rozet metnini güncelle
-        const statusCell = document.querySelector(`[data-order-status="${orderNo}"] span`);
-        if (statusCell) {
-          // span içindeki ikinci düğüm (metin) statü adını taşıyor; güvenli yol:
-          const parts = statusCell.childNodes;
-          // biçimi korumak için sadece metin içeriğini set edelim:
-          if (parts.length >= 2) {
-            // ikinci node text ise değiştir, değilse sonuna ekle
-            if (parts[1].nodeType === Node.TEXT_NODE) {
-              parts[1].textContent = ' ' + nextStatus;
-            } else {
-              statusCell.append(document.createTextNode(' ' + nextStatus));
-            }
-          } else {
-            statusCell.append(document.createTextNode(' ' + nextStatus));
-          }
-        }
+
+    const res = await fetch('/Admin/UpdateStatus', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form.toString()
+    });
+
 
         // Seçimi temizle
         pending.delete(orderNo);

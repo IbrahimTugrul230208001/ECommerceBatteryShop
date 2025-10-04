@@ -2,6 +2,8 @@ using ECommerceBatteryShop.DataAccess;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
+using ECommerceBatteryShop.Services;
+using Iyzipay.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +23,14 @@ namespace ECommerceBatteryShop.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly ICategoryRepository _categoryRepository;  
         private readonly IOrderRepository _orderRepository;
-        public AdminController(BatteryShopContext context, IWebHostEnvironment environment, ICategoryRepository categoryRepository)
+        private readonly ICurrencyService _currencyService;
+        public AdminController(BatteryShopContext context, IWebHostEnvironment environment, ICategoryRepository categoryRepository, IOrderRepository orderRepository, ICurrencyService currencyService)
         {
             _context = context;
             _environment = environment;
             _categoryRepository = categoryRepository;
+            _orderRepository = orderRepository;
+            _currencyService = currencyService;
         }
 
         [HttpGet]
@@ -57,19 +62,86 @@ namespace ECommerceBatteryShop.Controllers
              return View();
         }
         [HttpGet]
-        public async Task<IActionResult> GetOrdersAsync()
+        public async Task<IActionResult> Orders()
         {
             var orders = await _orderRepository.GetOrdersAsync();
-            OrderViewModel orderViewModel = new OrderViewModel
+            var rate = await _currencyService.GetCachedUsdTryAsync();
+            decimal fx = rate ?? 41.5m;
+
+            OrderViewModel vm = new OrderViewModel
             {
-                User = orders.Select(o=>o.User).FirstOrDefault(),
-                FullAddress = orders.Select(o => o.Address.FullAddress).FirstOrDefault(),
-                Status = orders.Select(o=>o.Status).FirstOrDefault(),
-                TotalAmount = orders.Select(o=>o.TotalAmount).FirstOrDefault(),
-                OrderDate = orders.Select(o=>o.OrderDate).FirstOrDefault(),
-                Items = orders.SelectMany(o => o.Items).ToList()
+                Orders = orders,
+                Payments = orders.SelectMany(o => o.Payments).ToList(),
+                Items = orders
+                    .SelectMany(o => o.Items)
+                    .Select(i => new OrderItemViewModel
+                    {
+                        ProductName = i.Product != null ? i.Product.Name : "Ürün silinmiş",
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice * fx * (1 + 0.20m)
+                    })
+                    .ToList()
             };
-            return View(orders);
+            return View(vm);
+        }
+        [HttpPost]
+        public async Task<IActionResult> DeleteProduct(int productId, CancellationToken cancellationToken)
+        {
+            var product = await _context.Products.Include(p => p.Inventory).FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
+            var productCategory = await _context.ProductCategories.Where(pc => pc.ProductId == productId).FirstOrDefaultAsync();
+            if (product.Inventory != null)
+            {
+                _context.Inventories.Remove(product.Inventory);
+            }
+            _context.ProductCategories.Remove(productCategory);
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync(cancellationToken);
+         
+            if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+            {
+                var imagesFolder = Path.Combine(_environment.WebRootPath ?? string.Empty, "img");
+                var imagePath = Path.Combine(imagesFolder, product.ImageUrl);
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+            }
+            TempData["ProductEntrySuccess"] = "Ürün başarıyla silindi.";
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatus(int orderId, string newStatus, CancellationToken cancellationToken)
+        {
+            if (orderId == 0 || newStatus == null)
+            {
+                return NotFound("Sipariş bulunamadı.");
+            }
+            else
+            {
+                await _orderRepository.UpdateOrderStatusAsync(orderId, newStatus);
+                TempData["OrderStatusSuccess"] = "Sipariş durumu başarıyla güncellendi.";
+                return RedirectToAction("Orders", "Admin");
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> DeleteCategory(int categoryId, CancellationToken cancellationToken)
+        {
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == categoryId, cancellationToken);
+            if (category is null)
+            {
+                TempData["CategoryError"] = "Silinecek kategori bulunamadı veya zaten silinmiş olabilir.";
+                return RedirectToAction(nameof(Index));
+            }
+            var hasProducts = await _context.ProductCategories.AnyAsync(pc => pc.CategoryId == categoryId, cancellationToken);
+            if (hasProducts)
+            {
+                TempData["CategoryError"] = "Bu kategoriye bağlı ürünler olduğu için silinemez.";
+                return RedirectToAction(nameof(Index));
+            }
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync(cancellationToken);
+            TempData["CategorySuccess"] = "Kategori başarıyla silindi.";
+            return RedirectToAction(nameof(Index));
         }
         [HttpGet]
         public async Task<IActionResult> Stocks(string? search, CancellationToken cancellationToken)

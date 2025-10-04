@@ -4,14 +4,15 @@ namespace ECommerceBatteryShop.Models
 {
     public class OrderViewModel
     {
+       public List<Order> Orders { get; set; } = new List<Order>();
+        public List<OrderItemViewModel> Items { get; set; } = new List<OrderItemViewModel>();
+        public List<PaymentTransaction> Payments { get; set; } = new List<PaymentTransaction>();
+    }
+    public class OrderItemViewModel
+    {
+        public string? ProductName { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
 
-
-        public int UserId { get; set; }
-        public User? User { get; set; }
-        public string? FullAddress { get; set; }
-        public string? Status { get; set; }
-        public DateTime OrderDate { get; set; }
-        public decimal TotalAmount { get; set; }
-        public List<OrderItem> Items { get; set; } = new List<OrderItem>();
     }
 }
