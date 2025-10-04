@@ -64,7 +64,7 @@
                                     <input type="radio" name="ship" :value="opt.id" x-model="selectedShippingId" class="text-amber-500">
                                     <span class="text-sm text-slate-800" x-text="opt.name"></span>
                                 </span>
-                                <span class="text-sm font-medium" x-text="'₺' + format(opt.price)"></span>
+                                <span class="text-sm font-medium" x-text="isFree ? 'Ücretsiz!' : ('₺' + format(opt.price))"></span>
                             </label>
                         </template>
                     </fieldset>
@@ -217,7 +217,7 @@
           { id:'yurtici',  name:'Yurtiçi Kargo', price:199.61 }
         ],
         selectedShippingId: 'hepsijet',
-
+    
         // derived
         get isFree(){ return this.subTotal >= this.freeShipThreshold; },
         get selectedShipping(){ return this.shippingOptions.find(o => o.id === this.selectedShippingId) || null; },

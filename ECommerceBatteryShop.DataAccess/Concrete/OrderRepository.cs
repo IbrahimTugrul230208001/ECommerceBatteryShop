@@ -36,10 +36,13 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
         public async Task<List<Order>> GetOrdersAsync()
         {
             return await _ctx.Orders
+                .AsNoTracking()
                 .Include(o => o.User)
-                .Include(o => o.Items)
+                .Include(o => o.Items).ThenInclude(i => i.Product)
                 .Include(o => o.Shipment)
                 .Include(o => o.Address)
+                .Include(o => o.Payments)
+                .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
         public async Task<Order?> GetOrdersByUserIdAsync(int userId)
@@ -48,8 +51,17 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 .Include(o => o.Items)
                 .Include(o => o.Shipment)
                 .Include(o => o.Address)
+                .Include(o=>o.Payments)
                 .FirstOrDefaultAsync(o => o.UserId == userId);
         }
- 
+        public async Task UpdateOrderStatusAsync(int orderId, string newStatus, CancellationToken ct = default)
+        {
+            var order = await _ctx.Orders.Where(o=>o.OrderId==orderId).FirstOrDefaultAsync();
+            if (order != null)
+            {
+                order.Status = newStatus;   
+                await _ctx.SaveChangesAsync(ct);
+            }
+        }
     }
 }

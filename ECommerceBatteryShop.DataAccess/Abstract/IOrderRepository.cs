@@ -13,6 +13,7 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
         public Task CancelOrder(int orderId);
         public Task<List<Order>> GetOrdersAsync();
         public Task<Order?> GetOrdersByUserIdAsync(int userId);
+        public Task UpdateOrderStatusAsync(int orderId, string newStatus, CancellationToken ct = default);
 
     }
 }
