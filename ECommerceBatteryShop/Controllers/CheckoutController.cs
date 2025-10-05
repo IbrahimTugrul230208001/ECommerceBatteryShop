@@ -20,6 +20,7 @@ public class CheckoutController : Controller
     private const decimal DefaultExchangeRate = 41.3m;
     private const decimal KdvRate = 0.20m;
     private const decimal ShippingFee = 150m;
+    private const decimal IbanDiscountRate = 0.03m; // %3 indirim
 
     private readonly ICartService _cartService;
     private readonly ICurrencyService _currencyService;
@@ -81,7 +82,8 @@ public class CheckoutController : Controller
                 return BadRequest(new { success = false, message = "Sipariş oluşturmak için kayıtlı bir adres bulunamadı." });
             }
 
-            var orderTotal1 = CalculateOrderTotal(cart, fxRate);
+            var orderTotalBeforeDiscount = CalculateOrderTotal(cart, fxRate);
+            var discountedTotal = decimal.Round(orderTotalBeforeDiscount * (1 - IbanDiscountRate), 2, MidpointRounding.AwayFromZero);
 
             var order1 = new Order
             {
@@ -90,7 +92,7 @@ public class CheckoutController : Controller
                 AddressId = address.Id,
                 Status = "Sipariş alındı",
                 OrderDate = DateTime.UtcNow,
-                TotalAmount = orderTotal1,
+                TotalAmount = discountedTotal,
                 Items = cart.Items.Select(i => new OrderItem
                 {
                     ProductId = i.ProductId,
@@ -102,12 +104,12 @@ public class CheckoutController : Controller
             await _orderRepository.InsertOrderAsync(order1, cancellationToken);
             await _cartService.RemoveAllAsync(owner, cancellationToken);
 
-            _logger.LogInformation("IBAN order created successfully. OrderNumber: {OrderNumber}, UserId: {UserId}", order1.OrderId, userId1);
+            _logger.LogInformation("IBAN order created successfully with discount. OrderNumber: {OrderNumber}, UserId: {UserId}", order1.OrderId, userId1);
 
             return Ok(new
             {
                 success = true,
-                message = $"Siparişiniz başarıyla alındı. Sipariş numaranız: {order1.OrderId.ToString("D6", CultureInfo.InvariantCulture)}"
+                message = $"Siparişiniz başarıyla alındı. IBAN ile ödeme indirimi (%3) uygulandı. Sipariş numaranız: {order1.OrderId.ToString("D6", CultureInfo.InvariantCulture)}. Sipariş numarasını açıklamaya giriniz."
             });
         }
 

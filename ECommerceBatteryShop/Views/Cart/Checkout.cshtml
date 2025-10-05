@@ -134,7 +134,9 @@
                         <div class="flex items-center gap-2">
                             <code id="ibanText" class="flex-1 bg-white border border-slate-300 rounded-lg p-3 font-mono text-sm">TR64 0006 7010 0000 0011 7253 73</code>
                             <button type="button" id="copyIban" class="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Kopyala</button>
+                            <code id="ibanText" class="flex-1 bg-white border border-slate-300 rounded-lg p-3 font-mono text-sm mb-5">MEHMET YİĞİT DAYI</code>
                         </div>
+                        <p class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2">IBAN ile ödeme seçtiğinizde toplam tutara %3 indirim uygulanır.</p>
                     </div>
 
                     <div class="mt-6 flex items-center gap-2">
@@ -164,7 +166,7 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                         </svg>
-                        <span x-text="loading ? 'İşleniyor...' : 'Siparişi onayla'"></span>
+                        <span x-text="loading ? 'İşleniyor...' : (method==='iban' ? 'Siparişi tamamla (IBAN - %3 indirim)' : 'Siparişi onayla')"></span>
                     </button>
                 </section>
             </div>
@@ -191,8 +193,16 @@
                         <div class="h-px bg-slate-200 my-2"></div>
                         <div class="flex justify-between text-base">
                             <dt class="text-slate-900 font-semibold">Genel Toplam</dt>
-                            <dd class="text-slate-900 font-semibold"><span x-text="'₺' + format(grand)"></span></dd>
+                            <dd class="text-slate-900 font-semibold">
+                                <span x-text="'₺' + format(grand)"></span>
+                            </dd>
                         </div>
+                        <template x-if="method==='iban'">
+                            <div class="flex justify-between text-xs text-emerald-700 mt-1">
+                                <dt>%3 IBAN indirimi sonrası ödenecek</dt>
+                                <dd><span x-text="'₺' + format(round(grand * 0.97))"></span></dd>
+                            </div>
+                        </template>
                     </dl>
                     <p class="text-xs text-slate-500 mt-4">Adres ve ödeme bilgilerinizi doğrulamadan sipariş oluşturulmaz.</p>
                 </div>
@@ -321,11 +331,12 @@
               this.notice = { success:false, message };
               return;
             }
+            // success: show order key immediately
             this.notice = { success:true, message: data.message || 'Ödemeniz başarıyla tamamlandı.' };
             if(data.redirectUrl){
               window.location.href = data.redirectUrl;
             } else {
-              setTimeout(() => window.location.href = '/', 2000);
+              setTimeout(() => window.location.href = '/', 3000);
             }
           } catch (err){
             this.notice = { success:false, message:'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.' };
