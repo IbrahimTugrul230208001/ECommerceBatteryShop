@@ -156,39 +156,40 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
         }
 
         public async Task<(IReadOnlyList<Product> Items, int TotalCount)> BringProductsByCategoryIdAsync(
-            int categoryId,
-            int page = 1,
-            int pageSize = 24,
-            decimal? minUsd = null,
-            decimal? maxUsd = null,
-            CancellationToken ct = default)
+          int categoryId,
+          int page = 1,
+          int pageSize = 24,
+          decimal? minUsd = null,
+          decimal? maxUsd = null,
+          CancellationToken ct = default)
         {
             if (categoryId <= 0)
-            {
                 return (Array.Empty<Product>(), 0);
-            }
 
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 30;
 
+            var root = await _ctx.Categories.FindAsync(new object[] { categoryId }, ct);
+            if (root == null)
+                return (Array.Empty<Product>(), 0);
+
+            var categoryIds = await _ctx.Categories
+                .Where(c => c.Path.StartsWith(root.Path)) // root + descendants
+                .Select(c => c.Id)
+                .ToListAsync(ct);
+
             var query = _ctx.Products
                 .AsNoTracking()
                 .Include(p => p.Inventory)
-                .Where(p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId));
+                .Where(p => p.ProductCategories.Any(pc => categoryIds.Contains(pc.CategoryId)));
 
             if (minUsd.HasValue)
-            {
                 query = query.Where(p => p.Price >= minUsd.Value);
-            }
 
             if (maxUsd.HasValue)
-            {
                 query = query.Where(p => p.Price <= maxUsd.Value);
-            }
 
-            query = query
-                .OrderBy(p => p.Name)
-                .ThenBy(p => p.Id);
+            query = query.OrderBy(p => p.Name).ThenBy(p => p.Id);
 
             var totalCount = await query.CountAsync(ct);
 
@@ -199,6 +200,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
 
             return (items, totalCount);
         }
+
         public async Task<List<Product>> GetLatestProductsAsync()
         {
             return await _ctx.Products
