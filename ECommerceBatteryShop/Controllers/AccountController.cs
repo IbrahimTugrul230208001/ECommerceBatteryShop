@@ -25,13 +25,15 @@ public class AccountController : Controller
     private readonly IUserService _userService;
     private readonly IAddressRepository _addressRepository;
     private readonly ICartService _cartService;
-    public AccountController(IAccountRepository accountRepository, IConfiguration configuration, IUserService userService, IAddressRepository addressRepository, ICartService cartService)
+    private readonly IOrderRepository _orderRepository;
+    public AccountController(IAccountRepository accountRepository,IOrderRepository orderRepository, IConfiguration configuration, IUserService userService, IAddressRepository addressRepository, ICartService cartService)
     {
         _accountRepository = accountRepository;
         _configuration = configuration;
         _userService = userService;
         _addressRepository = addressRepository;
         _cartService = cartService;
+        _orderRepository = orderRepository;
     }
 
     [HttpPost]
@@ -172,19 +174,22 @@ public class AccountController : Controller
     public async Task<IActionResult> Profile(CancellationToken ct)
     {
         IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
+        IReadOnlyList<Order> orders = Array.Empty<Order>();
         if (User.Identity?.IsAuthenticated == true)
         {
             var claim = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim != null && int.TryParse(claim.Value, out var userId))
             {
                 var entities = await _addressRepository.GetByUserAsync(userId, ct);
+                orders = await _orderRepository.GetOrdersByUserIdAsync(userId, ct);
                 addresses = entities.Select(MapAddress).ToList();
             }
         }
 
         var model = new ProfileViewModel
         {
-            Addresses = addresses
+            Addresses = addresses,
+            Orders = orders
         };
 
         return View(model);
