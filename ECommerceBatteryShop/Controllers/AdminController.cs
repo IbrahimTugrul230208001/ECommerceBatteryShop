@@ -85,10 +85,11 @@ namespace ECommerceBatteryShop.Controllers
             return View(vm);
         }
         [HttpPost]
-        public async Task<IActionResult> DeleteProduct(int productId, CancellationToken cancellationToken)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken = default)
         {
-            var product = await _context.Products.Include(p => p.Inventory).FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
-            var productCategory = await _context.ProductCategories.Where(pc => pc.ProductId == productId).FirstOrDefaultAsync();
+            var product = await _context.Products.Include(p => p.Inventory).FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+            var productCategory = await _context.ProductCategories.Where(pc => pc.ProductId == id).FirstOrDefaultAsync();
             if (product.Inventory != null)
             {
                 _context.Inventories.Remove(product.Inventory);
