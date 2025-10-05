@@ -63,5 +63,20 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 await _ctx.SaveChangesAsync(ct);
             }
         }
+
+        public Task<Order?> GetOrderByUserIdAsync(int userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IReadOnlyList<Order>> GetOrdersByUserIdAsync(int userId, CancellationToken ct = default)
+        {
+            return await _ctx.Orders
+                .Where(o => o.UserId == userId)
+                .Include(o=> o.Items).ThenInclude(i => i.Product)
+                .OrderByDescending(o => o.OrderDate)
+                .AsNoTracking()
+                .ToListAsync(ct);
+        }
     }
 }

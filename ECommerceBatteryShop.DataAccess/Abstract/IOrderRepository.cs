@@ -12,7 +12,8 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
         public Task<Order> InsertOrderAsync(Order order, CancellationToken ct=default);
         public Task CancelOrder(int orderId);
         public Task<List<Order>> GetOrdersAsync();
-        public Task<Order?> GetOrdersByUserIdAsync(int userId);
+        public Task<Order?> GetOrderByUserIdAsync(int userId);
+        public Task<IReadOnlyList<Order>> GetOrdersByUserIdAsync(int userId, CancellationToken ct = default);
         public Task UpdateOrderStatusAsync(int orderId, string newStatus, CancellationToken ct = default);
 
     }
