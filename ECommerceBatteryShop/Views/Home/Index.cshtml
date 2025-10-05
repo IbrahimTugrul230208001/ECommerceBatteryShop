@@ -33,14 +33,7 @@
                 <img :src="slide.src" :alt="slide.alt"
                      class="hidden sm:block w-full h-full object-cover opacity-60" loading="lazy" />
 
-                <!-- Overlay content (unchanged) -->
-                <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-                    <h1 class="text-4xl sm:text-5xl font-bold mb-4" x-text="slide.title"></h1>
-                    <p class="mb-6 text-lg max-w-2xl" x-text="slide.text"></p>
-                    <a :href="slide.ctaHref"
-                       class="px-6 py-3 rounded-md bg-amber-300 text-gray-900 font-semibold hover:bg-amber-400"
-                       x-text="slide.ctaText"></a>
-                </div>
+          
             </div>
         </template>
 
@@ -346,11 +339,10 @@
     function heroCarousel() {
         return {
                slides: [
-      { src: '/img/herobanner.png', alt: 'Batteries', title: 'Her an için güç', text: 'Premium bataryalar ve enerji çözümleri kapınıza getirilir.', ctaText: 'Ürünler', ctaHref: '/Product/Index' },
-      { src: '/img/dayı_aspilsan_banner.jpg', mobileSrc: '/img/dayı_aspilsan_banner_mobile.jpg',
-        alt: 'Aspilsan şarjlı piller', title: 'Yerli ve milli güç', text: 'Daha az atık, daha fazla tasarruf.',
-        ctaText: 'Şimdi keşfet', ctaHref: '/Product/Index?cat=rechargeable' },
-      { src: '/img/herobanner_2.png', alt: 'Şarjlı piller', title: 'Şarj edilebilir güç', text: 'Daha az atık, daha fazla tasarruf.', ctaText: 'Şimdi keşfet', ctaHref: '/Product/Index?cat=rechargeable' }
+      { src: '/img/herobanner.png' },
+      { src: '/img/dayı_aspilsan_banner.jpg', mobileSrc: '/img/dayı_aspilsan_banner_mobile.jpg'},
+      { src: '/img/herobanner_2.png'},
+      {src: '/img/teklifalimg.jpg', mobileSrc: '/img/teklifalimg-mobile.jpg'}
     ],
             current: 0,
             timer: null,

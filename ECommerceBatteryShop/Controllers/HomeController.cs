@@ -33,7 +33,11 @@ namespace ECommerceBatteryShop.Controllers
             const int LiIonId = 20;
             const int BmsId = 50;
             const int LfpId = 22;
-
+            const int socketsId = 51;
+            const int siliconCablesId = 54;
+            const int bandsId= 55;
+            const int batteryPackages12vId = 59;
+            const int batteryPackages24vId = 60;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
             if (rate is null)
             {
@@ -63,6 +67,11 @@ namespace ECommerceBatteryShop.Controllers
     new { Title = "Lithium-ion Pil",          CatId = LiIonId },
     new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId   },
     new { Title = "LiFePO4 - Silindirik Pil", CatId = LfpId   },
+    new { Title = "Soketler", CatId = socketsId },
+    new { Title = "Silikon Kablolar" , CatId  = siliconCablesId },
+    new {Title = "Bantlar" , CatId = bandsId },
+    new {Title = "LifePO4 12V Batarya Paketleri", CatId = batteryPackages12vId },
+    new {Title = "LifePO4 24V Batarya Paketleri", CatId = batteryPackages24vId }
 };
 
             var sections = new List<ProductSectionViewModel>();
