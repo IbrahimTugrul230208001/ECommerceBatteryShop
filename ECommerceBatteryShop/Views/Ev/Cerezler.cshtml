@@ -1,4 +1,10 @@
-﻿<main class="container my-4">
+@{
+    ViewData["Title"] = "Çerez Politikası | Dayily Enerji";
+    ViewData["Description"] = "Dayily Enerji'nin çerez politikası, kullanılan zorunlu çerez türleri ve kullanıcı tercihleri hakkında bilgi alın.";
+    ViewData["Keywords"] = "çerez politikası, dayily enerji çerezler, zorunlu çerez";
+    ViewData["Canonical"] = Url.Action("Cerezler", "Ev", null, Request.Scheme);
+}
+<main class="container my-4">
     <header class="mb-4">
         <h1 class="h3">Çerez Politikası</h1>
     </header>
