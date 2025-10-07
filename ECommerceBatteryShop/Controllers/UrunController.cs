@@ -2,8 +2,10 @@ using System;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using ECommerceBatteryShop.Domain.Entities;
+using System.Text.RegularExpressions;
 
 namespace ECommerceBatteryShop.Controllers
 {
@@ -28,6 +30,24 @@ namespace ECommerceBatteryShop.Controllers
             var term = search ?? q;
             const decimal KdvRate = 0.20m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
+
+            var contextTitle = "Dayily Enerji Ürünleri";
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                contextTitle = $"\"{term}\" için Arama Sonuçları";
+            }
+            else if (categoryId.HasValue && categoryId > 0)
+            {
+                contextTitle = "Kategori Ürünleri";
+            }
+
+            ViewData["Title"] = $"{contextTitle} | Dayily Enerji";
+            ViewData["Description"] = !string.IsNullOrWhiteSpace(term)
+                ? $"Dayily Enerji'de \"{term}\" aramasıyla Li-ion ve LiFePO4 pil çeşitlerini, BMS çözümlerini ve enerji depolama ekipmanlarını inceleyin."
+                : "Dayily Enerji'nin Li-ion pil, LiFePO4 batarya, BMS ve enerji depolama ürünlerini filtreleyerek keşfedin.";
+            ViewData["Keywords"] = "lityum pil ürünleri, lifepo4 batarya, bms devresi, enerji depolama mağazası";
+            ViewData["Canonical"] = Request.GetDisplayUrl();
+            ViewData["OgImage"] = Url.Content("~/img/dayı_amber_banner.jpg");
 
             var rate = await _currency.GetCachedUsdTryAsync(ct);
             if (rate is null)
@@ -159,6 +179,31 @@ namespace ECommerceBatteryShop.Controllers
             var fx = rate ?? 1m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
             var relatedProducts = await _repo.GetLatestProductsAsync();
+
+            var productDescription = product.Description ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(productDescription))
+            {
+                productDescription = Regex.Replace(productDescription, "<[^>]*>", string.Empty);
+                if (productDescription.Length > 160)
+                {
+                    productDescription = productDescription[..157] + "...";
+                }
+            }
+            else
+            {
+                productDescription = $"{product.Name} ürününü Dayily Enerji'de uygun fiyatlı lityum pil ve enerji depolama çözümleriyle keşfedin.";
+            }
+
+            var productImage = string.IsNullOrWhiteSpace(product.ImageUrl)
+                ? Url.Content("~/img/placeholder-image.svg")
+                : product.ImageUrl;
+
+            ViewData["Title"] = $"{product.Name} | Dayily Enerji";
+            ViewData["Description"] = productDescription;
+            ViewData["Canonical"] = Request.GetDisplayUrl();
+            ViewData["OgImage"] = productImage;
+            ViewData["Keywords"] = $"{product.Name}, lityum pil, enerji depolama";
+
             var vm = new ProductDetailsViewModel
             {
                 product = new ProductViewModel
