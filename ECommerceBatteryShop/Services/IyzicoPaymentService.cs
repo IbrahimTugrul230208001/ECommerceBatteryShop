@@ -52,15 +52,28 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             PaymentGroup = model.PaymentGroup
         };
 
-        request.PaymentCard = new PaymentCard
+        // Either raw card or saved card
+        if (model.Card is not null)
         {
-            CardHolderName = model.Card.HolderName,
-            CardNumber = model.Card.Number,
-            ExpireMonth = model.Card.ExpireMonth,
-            ExpireYear = model.Card.ExpireYear,
-            Cvc = model.Card.Cvc,
-            RegisterCard = model.Card.RegisterCard ? 1 : 0
-        };
+            request.PaymentCard = new PaymentCard
+            {
+                CardHolderName = model.Card.HolderName,
+                CardNumber = model.Card.Number,
+                ExpireMonth = model.Card.ExpireMonth,
+                ExpireYear = model.Card.ExpireYear,
+                Cvc = model.Card.Cvc,
+                RegisterCard = model.Card.RegisterCard ? 1 : 0
+            };
+        }
+        else if (model.Saved is not null)
+        {
+            request.PaymentCard = new PaymentCard
+            {
+                CardUserKey = model.Saved.CardUserKey,
+                CardToken = model.Saved.CardToken
+            };
+        }
+
         if (!string.IsNullOrWhiteSpace(_settings.CallbackUrl))
         {
             request.CallbackUrl = _settings.CallbackUrl;
@@ -157,7 +170,8 @@ public class IyzicoPaymentModel
     public string Currency { get; init; } = "TRY";
     public string PaymentChannel { get; init; } = "WEB";
     public string PaymentGroup { get; init; } = "PRODUCT";
-    public required IyzicoPaymentCard Card { get; init; }
+    public IyzicoPaymentCard? Card { get; set; }
+    public IyzicoSavedCard? Saved { get; set; }
     public required IyzicoBuyer Buyer { get; init; }
     public required IyzicoAddress BillingAddress { get; init; }
     public required IyzicoAddress ShippingAddress { get; init; }
@@ -171,9 +185,14 @@ public class IyzicoPaymentCard
     public required string ExpireMonth { get; init; }
     public required string ExpireYear { get; init; }
     public required string Cvc { get; init; }
-    public bool RegisterCard { get; init; }
+    public bool RegisterCard { get; set; }
 }
 
+public class IyzicoSavedCard
+{
+    public required string CardUserKey { get; init; }
+    public required string CardToken { get; init; }
+}
 
 
 public class IyzicoBuyer

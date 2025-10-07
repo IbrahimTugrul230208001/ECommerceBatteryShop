@@ -332,29 +332,39 @@ namespace ECommerceBatteryShop.Controllers
         }
         private async Task AssignCategoryAsync(int productId, int? categoryId, CancellationToken ct=default)
         {
-            var existing = await _context.ProductCategories
+            // Treat null/zero/invalid as remove all links
+            if (!categoryId.HasValue || categoryId.Value <= 0 || !await _context.Categories.AnyAsync(c => c.Id == categoryId.Value, ct))
+            {
+                var toRemoveAll = _context.ProductCategories.Where(pc => pc.ProductId == productId);
+                if (await toRemoveAll.AnyAsync(ct))
+                {
+                    _context.ProductCategories.RemoveRange(toRemoveAll);
+                    await _context.SaveChangesAsync(ct);
+                }
+                return;
+            }
+
+            var links = await _context.ProductCategories
                 .Where(pc => pc.ProductId == productId)
                 .ToListAsync(ct);
 
-            // remove all current links if null/invalid
-            if (categoryId is null || !await _context.Categories.AnyAsync(c => c.Id == categoryId, ct))
+            // If already linked to selected category, keep exactly one and remove others
+            if (links.Any(pc => pc.CategoryId == categoryId.Value))
             {
-                if (existing.Count > 0) _context.ProductCategories.RemoveRange(existing);
-                await _context.SaveChangesAsync(ct);
+                var extras = links.Where(pc => pc.CategoryId != categoryId.Value).ToList();
+                if (extras.Count > 0)
+                {
+                    _context.ProductCategories.RemoveRange(extras);
+                    await _context.SaveChangesAsync(ct);
+                }
                 return;
             }
 
-            // already linked? keep exactly one
-            if (existing.Any(pc => pc.CategoryId == categoryId.Value))
+            // Not linked yet (new product or changed): clear others and add
+            if (links.Count > 0)
             {
-                var toRemove = existing.Where(pc => pc.CategoryId != categoryId.Value).ToList();
-                if (toRemove.Count > 0) _context.ProductCategories.RemoveRange(toRemove);
-                await _context.SaveChangesAsync(ct);
-                return;
+                _context.ProductCategories.RemoveRange(links);
             }
-
-            // not linked yet: clear others and add one
-            if (existing.Count > 0) _context.ProductCategories.RemoveRange(existing);
             _context.ProductCategories.Add(new ProductCategory { ProductId = productId, CategoryId = categoryId.Value });
             await _context.SaveChangesAsync(ct);
         }
@@ -370,7 +380,7 @@ namespace ECommerceBatteryShop.Controllers
             var query = _context.Products.AsNoTracking();
             var pattern = $"%{searchTerm}%";
 
-            if (int.TryParse(searchTerm, out var productId))
+            if ( int.TryParse(searchTerm, out var productId))
             {
                 query = query.Where(p => p.Id == productId || EF.Functions.ILike(p.Name, pattern));
             }

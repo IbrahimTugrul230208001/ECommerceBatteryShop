@@ -27,6 +27,7 @@ public class CheckoutController : Controller
     private readonly IAddressRepository _addressRepository;
     private readonly IOrderRepository _orderRepository;
     private readonly IIyzicoPaymentService _paymentService;
+    private readonly ISavedCardRepository _savedCardRepository;
     private readonly ILogger<CheckoutController> _logger;
 
     public CheckoutController(
@@ -35,6 +36,7 @@ public class CheckoutController : Controller
         IAddressRepository addressRepository,
         IOrderRepository orderRepository,
         IIyzicoPaymentService paymentService,
+        ISavedCardRepository savedCardRepository,
         ILogger<CheckoutController> logger)
     {
         _cartService = cartService;
@@ -42,7 +44,22 @@ public class CheckoutController : Controller
         _addressRepository = addressRepository;
         _orderRepository = orderRepository;
         _paymentService = paymentService;
+        _savedCardRepository = savedCardRepository;
         _logger = logger;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> SavedCards(CancellationToken ct)
+    {
+        if (User.Identity?.IsAuthenticated != true)
+            return Unauthorized();
+
+        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
+
+        var cards = await _savedCardRepository.GetByUserAsync(userId, ct);
+        return Json(cards.Select(c => new { id = c.Id, brand = c.Brand, last4 = c.Last4, holder = c.Holder }));
     }
 
     [HttpPost]
@@ -113,14 +130,11 @@ public class CheckoutController : Controller
             });
         }
 
-        if (!string.Equals(input.PaymentMethod, "card_new", StringComparison.OrdinalIgnoreCase))
+        // Handle saved card
+        bool useSaved = string.Equals(input.PaymentMethod, "card_saved", StringComparison.OrdinalIgnoreCase);
+        if (!useSaved && !string.Equals(input.PaymentMethod, "card_new", StringComparison.OrdinalIgnoreCase))
         {
             return BadRequest(new { success = false, message = "Seçilen ödeme yöntemi şu anda desteklenmiyor." });
-        }
-
-        if (!TryParseCard(input, out var cardInfo, out var cardError))
-        {
-            return BadRequest(new { success = false, message = cardError ?? "Kart bilgileri eksik veya hatalı." });
         }
 
         if (owner.UserId is not int userId)
@@ -173,12 +187,35 @@ public class CheckoutController : Controller
             BasketId = cart.Id.ToString(CultureInfo.InvariantCulture),
             Price = basketTotal,
             PaidPrice = paidPrice,
-            Card = cardInfo,
             Buyer = buyerContext.Buyer,
             BillingAddress = buyerContext.Billing,
             ShippingAddress = buyerContext.Shipping,
             Items = lineItems
         };
+
+        if (useSaved)
+        {
+            if (string.IsNullOrWhiteSpace(input.CardId) || !int.TryParse(input.CardId, out var savedId))
+            {
+                return BadRequest(new { success = false, message = "Kayıtlı kart seçimi geçersiz." });
+            }
+            var saved = (await _savedCardRepository.GetByUserAsync(userId, cancellationToken)).FirstOrDefault(c => c.Id == savedId);
+            if (saved is null)
+            {
+                return BadRequest(new { success = false, message = "Kayıtlı kart bulunamadı." });
+            }
+            paymentModel.Saved = new IyzicoSavedCard { CardUserKey = saved.CardUserKey, CardToken = saved.CardToken };
+        }
+        else
+        {
+            if (!TryParseCard(input, out var cardInfo, out var cardError))
+            {
+                return BadRequest(new { success = false, message = cardError ?? "Kart bilgileri eksik veya hatalı." });
+            }
+
+            cardInfo.RegisterCard = input.Save;
+            paymentModel.Card = cardInfo;
+        }
 
         var result = await _paymentService.CreatePaymentAsync(paymentModel, cancellationToken);
         if (!result.Success)
@@ -187,6 +224,34 @@ public class CheckoutController : Controller
                 ? "Ödeme sırasında bir hata oluştu. Lütfen tekrar deneyin."
                 : result.ErrorMessage;
             return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = errorMessage });
+        }
+
+        // Parse payment response for card info when saved
+        if (!useSaved && input.Save)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(result.RawResponse ?? "{}");
+                var root = doc.RootElement;
+                var cardUserKey = root.TryGetProperty("cardUserKey", out var cuk) ? cuk.GetString() : null;
+                var cardToken = root.TryGetProperty("cardToken", out var ctok) ? ctok.GetString() : null;
+                var cardAssociation = root.TryGetProperty("cardAssociation", out var assoc) ? assoc.GetString() : null;
+                var last4 = root.TryGetProperty("lastFourDigits", out var l4) ? l4.GetString() : null;
+                var holder = input.Name ?? "";
+                if (!string.IsNullOrWhiteSpace(cardUserKey) && !string.IsNullOrWhiteSpace(cardToken))
+                {
+                    await _savedCardRepository.AddAsync(new SavedCard
+                    {
+                        UserId = userId,
+                        CardUserKey = cardUserKey!,
+                        CardToken = cardToken!,
+                        Brand = cardAssociation ?? "",
+                        Last4 = last4 ?? "",
+                        Holder = holder
+                    }, cancellationToken);
+                }
+            }
+            catch { /* ignore parsing issues */ }
         }
 
         var orderTotal = paidPrice; // or basketTotal if your stored order excludes shipping

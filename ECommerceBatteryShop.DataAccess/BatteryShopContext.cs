@@ -43,6 +43,7 @@ public class BatteryShopContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<FavoriteList> FavoriteLists => Set<FavoriteList>();
     public DbSet<FavoriteListItem> FavoriteListItems => Set<FavoriteListItem>();
+    public DbSet<SavedCard> SavedCards => Set<SavedCard>();
 
 }
 
