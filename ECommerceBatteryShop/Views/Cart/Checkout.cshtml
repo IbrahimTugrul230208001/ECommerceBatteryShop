@@ -99,7 +99,10 @@
                     <div x-show="method==='card'" x-transition class="mt-5 space-y-4">
                         <template x-if="saved.length">
                             <div class="space-y-2">
-                                <p class="text-sm text-slate-700">Kayıtlı Kartlar</p>
+                                <div class="flex items-center justify-between">
+                                  <p class="text-sm text-slate-700">Kayıtlı Kartlar</p>
+                                  <button type="button" @@click="refreshSaved" class="text-xs underline text-slate-600">Yenile</button>
+                                </div>
                                 <template x-for="c in saved" :key="c.id">
                                     <label class="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50">
                                         <span class="flex items-center gap-3">
@@ -278,6 +281,13 @@
         maskCard(){ let d=this.digits(this.newCard.number).slice(0,16); this.newCard.number=d.replace(/(\d{4})(?=\d)/g,'$1 ').trim(); },
         maskExp(){ let d=this.digits(this.newCard.exp).slice(0,4); this.newCard.exp=(d.length>=3)? d.slice(0,2)+'/'+d.slice(2) : d; },
         luhn(num){ let d=this.digits(num), s=0, alt=false; for(let i=d.length-1;i>=0;i--){ let n=+d[i]; if(alt){ n*=2; if(n>9)n-=9; } s+=n; alt=!alt; } return d.length>=13 && s%10===0; },
+        async refreshSaved(){
+          try{
+            const res = await fetch('/Checkout/SavedCards');
+            if(!res.ok) return;
+            this.saved = await res.json();
+          }catch{}
+        },
         async placeOrder(){
           if(this.loading) return;
           this.notice = null;
@@ -287,7 +297,7 @@
           }
           if(this.method==='card'){
             if(this.selectedId){
-              this.notice = { success:false, message:'Kayıtlı kart ile ödeme henüz desteklenmiyor.' };
+              await this.send({ paymentMethod:'card_saved', cardId:this.selectedId });
               return;
             }
             if(!this.luhn(this.newCard.number)){
