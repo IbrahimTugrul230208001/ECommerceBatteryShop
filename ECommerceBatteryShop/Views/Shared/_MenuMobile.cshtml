@@ -1,0 +1,210 @@
+﻿@model CategoryMenuModel
+@using System.Text.Json
+@{
+    // Model.Items: IEnumerable<CategoryNode> where CategoryNode { int Id; string Name; List<CategoryNode> SubCategories; }
+    var json = JsonSerializer.Serialize(Model.Items ?? Enumerable.Empty<object>(),
+        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+    var catIndexUrl = Url.Action("Index", "Product"); // /Product/Index?categoryId=...
+}
+
+<style>
+    
+    .cat-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .2s;
+    }
+
+    .cat-panel {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(100%, 24rem);
+        background: #fff;
+        transform: translateX(-100%);
+        transition: transform .25s;
+    }
+
+    .cat-open .cat-overlay {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .cat-open .cat-panel {
+        transform: translateX(0);
+    }
+
+    .cat-header {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .cat-title {
+        font-weight: 700;
+        font-size: 1.125rem;
+    }
+
+    .cat-body {
+        padding: .25rem .25rem 1rem;
+        height: calc(100vh - 64px);
+        overflow: auto;
+    }
+
+    .cat-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .75rem .875rem;
+        border-radius: .75rem;
+        font-weight: 600;
+    }
+
+        .cat-item:hover {
+            background: #f7f7f7;
+        }
+
+    .cat-breadcrumb {
+        font-size: .75rem;
+        color: #6b7280;
+        padding: 0 1rem .5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+
+<div class="cat-root sm:hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="cat-overlay" data-cat-overlay></div>
+
+    <aside class="cat-panel text-gray-900 bg-white" data-cat-panel>
+        <div class="cat-header">
+            <button type="button" class="p-2 rounded-lg ring-1 ring-black/10" data-cat-back aria-label="Geri">
+                <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 00-1.06 0L7.5 9.46l4.23 4.31a.75.75 0 101.06-1.06L9.62 9.46l3.17-3.17a.75.75 0 000-1.06z" clip-rule="evenodd" /></svg>
+            </button>
+            <div class="flex-1">
+                <div class="cat-title" data-cat-title>Kategoriler</div>
+                <div class="cat-breadcrumb" data-cat-crumb>En üst</div>
+            </div>
+            <button type="button" class="p-2 rounded-lg ring-1 ring-black/10" data-cat-close aria-label="Kapat">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M6 6l12 12M18 6l-12 12" stroke-width="2" stroke-linecap="round" /></svg>
+            </button>
+        </div>
+
+        <div class="cat-body">
+            <ul class="space-y-1" data-cat-list></ul>
+        </div>
+    </aside>
+</div>
+
+<script type="application/json" id="cat-data">@Html.Raw(json)</script>
+<script>
+    (() => {
+      const dataEl = document.getElementById('cat-data');
+      if (!dataEl) return;
+      const ROOT = JSON.parse(dataEl.textContent || '[]');
+
+      // Elements (query across document so header button can live elsewhere)
+      const root   = document.querySelector('.cat-root');
+      const panel  = root?.querySelector('[data-cat-panel]');
+      const overlay= root?.querySelector('[data-cat-overlay]');
+      const listEl = root?.querySelector('[data-cat-list]');
+      const titleEl= root?.querySelector('[data-cat-title]');
+      const crumbEl= root?.querySelector('[data-cat-crumb]');
+
+      const openBtn= document.querySelector('[data-cat-open]');
+      const closeBtn= root?.querySelector('[data-cat-close]');
+      const backBtn = root?.querySelector('[data-cat-back]');
+
+      const catIndexUrl = '@catIndexUrl';
+
+      const stack = [];  // each level: { label: string, items: [] }
+
+      function openDrawer() {
+        document.documentElement.classList.add('cat-open');
+        document.body.style.overflow = 'hidden';
+        if (stack.length === 0) pushLevel('Kategoriler', ROOT);
+        panel?.focus?.();
+      }
+      function closeDrawer() {
+        document.documentElement.classList.remove('cat-open');
+        document.body.style.overflow = '';
+        stack.length = 0;
+        render();
+      }
+      function pushLevel(label, items) {
+        stack.push({ label, items });
+        render();
+      }
+      function popLevel() {
+        if (stack.length > 1) { stack.pop(); render(); }
+        else { closeDrawer(); }
+      }
+
+      function render() {
+        const lvl = stack[stack.length - 1];
+        if (!lvl) { // initial
+          if (listEl) listEl.innerHTML = '';
+          if (titleEl) titleEl.textContent = 'Kategoriler';
+          if (crumbEl) crumbEl.textContent = 'En üst';
+          return;
+        }
+        if (titleEl) titleEl.textContent = lvl.label;
+        if (crumbEl) crumbEl.textContent = stack.map(s => s.label).join(' / ');
+
+        if (!listEl) return;
+        listEl.innerHTML = '';
+        lvl.items.forEach(node => {
+          const hasKids = node.subCategories && node.subCategories.length;
+          const li = document.createElement('li');
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cat-item w-full text-left';
+          btn.setAttribute('data-has-children', hasKids ? 'true' : 'false');
+
+          const left = document.createElement('span');
+          left.textContent = node.name;
+
+          const right = document.createElement('span');
+          right.innerHTML = hasKids
+            ? '<svg class="w-4 h-4 opacity-60" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11 10 7.23 6.29a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.06 0z" clip-rule="evenodd"/></svg>'
+            : '';
+
+          btn.appendChild(left);
+          btn.appendChild(right);
+
+          btn.addEventListener('click', () => {
+            if (hasKids) pushLevel(node.name, node.subCategories);
+            else window.location.href = catIndexUrl + '?categoryId=' + encodeURIComponent(node.id);
+          });
+
+          li.appendChild(btn);
+          listEl.appendChild(li);
+        });
+
+        // focus first item for a11y
+        const first = listEl.querySelector('button');
+        first && first.focus();
+      }
+
+      // Wiring
+      openBtn?.addEventListener('click', openDrawer);
+      overlay?.addEventListener('click', closeDrawer);
+      closeBtn?.addEventListener('click', closeDrawer);
+      backBtn?.addEventListener('click', popLevel);
+      document.addEventListener('keydown', (e) => {
+        if (!document.documentElement.classList.contains('cat-open')) return;
+        if (e.key === 'Escape') closeDrawer();
+        if ((e.key === 'Backspace' || e.key === 'ArrowLeft') && e.target === document.body) {
+          e.preventDefault(); popLevel();
+        }
+      });
+
+      // Optional: open from any element with [data-cat-open]
+      // If you render this partial once per page, it's ready.
+    })();
+</script>
