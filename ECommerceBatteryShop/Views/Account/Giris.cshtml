@@ -26,12 +26,6 @@
     <div class="h-px flex-1 bg-gray-200"></div>
 </div>
 
-@if (TempData["ErrorMessage"] is string errorMessage)
-{
-    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        @errorMessage
-    </div>
-}
 
 <div class="space-y-4">
     <form asp-action="LogIn" asp-controller="Account" method="post" class="space-y-6" novalidate>
@@ -82,11 +76,14 @@
     </form>
 
     <div class="flex flex-col gap-2 pt-2 text-sm">
-        <a href="/Account/ForgotPassword" class="flex justify-center text-blue-600 transition hover:underline">
+        <a href="/Hesap/SifremiUnuttum" class="flex justify-center text-blue-600 transition hover:underline">
             Şifremi unuttum
         </a>
-        <a href="/Account/Register" class="flex justify-center text-blue-600 transition hover:underline">
+        <a href="/Hesap/Kayit" class="flex justify-center text-blue-600 transition hover:underline">
             Hesabınız yok mu? Kayıt olun.
+        </a>
+        <a href="/Misafir" class="flex justify-center text-amber-600 transition hover:underline font-semibold">
+            Misafir olarak devam et
         </a>
     </div>
 </div>

@@ -7,14 +7,14 @@ using ECommerceBatteryShop.Domain.Entities;
 
 namespace ECommerceBatteryShop.Controllers
 {
-    public class ProductController : Controller
+    public class UrunController : Controller
     {
         private readonly IProductRepository _repo;
         private readonly ICurrencyService _currency;
-        private readonly ILogger<ProductController> _log;
+        private readonly ILogger<UrunController> _log;
         private readonly IFavoritesService _favorites;
 
-        public ProductController(IProductRepository repo, ICurrencyService currency, ILogger<ProductController> log, IFavoritesService favorites)
+        public UrunController(IProductRepository repo, ICurrencyService currency, ILogger<UrunController> log, IFavoritesService favorites)
         {
             _repo = repo; _currency = currency; _log = log; _favorites = favorites;
 
@@ -149,7 +149,7 @@ namespace ECommerceBatteryShop.Controllers
                 : new HashSet<int>(list.Items.Select(i => i.ProductId));
         }
         [HttpGet] // optional
-        public async Task<IActionResult> Details(int id, CancellationToken ct = default)
+        public async Task<IActionResult> Detaylar(int id, CancellationToken ct = default)
         {
             var product = await _repo.GetProductAsync(id, ct);
             if (product is null) return NotFound();
@@ -187,9 +187,9 @@ namespace ECommerceBatteryShop.Controllers
                     }).ToList()
             };
 
-            return View("Details", vm); // full view under _Layout
+            return View("Detaylar", vm); // full view under _Layout
         }
-        [HttpGet("/Product/Search")]
+        [HttpGet("/Urun/Search")]
         public async Task<IActionResult> Search([FromQuery] string q, CancellationToken ct = default)
         {
             var productData = await _repo.ProductSearchPairsAsync(q ?? string.Empty, ct);

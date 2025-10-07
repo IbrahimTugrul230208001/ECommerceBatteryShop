@@ -12,16 +12,16 @@ using Microsoft.Extensions.Options;
 
 namespace ECommerceBatteryShop.Controllers;
 
-public class PaymentController : Controller
+public class OdemeController : Controller
 {
     private readonly ICartService _cartService;
     private readonly IyzicoOptions _iyzicoOptions;
-    private readonly ILogger<PaymentController> _logger;
+    private readonly ILogger<OdemeController> _logger;
 
-    public PaymentController(
+    public OdemeController(
         ICartService cartService,
         IOptions<IyzicoOptions> iyzicoOptions,
-        ILogger<PaymentController> logger)
+        ILogger<OdemeController> logger)
     {
         _cartService = cartService;
         _iyzicoOptions = iyzicoOptions.Value;
@@ -38,7 +38,7 @@ public class PaymentController : Controller
         var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
         {
-            return RedirectToAction("Index", "Cart");
+            return RedirectToAction("Index", "Sepet");
         }
 
         var owner = CartOwner.FromUser(userId);
@@ -46,7 +46,7 @@ public class PaymentController : Controller
         var cart = await _cartService.GetAsync(owner);
         if (cart is null || !cart.Items.Any())
         {
-            return RedirectToAction("Index", "Cart");
+            return RedirectToAction("Index", "Sepet");
         }
 
         return View(cart);

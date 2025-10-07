@@ -168,7 +168,7 @@
                         <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
                             <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                                 <!-- Image -->
-                                <a href="/Product/Details/@product.Id" class="block p-3 pb-0">
+                                <a href="/Urun/Detaylar/@product.Id" class="block p-3 pb-0">
                                           <div class="h-32 grid place-items-center overflow-hidden">
             <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
                  alt="@(string.IsNullOrWhiteSpace(product.Name) ? "Görsel yok" : product.Name)"
@@ -216,7 +216,7 @@
                                             @if (inStock)
                                             {
                                                 <button
-                                                    hx-post="/Cart/Add"
+                                                    hx-post="/Sepet/Add"
                                                     hx-vals='{"productId": @product.Id, "quantity": 1}'
                                                     hx-swap="none"
                                                     x-data="{ added: false }"
@@ -269,7 +269,7 @@
             fav = !fav;
             setTimeout(() => busy = false, 300);
           "
-          hx-post="/Favorites/Toggle"
+          hx-post="/Favori/Toggle"
           :hx-vals="JSON.stringify({ productId: @product.Id})"
            hx-swap="none"
           :aria-pressed="fav.toString()"

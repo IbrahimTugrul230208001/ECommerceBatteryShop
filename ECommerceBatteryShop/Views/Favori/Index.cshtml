@@ -26,7 +26,7 @@
                         onclick="window.dispatchEvent(new CustomEvent('open-cookie-banner'))">
                     Çerez tercihlerimi güncelle
                 </button>
-                <a href="/Product/Index"
+                <a href="/Urun/Index"
                    class="inline-flex h-11 items-center justify-center rounded-xl border border-amber-200 px-6 text-sm font-semibold text-amber-900 transition hover:border-amber-300">
                     Ürünlere göz at
                 </a>
@@ -42,19 +42,6 @@ else
             <h1 class="text-2xl font-bold text-gray-900">Favorilerim</h1>
             <p class="text-sm text-gray-500">Beğendiğiniz ürünleri burada tutun. Uygun olunca sepete ekleyin.</p>
         </div>
-
-        @if (Model?.Items.Any() == true)
-        {
-            <div class="flex items-center gap-2">
-                <form method="post" action="/Favorites/AddAllToCart" class="inline">
-                    @Html.AntiForgeryToken()
-                    <button type="submit"
-                            class="h-10 px-4 cursor-pointer rounded-md bg-amber-300 hover:bg-amber-400 text-gray-900 font-semibold ring-1 ring-black/10 transition">
-                        Tümünü Sepete Ekle
-                    </button>
-                </form>
-            </div>
-        }
     </header>
 
     @if (Model == null || !Model.Items.Any())
@@ -118,7 +105,7 @@ else
                                     <div class="flex flex-1 flex-col gap-1">
                                         @if (inStock)
                                         {
-                                            <button hx-post="/Cart/Add"
+                                            <button hx-post="/Sepet/Add"
                                                     hx-include="#cart-form-@id"
                                                     hx-vals='{"productId": @id, "quantity": 1}'
                                                     hx-swap="none"
@@ -152,7 +139,7 @@ else
                                 <form class="contents" id="fav-form-@id">
                                     @Html.AntiForgeryToken()
                                     <button type="button"
-                                            hx-post="/Favorites/Toggle"
+                                            hx-post="/Favori/Toggle"
                                             :hx-vals="JSON.stringify({ productId: @id})"
                                             hx-target="#fav-@id"
                                             hx-swap="outerHTML"

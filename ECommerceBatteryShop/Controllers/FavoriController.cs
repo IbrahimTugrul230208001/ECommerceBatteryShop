@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace ECommerceBatteryShop.Controllers
 {
-    public class FavoritesController : Controller
+    public class FavoriController : Controller
     {
         private readonly IFavoritesService _favoritesService;
         private readonly ICurrencyService _currency;
@@ -16,7 +16,7 @@ namespace ECommerceBatteryShop.Controllers
         private const string CookieConsentRejectedValue = "rejected";
         private const string FavoritesConsentMessage = "Çerezleri reddettiniz. Favoriler özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
 
-        public FavoritesController(IFavoritesService favoritesService, ICurrencyService currency)
+        public FavoriController(IFavoritesService favoritesService, ICurrencyService currency)
         {
             _favoritesService = favoritesService;
             _currency = currency;

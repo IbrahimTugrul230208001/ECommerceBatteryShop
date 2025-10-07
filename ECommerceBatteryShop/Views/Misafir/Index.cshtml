@@ -1,0 +1,69 @@
+@model ECommerceBatteryShop.Models.GuestCheckoutViewModel
+@{
+    ViewData["Title"] = "Misafir Giriþi";
+}
+<main class="mx-auto max-w-lg px-4 py-10">
+  <h1 class="text-2xl font-semibold text-slate-900 mb-6">Misafir Giriþi</h1>
+  <p class="text-sm text-slate-600 mb-6">Hesap oluþturmadan devam etmek için gerekli bilgileri doldurun.</p>
+
+  <form asp-action="Index" method="post" class="space-y-4">
+    @Html.AntiForgeryToken()
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ad</label>
+        <input asp-for="Name" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        <span asp-validation-for="Name" class="text-xs text-red-600"></span>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Soyad</label>
+        <input asp-for="Surname" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        <span asp-validation-for="Surname" class="text-xs text-red-600"></span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700">E-posta</label>
+        <input asp-for="Email" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        <span asp-validation-for="Email" class="text-xs text-red-600"></span>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Telefon</label>
+        <input asp-for="Phone" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        <span asp-validation-for="Phone" class="text-xs text-red-600"></span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ýl</label>
+        <input asp-for="City" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        <span asp-validation-for="City" class="text-xs text-red-600"></span>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ýlçe</label>
+        <input asp-for="State" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        <span asp-validation-for="State" class="text-xs text-red-600"></span>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Mahalle</label>
+      <input asp-for="Neighbourhood" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+      <span asp-validation-for="Neighbourhood" class="text-xs text-red-600"></span>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Adres</label>
+      <textarea asp-for="FullAddress" rows="3" class="mt-1 w-full rounded-lg border border-slate-300 p-2"></textarea>
+      <span asp-validation-for="FullAddress" class="text-xs text-red-600"></span>
+    </div>
+
+    <button type="submit" class="w-full rounded-xl bg-amber-300 px-5 py-3 font-semibold text-gray-900 hover:bg-amber-400">Devam Et</button>
+  </form>
+</main>
+
+@section Scripts{
+  <partial name="_ValidationScriptsPartial" />
+}

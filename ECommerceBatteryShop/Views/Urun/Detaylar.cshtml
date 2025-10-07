@@ -266,7 +266,7 @@
         <div class="flex items-center justify-between">
             <h2 class="text-2xl font-bold text-gray-900">İlginizi Çekebilecek Ürünler</h2>
 
-            <a href="/Product/Index"
+            <a href="/Urun/Index"
                class="group inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800 hover:text-amber-500">
                 Tüm Ürünler
                 <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5"
@@ -316,7 +316,7 @@
                             <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
                                 <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                                     <!-- Image -->
-                                    <a href="/Product/Details/@product.Id" class="block p-3 pb-0">
+                                    <a href="/Urun/Detaylar/@product.Id" class="block p-3 pb-0">
                                               <div class="h-32 grid place-items-center overflow-hidden">
                 <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
                      alt="@(string.IsNullOrWhiteSpace(product.Name) ? "Görsel yok" : product.Name)"

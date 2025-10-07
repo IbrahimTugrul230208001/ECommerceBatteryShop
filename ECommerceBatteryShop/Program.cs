@@ -175,6 +175,6 @@ app.MapGet("/logout", async (HttpContext ctx) =>
 // Example home
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Ev}/{action=Index}/{id?}");
 
 app.Run();

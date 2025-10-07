@@ -34,7 +34,7 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int? productId, string? search, CancellationToken cancellationToken)
+        public async Task<IActionResult> UrunPaneli(int? productId, string? search, CancellationToken cancellationToken)
         {
             if (TempData.ContainsKey("ProductEntrySuccess"))
             {
@@ -57,12 +57,12 @@ namespace ECommerceBatteryShop.Controllers
             return View(model);
         }
         [HttpGet]
-        public IActionResult Analytics()
+        public IActionResult AnalitikPaneli()
         {
              return View();
         }
         [HttpGet]
-        public async Task<IActionResult> Orders()
+        public async Task<IActionResult> SiparisPaneli()
         {
             var orders = await _orderRepository.GetOrdersAsync();
             var rate = await _currencyService.GetCachedUsdTryAsync();
@@ -73,13 +73,13 @@ namespace ECommerceBatteryShop.Controllers
                 Orders = orders,
                 Payments = orders.SelectMany(o => o.Payments).ToList(),
                 Items = orders
-                    .SelectMany(o => o.Items)
-                    .Select(i => new OrderItemViewModel
+                    .SelectMany(o => o.Items.Select(i => new OrderItemViewModel
                     {
+                        OrderId = o.OrderId,
                         ProductName = i.Product != null ? i.Product.Name : "Ürün silinmiş",
                         Quantity = i.Quantity,
                         UnitPrice = i.UnitPrice * fx * (1 + 0.20m)
-                    })
+                    }))
                     .ToList()
             };
             return View(vm);
@@ -145,7 +145,7 @@ namespace ECommerceBatteryShop.Controllers
             return RedirectToAction(nameof(Index));
         }
         [HttpGet]
-        public async Task<IActionResult> Stocks(string? search, CancellationToken cancellationToken)
+        public async Task<IActionResult> StokPaneli(string? search, CancellationToken cancellationToken)
         {
             var model = new AdminStockViewModel
             {
@@ -305,7 +305,7 @@ namespace ECommerceBatteryShop.Controllers
                     await model.Image.CopyToAsync(stream);
                 }
 
-                if (!string.IsNullOrWhiteSpace(savedFileName) && !string.Equals(savedFileName, newFileName, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(savedFileName) && !string.IsNullOrWhiteSpace(newFileName) && !string.Equals(savedFileName, newFileName, System.StringComparison.OrdinalIgnoreCase))
                 {
                     var previousPath = Path.Combine(imagesFolder, savedFileName);
                     if (System.IO.File.Exists(previousPath))
@@ -380,7 +380,7 @@ namespace ECommerceBatteryShop.Controllers
             var query = _context.Products.AsNoTracking();
             var pattern = $"%{searchTerm}%";
 
-            if ( int.TryParse(searchTerm, out var productId))
+            if (int.TryParse(searchTerm, out var productId))
             {
                 query = query.Where(p => p.Id == productId || EF.Functions.ILike(p.Name, pattern));
             }
