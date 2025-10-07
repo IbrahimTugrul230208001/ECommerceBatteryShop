@@ -4,7 +4,7 @@
     // Model.Items: IEnumerable<CategoryNode> where CategoryNode { int Id; string Name; List<CategoryNode> SubCategories; }
     var json = JsonSerializer.Serialize(Model.Items ?? Enumerable.Empty<object>(),
         new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-    var catIndexUrl = Url.Action("Index", "Product"); // /Product/Index?categoryId=...
+    var catIndexUrl = Url.Action("Index", "Urun"); // /Product/Index?categoryId=...
 }
 
 <style>

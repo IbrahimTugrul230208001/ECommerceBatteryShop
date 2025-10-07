@@ -6,17 +6,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceBatteryShop.Controllers
 {
-    public class HomeController : Controller
+    public class EvController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<EvController> _logger;
         private readonly IProductRepository _repo;
         private readonly ICurrencyService _currency;
         private readonly IFavoritesService _favorites;
 
-        public HomeController(IProductRepository repo,
+        public EvController(IProductRepository repo,
                               ICurrencyService currency,
                               IFavoritesService favorites,
-                              ILogger<HomeController> log)
+                              ILogger<EvController> log)
         {
             _repo = repo;
             _currency = currency;
@@ -87,7 +87,7 @@ namespace ECommerceBatteryShop.Controllers
                     sections.Add(new ProductSectionViewModel
                     {
                         Title = def.Title,
-                        AllLink = $"/Product?categoryId={def.CatId}",
+                        AllLink = $"/Urun?categoryId={def.CatId}",
                         Products = ps.Select(Map).ToList()
                     });
             }
@@ -127,27 +127,23 @@ namespace ECommerceBatteryShop.Controllers
             }
 
         }
-        public IActionResult Contact()
+        public IActionResult Gizlilik()
         {
             return View();
         }
-        public IActionResult Privacy()
+        public IActionResult Iade()
         {
             return View();
         }
-        public IActionResult Refund()
+        public IActionResult Cerezler()
         {
             return View();
         }
-        public IActionResult Cookies()
+        public IActionResult Hakkimizda()
         {
             return View();
         }
-        public IActionResult AboutUs()
-        {
-            return View();
-        }
-        public IActionResult DistantSelling()
+        public IActionResult MesafeliSatis()
         {
             return RedirectToAction("DistantSelling", "Cart");
         }

@@ -15,7 +15,7 @@ using System.Security.Claims;
 
 namespace ECommerceBatteryShop.Controllers
 {
-    public class CartController : Controller
+    public class SepetController : Controller
     {
         private readonly ICartRepository _repo;
         private readonly ICartService _cartService;
@@ -24,7 +24,7 @@ namespace ECommerceBatteryShop.Controllers
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
-        public CartController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository)
+        public SepetController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository)
         {
             _repo = repo;
             _cartService = cartService;
@@ -98,7 +98,7 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Checkout()
+        public async Task<IActionResult> Siparis()
         {
             CartOwner owner;
             if (User.Identity?.IsAuthenticated == true)
@@ -149,7 +149,7 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> DistantSelling(int? addressId, decimal? shipping, CancellationToken ct)
+        public async Task<IActionResult> MesafeliSatis(int? addressId, decimal? shipping, CancellationToken ct)
         {
             const decimal DefaultFx = 41.3m;
             const decimal KdvRate = 0.20m;
@@ -279,11 +279,11 @@ namespace ECommerceBatteryShop.Controllers
                 InvoiceAddress = buyerAddress,
                 InvoicePhone = buyerPhone,
                 InvoiceEmail = buyerEmail,
-                ReturnPath = Url.Action("Refund", "Home") ?? "/Home/Refund",
+                ReturnPath = Url.Action("Iade", "Ev") ?? "/Ev/Iade",
                 OrderDate = DateTime.Now
             };
 
-            return View("~/Views/Home/DistantSelling.cshtml", model);
+            return View("~/Views/Ev/MesafeliSatis.cshtml", model);
         }
 
         private static AddressViewModel MapAddress(Address address)

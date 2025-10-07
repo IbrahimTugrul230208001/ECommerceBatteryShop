@@ -66,6 +66,9 @@
                                 .OrderByDescending(p => p.TransactionDate)
                                 .Select(p => p.PaymentMethod)
                                 .FirstOrDefault();
+                            var isGuest = order.User == null;
+                            var displayName = isGuest ? (string.IsNullOrWhiteSpace(order.BuyerName) ? "Misafir" : order.BuyerName) : (order.User?.UserName ?? "");
+                            var displayEmail = isGuest ? (order.BuyerEmail ?? "-") : (order.User?.Email ?? "-");
                             <tr>
                                 <td class="px-4 py-4 align-top font-semibold text-slate-900">
                                     <div class="space-y-1">
@@ -75,8 +78,14 @@
                                 </td>
                                 <td class="px-4 py-4 align-top">
                                     <div class="space-y-1 text-sm">
-                                        <p class="font-semibold text-slate-900">@order.User?.UserName</p>
-                                    <p class="text-xs text-slate-500">@order.User?.Email</p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-semibold text-slate-900">@displayName</p>
+                                            @if (isGuest)
+                                            {
+                                                <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Misafir</span>
+                                            }
+                                        </div>
+                                        <p class="text-xs text-slate-500">@displayEmail</p>
                                     </div>
                                 </td>
                                 <td class="px-4 py-4 align-top font-semibold text-slate-900">@order.TotalAmount.ToString("C", culture)</td>
@@ -100,16 +109,32 @@
                             <tr class="bg-slate-50/50">
                                 <td colspan="7" class="px-4 pb-6">
                                     <div class="grid gap-4 rounded-2xl border border-slate-100 bg-white/70 p-4 md:grid-cols-[minmax(0,1fr)_240px]">
-                                        <ul class="space-y-2 text-sm text-slate-600">
-                                            @foreach (var item in Model.Items)
+                                        <div class="space-y-2">
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Teslimat Bilgileri</p>
+                                            @if (order.Address is not null)
                                             {
-                                                <li class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                                                    <span class="font-medium text-slate-700">@item.ProductName</span>
-                                                    <span class="text-xs text-slate-500">@item.Quantity adet</span>
-                                                <span class="font-semibold text-slate-900">@item.UnitPrice.ToString("C", culture)</span>
-                                                </li>
+                                                <p class="text-sm text-slate-700">@order.Address.FullAddress</p>
+                                                <p class="text-xs text-slate-500">@order.Address.Neighbourhood, @order.Address.State / @order.Address.City</p>
                                             }
-                                        </ul>
+                                            else
+                                            {
+                                                <p class="text-sm text-slate-700">@order.ShippingAddressText</p>
+                                                <p class="text-xs text-slate-500">@order.ShippingNeighbourhood, @order.ShippingState / @order.ShippingCity</p>
+                                            }
+
+                                            <div class="h-px bg-slate-100 my-2"></div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Ürünler</p>
+                                            <ul class="space-y-2 text-sm text-slate-600">
+                                                @foreach (var item in Model.Items)
+                                                {
+                                                    <li class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                                                        <span class="font-medium text-slate-700">@item.ProductName</span>
+                                                        <span class="text-xs text-slate-500">@item.Quantity adet</span>
+                                                        <span class="font-semibold text-slate-900">@item.UnitPrice.ToString("C", culture)</span>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
                                     <div class="space-y-3 rounded-2xl bg-slate-900/90 p-4 text-xs text-white"
                                          data-order="@order.OrderId">
                                         <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-300">Hızlı Aksiyonlar</p>

@@ -18,7 +18,7 @@ using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ECommerceBatteryShop.Controllers;
 
-public class AccountController : Controller
+public class HesapController : Controller
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IConfiguration _configuration;
@@ -26,7 +26,7 @@ public class AccountController : Controller
     private readonly IAddressRepository _addressRepository;
     private readonly ICartService _cartService;
     private readonly IOrderRepository _orderRepository;
-    public AccountController(IAccountRepository accountRepository,IOrderRepository orderRepository, IConfiguration configuration, IUserService userService, IAddressRepository addressRepository, ICartService cartService)
+    public HesapController(IAccountRepository accountRepository,IOrderRepository orderRepository, IConfiguration configuration, IUserService userService, IAddressRepository addressRepository, ICartService cartService)
     {
         _accountRepository = accountRepository;
         _configuration = configuration;
@@ -80,11 +80,11 @@ public class AccountController : Controller
         }
     }
 
-    public IActionResult LogIn()
+    public IActionResult Giris()
     {
         return View(new LoginViewModel());
     }
-    public IActionResult Register()
+    public IActionResult Kayit()
     {
         return View();
     }
@@ -161,17 +161,17 @@ public class AccountController : Controller
         }
         return RedirectToAction("Index", "Home");
     }
-    public IActionResult ForgotPassword()
+    public IActionResult SifremiUnuttum()
     {
         return View();
     }
 
-    public IActionResult ResetPassword()
+    public IActionResult SifreYenile()
     {
         return View();
     }
 
-    public async Task<IActionResult> Profile(CancellationToken ct)
+    public async Task<IActionResult> Profil(CancellationToken ct)
     {
         IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
         IReadOnlyList<Order> orders = Array.Empty<Order>();
@@ -195,10 +195,6 @@ public class AccountController : Controller
         return View(model);
     }
 
-    public IActionResult VerifyAccount()
-    {
-        return View();
-    }
 
     [HttpGet]
     public IActionResult GoogleLogin(string? returnUrl = null)

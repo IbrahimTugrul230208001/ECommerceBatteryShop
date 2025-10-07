@@ -57,12 +57,12 @@
             <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
                 @if (hasFilter)
                 {
-                    <a href="@Url.Action("Index", "Product")"
+                    <a href="@Url.Action("Index", "Urun")"
                        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50">
                         Filtreleri temizle
                     </a>
                 }
-                <a href="@Url.Action("Index", "Product")"
+                <a href="@Url.Action("Index", "Urun")"
                    class="inline-flex items-center gap-2 rounded-lg bg-amber-300 px-4 py-2 text-sm font-semibold text-gray-900 shadow hover:bg-amber-400">
                     Tüm ürünlere dön
                 </a>
@@ -293,13 +293,13 @@ else
                 }
                 else
                 {
-                    var prevUrl = Url.Action("Index", "Product", pageRoute(currentPage - 1));
+                    var prevUrl = Url.Action("Index", "Urun", pageRoute(currentPage - 1));
                     <a href="@prevUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">Önceki</a>
                 }
 
                 @if (startPage > 1)
                 {
-                    var firstUrl = Url.Action("Index", "Product", pageRoute(1));
+                    var firstUrl = Url.Action("Index", "Urun", pageRoute(1));
                     <a href="@firstUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">1</a>
                     if (startPage > 2)
                     {
@@ -326,7 +326,7 @@ else
                     {
                         <span class="px-2 text-slate-400">…</span>
                     }
-                    var lastUrl = Url.Action("Index", "Product", pageRoute(totalPages));
+                    var lastUrl = Url.Action("Index", "Urun", pageRoute(totalPages));
                     <a href="@lastUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">@totalPages</a>
                 }
 
@@ -336,7 +336,7 @@ else
                 }
                 else
                 {
-                    var nextUrl = Url.Action("Index", "Product", pageRoute(currentPage + 1));
+                    var nextUrl = Url.Action("Index", "Urun", pageRoute(currentPage + 1));
                     <a href="@nextUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">Sonraki</a>
                 }
             </div>

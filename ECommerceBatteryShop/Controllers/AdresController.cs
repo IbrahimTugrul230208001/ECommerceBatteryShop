@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerceBatteryShop.Controllers;
 
 [Authorize]
-public class AddressController : Controller
+public class AdresController : Controller
 {
     private readonly IAddressRepository _addressRepository;
-    private readonly ILogger<AddressController> _logger;
+    private readonly ILogger<AdresController> _logger;
 
-    public AddressController(IAddressRepository addressRepository, ILogger<AddressController> logger)
+    public AdresController(IAddressRepository addressRepository, ILogger<AdresController> logger)
     {
         _addressRepository = addressRepository;
         _logger = logger;

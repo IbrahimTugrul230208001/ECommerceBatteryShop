@@ -15,7 +15,7 @@ namespace ECommerceBatteryShop.Controllers;
 
 [Authorize]
 [AutoValidateAntiforgeryToken]
-public class CheckoutController : Controller
+public class SiparisController : Controller
 {
     private const decimal DefaultExchangeRate = 41.3m;
     private const decimal KdvRate = 0.20m;
@@ -28,16 +28,16 @@ public class CheckoutController : Controller
     private readonly IOrderRepository _orderRepository;
     private readonly IIyzicoPaymentService _paymentService;
     private readonly ISavedCardRepository _savedCardRepository;
-    private readonly ILogger<CheckoutController> _logger;
+    private readonly ILogger<SiparisController> _logger;
 
-    public CheckoutController(
+    public SiparisController(
         ICartService cartService,
         ICurrencyService currencyService,
         IAddressRepository addressRepository,
         IOrderRepository orderRepository,
         IIyzicoPaymentService paymentService,
         ISavedCardRepository savedCardRepository,
-        ILogger<CheckoutController> logger)
+        ILogger<SiparisController> logger)
     {
         _cartService = cartService;
         _currencyService = currencyService;
