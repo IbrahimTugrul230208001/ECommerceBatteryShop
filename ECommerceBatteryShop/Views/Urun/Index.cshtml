@@ -118,7 +118,7 @@ else
 
             @if (hasFilter)
             {
-                <a href="@Url.Action("Index", "Product")"
+                <a href="@Url.Action("Index", "Urun")"
                    class="ml-auto inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">
                     Filtreleri temizle
                 </a>
@@ -148,7 +148,7 @@ else
             var inStock = product.StockQuantity > 0;
             var stockText = inStock ? "Stokta var" : "Stokta yok";
             var stockClass = inStock ? "text-emerald-600" : "text-rose-600";
-            var href = Url.Action("Details", "Product", new { id = product.Id });
+            var href = Url.Action("Detaylar", "Urun", new { id = product.Id });
             var price = product.Price.ToString("C", new CultureInfo("tr-TR"));
             var fullStars = (int)Math.Floor(product.Rating);
             var hasHalf = product.Rating - fullStars >= 0.5;
@@ -187,7 +187,7 @@ else
                     <div class="flex flex-1 flex-col gap-1">
                         @if (inStock)
                         {
-                            <button hx-post="/Cart/Add"
+                            <button hx-post="/Sepet/Add"
                                     hx-vals='{"productId": @product.Id, "quantity": 1}'
                                     hx-swap="none"
                                     x-data="{ added: false }"
@@ -233,7 +233,7 @@ else
                     <button type="button"
                             x-data="{ fav: @(product.IsFavorite ? "true" : "false"), busy: false }"
                             @@click="if (busy) return; busy=true; fav=!fav; setTimeout(()=> busy=false, 300);"
-                            hx-post="/Favorites/Toggle"
+                            hx-post="/Favori/Toggle"
                             :hx-vals="JSON.stringify({ productId: @product.Id})"
                             hx-swap="none"
                             :aria-pressed="fav.toString()"
@@ -315,7 +315,7 @@ else
                     }
                     else
                     {
-                        var pageUrl = Url.Action("Index", "Product", pageRoute(i));
+                        var pageUrl = Url.Action("Index", "Urun", pageRoute(i));
                         <a href="@pageUrl" class="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">@i</a>
                     }
                 }

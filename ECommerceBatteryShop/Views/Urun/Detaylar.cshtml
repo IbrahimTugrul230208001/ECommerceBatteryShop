@@ -81,7 +81,7 @@
                     <div class="flex flex-col gap-1">
                         @if (productInStock)
                         {
-                            <button hx-post="/Cart/Add"
+                            <button hx-post="/Sepet/Add"
                                     :hx-vals="JSON.stringify({ productId: @Model.product.Id, quantity: qty })"
                                     hx-swap="none"
                                     x-data="{ added: false }"
@@ -129,7 +129,7 @@
                     <button type="button"
                             x-data="{ fav: @(Model.product.IsFavorite ? "true" : "false"), busy: false }"
                             @@click="if (busy) return; busy=true; fav=!fav; setTimeout(()=> busy=false, 300);"
-                            hx-post="/Favorites/Toggle"
+                            hx-post="/Favori/Toggle"
                             :hx-vals="JSON.stringify({ productId: @Model.product.Id})"
                             hx-swap="none"
                             :aria-pressed="fav.toString()"
@@ -327,7 +327,7 @@
 
                                     <!-- Content -->
                                     <div class="px-3 pt-2 flex-1 flex flex-col">
-                                       <a class="hover:underline" href="/Product/Details/@product.Id"><h3 class="text-sm font-semibold text-gray-900 line-clamp-2 min-h-[2.75rem]">@product.Name</h3></a>
+                                       <a class="hover:underline" href="/Urun/Detaylar/@product.Id"><h3 class="text-sm font-semibold text-gray-900 line-clamp-2 min-h-[2.75rem]">@product.Name</h3></a>
 
                                         <!-- Rating + Price -->
                                         <div class="mt-1 flex items-center justify-between">
@@ -364,7 +364,7 @@
                                                 @if (inStock)
                                                 {
                                                     <button
-                                                        hx-post="/Cart/Add"
+                                                        hx-post="/Sepet/Add"
                                                         hx-vals='{"productId": @product.Id, "quantity": 1}'
                                                         hx-swap="none"
                                                         x-data="{ added: false }"
@@ -417,7 +417,7 @@
                 fav = !fav;
                 setTimeout(() => busy = false, 300);
               "
-              hx-post="/Favorites/Toggle"
+              hx-post="/Favori/Toggle"
               :hx-vals="JSON.stringify({ productId: @product.Id})"
                hx-swap="none"
               :aria-pressed="fav.toString()"
