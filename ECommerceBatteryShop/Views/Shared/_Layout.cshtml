@@ -1,6 +1,10 @@
 @using ECommerceBatteryShop.Domain.Entities
 @using ECommerceBatteryShop.Services
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http.Extensions
 @using System.Linq
+@using System.Text.Encodings.Web
+@using System.Text.Json
 @inject ECommerceBatteryShop.Services.ICategoryService CategoryService
 @inject ECommerceBatteryShop.DataAccess.Abstract.ICategoryRepository CategoryRepository
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
@@ -44,17 +48,118 @@
     var accountText = isAuthenticated ? "Hesabım" : "Üye Ol";
 }
 <!DOCTYPE html>
-<html lang="en">
+@{
+    var siteName = "Dayily Enerji";
+    var defaultTitle = "Dayily Enerji - Lityum Enerji Depolama Sistemleri, Perakende Pil ve Batarya Malzemeleri";
+    var title = ViewData["Title"] as string;
+    if (string.IsNullOrWhiteSpace(title))
+    {
+        title = defaultTitle;
+    }
+
+    var description = ViewData["Description"] as string;
+    if (string.IsNullOrWhiteSpace(description))
+    {
+        description = "Dayily Enerji, Li-ion ve LiFePO4 pil paketleri, BMS çözümleri ve enerji depolama sistemleriyle güvenilir ve hızlı teslimat sunar.";
+    }
+
+    var keywords = ViewData["Keywords"] as string;
+    if (string.IsNullOrWhiteSpace(keywords))
+    {
+        keywords = "lityum pil, lifepo4, bms, batarya, enerji depolama, dayily enerji";
+    }
+
+    var robots = ViewData["Robots"] as string;
+    if (string.IsNullOrWhiteSpace(robots))
+    {
+        robots = "index,follow";
+    }
+
+    var request = Context.Request;
+    var canonical = ViewData["Canonical"] as string;
+    if (string.IsNullOrWhiteSpace(canonical))
+    {
+        canonical = UriHelper.BuildAbsolute(request.Scheme, request.Host, request.PathBase, request.Path, request.QueryString);
+    }
+
+    var ogImage = ViewData["OgImage"] as string;
+    if (string.IsNullOrWhiteSpace(ogImage))
+    {
+        ogImage = Url.Content("~/img/logo.png");
+    }
+    else if (!Uri.TryCreate(ogImage, UriKind.Absolute, out _))
+    {
+        ogImage = Url.Content(ogImage);
+    }
+
+    if (!Uri.TryCreate(ogImage, UriKind.Absolute, out _))
+    {
+        var normalized = ogImage.StartsWith("/", StringComparison.Ordinal)
+            ? ogImage
+            : "/" + ogImage.TrimStart('~', '/');
+        ogImage = UriHelper.BuildAbsolute(request.Scheme, request.Host, request.PathBase, new PathString(normalized));
+    }
+
+    var twitterCard = ViewData["TwitterCard"] as string;
+    if (string.IsNullOrWhiteSpace(twitterCard))
+    {
+        twitterCard = "summary_large_image";
+    }
+
+    var organizationSchema = JsonSerializer.Serialize(new
+    {
+        @context = "https://schema.org",
+        @type = "Organization",
+        name = siteName,
+        url = "https://dayilyenerji.com/",
+        logo = ogImage,
+        description,
+        contactPoint = new
+        {
+            @type = "ContactPoint",
+            telephone = "+90-501-317-6653",
+            contactType = "customer service",
+            areaServed = "TR"
+        },
+        sameAs = new[]
+        {
+            "https://www.instagram.com/dayilyenerji",
+            "https://www.linkedin.com/company/dayily-enerji"
+        }
+    }, new JsonSerializerOptions
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        WriteIndented = true
+    });
+}
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="request-verification-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
-    <title>
-        Dayily Enerji - Lityum Enerji Depolama Sistemleri, Perakende Pil ve Batarya Malzemeleri 🔋
-    </title>
+    <title>@title</title>
+    <meta name="description" content="@description" />
+    <meta name="keywords" content="@keywords" />
+    <meta name="robots" content="@robots" />
+    <link rel="canonical" href="@canonical" />
+    <meta property="og:site_name" content="@siteName" />
+    <meta property="og:title" content="@title" />
+    <meta property="og:description" content="@description" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="@canonical" />
+    <meta property="og:image" content="@ogImage" />
+    <meta property="og:locale" content="tr_TR" />
+    <meta name="twitter:card" content="@twitterCard" />
+    <meta name="twitter:title" content="@title" />
+    <meta name="twitter:description" content="@description" />
+    <meta name="twitter:image" content="@ogImage" />
     <link rel="icon" href="/img/logo_mini.png" type="jpeg">
     <link rel="stylesheet" href="~/css/output.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script type="application/ld+json">
+@Html.Raw(organizationSchema)
+    </script>
+    @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
     <header x-data="{ overlay:false, mobileCategories:false }" @@keydown.escape.window="overlay=false; mobileCategories=false" class="relative z-40">
