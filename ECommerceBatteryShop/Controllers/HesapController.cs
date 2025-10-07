@@ -66,7 +66,7 @@ public class HesapController : Controller
             _userService.Email = email;
             _userService.Password = password;
             await _accountRepository.RegisterAsync(email, password);
-            return Json(new { success = true, redirectUrl = Url.Action("LogIn", "Account") });
+            return Json(new { success = true, redirectUrl = Url.Action("Giris", "Hesap") });
         }
         catch (ApplicationException ex)
         {
@@ -150,7 +150,7 @@ public class HesapController : Controller
             Response.Cookies.Delete("ANON_ID");
         }
 
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction("Index", "Ev");
     }
 
     public IActionResult LogOut()
@@ -159,7 +159,7 @@ public class HesapController : Controller
         {
             HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
         }
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction("Index", "Ev");
     }
     public IActionResult SifremiUnuttum()
     {
@@ -199,7 +199,7 @@ public class HesapController : Controller
     [HttpGet]
     public IActionResult GoogleLogin(string? returnUrl = null)
     {
-        var redirectUrl = Url.Action(nameof(GoogleCallback), "Account", new { returnUrl });
+        var redirectUrl = Url.Action(nameof(GoogleCallback), "Hesap", new { returnUrl });
         var properties = new AuthenticationProperties
         {
             RedirectUri = redirectUrl ?? Url.Content("~/")

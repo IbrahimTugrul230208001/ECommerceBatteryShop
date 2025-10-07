@@ -5,7 +5,7 @@
 
 <!-- Google -->
 <a asp-action="GoogleLogin"
-   asp-controller="Account"
+   asp-controller="Hesap"
    class="cursor-pointer mb-5 flex w-full items-center justify-center gap-3 rounded-lg
                  border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900
                  shadow-sm ring-1 ring-black/5 transition hover:bg-gray-50 hover:shadow-md"
@@ -28,7 +28,7 @@
 
 
 <div class="space-y-4">
-    <form asp-action="LogIn" asp-controller="Account" method="post" class="space-y-6" novalidate>
+    <form asp-action="LogIn" asp-controller="Hesap" method="post" class="space-y-6" novalidate>
         @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
 

@@ -50,6 +50,6 @@ public class MisafirController : Controller
             Expires = DateTimeOffset.UtcNow.AddHours(4)
         });
 
-        return RedirectToAction("Checkout", "Cart");
+        return RedirectToAction("Siparis", "Sepet");
     }
 }
