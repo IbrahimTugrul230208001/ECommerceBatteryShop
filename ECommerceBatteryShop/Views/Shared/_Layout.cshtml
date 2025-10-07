@@ -66,18 +66,15 @@
                 <!-- Category toggle & Search -->
                 <div class="flex-1 relative">
                     <div class="flex items-center gap-2">
+                        <!-- Mobile only -->
                         <button type="button"
-                                aria-controls="mobile-category-menu"
-                                :aria-expanded="mobileCategories"
-                                @@click="mobileCategories = !mobileCategories; overlay = mobileCategories"
-                                class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/20 bg-white/5 text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
-                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="4" y1="6" x2="20" y2="6" />
-                                <line x1="4" y1="12" x2="20" y2="12" />
-                                <line x1="4" y1="18" x2="16" y2="18" />
+                                class="sm:hidden inline-flex items-center gap-2 px-3 py-2 rounded-lg ring-1 ring-black/10"
+                                data-cat-open>
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M4 6h16M4 12h16M4 18h16" stroke-width="2" stroke-linecap="round" />
                             </svg>
-                            <span class="sr-only">Kategorileri aç</span>
                         </button>
+
 
                         <div class="flex-1 relative">
                             <form method="get" action="/Product/Index" class="h-10 rounded-md border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400">
@@ -124,48 +121,9 @@
                         </div>
                     </div>
 
-                    <div id="mobile-category-menu"
-                         x-cloak
-                         x-show="mobileCategories"
-                         x-transition.origin.top.left
-                         class="absolute left-0 right-0 top-full z-50 mt-3 max-h-96 overflow-y-auto rounded-2xl border border-gray-200 bg-white text-gray-900 shadow-2xl"
-                         @@click.outside="mobileCategories=false; overlay=false">
-                        <nav aria-label="Mobil kategoriler" class="p-4">
-                            <ul class="space-x-4">
-                                @foreach (var parent in categories)
-                                {
-                                    <li class="space-y-3">
-                                        <a href="@Url.Action("Index", "Product", new { categoryId = parent.Id })"
-                                           class="flex items-center justify-between text-base font-semibold text-gray-900 hover:text-amber-500">
-                                            <span>@parent.Name</span>
-                                            @if (parent.SubCategories != null && parent.SubCategories.Any())
-                                            {
-                                                <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.062l-4.24 4.24a.75.75 0 01-1.06 0l-4.24-4.24a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
-                                            }
-                                        </a>
-                                        @if (parent.SubCategories != null && parent.SubCategories.Any())
-                                        {
-                                            <ul class="space-y-2 pl-3 text-sm text-gray-600">
-                                                @foreach (var child in parent.SubCategories)
-                                                {
-                                                    <li>
-                                                        <a href="@Url.Action("Index", "Product", new { categoryId = child.Id })"
-                                                           class="block rounded-md font-bold px-2 py-1.5 hover:bg-gray-100 hover:text-gray-900">@child.Name</a>
-                                                    </li>
-                                                }
-                                            </ul>
-                                        }
-                                    </li>
-                                }
-                                <li>
-                                    <a href="/Home/Contact" class="block text-base font-semibold text-gray-900 hover:text-amber-500">İletişim</a>
-                                </li>
-                                <li>
-                                    <a href="/Home/AboutUs" class="block text-base font-semibold text-gray-900 hover:text-amber-500">Hakkımızda</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
+                    @await Html.PartialAsync("_MenuMobile", new CategoryMenuModel{ Depth = 0, Items = categoriesByService})
+
+
                 </div>
 
 
