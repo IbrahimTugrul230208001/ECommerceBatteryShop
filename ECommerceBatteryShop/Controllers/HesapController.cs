@@ -192,7 +192,7 @@ public class HesapController : Controller
             Orders = orders
         };
 
-        return View("~/Views/Hesap/Profil",model);
+        return View("~/Views/Hesap/Profil.cshtml",model);
     }
 
 
