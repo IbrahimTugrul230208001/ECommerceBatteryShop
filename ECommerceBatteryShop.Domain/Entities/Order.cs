@@ -11,7 +11,7 @@ public class Order
 
     public int? AddressId { get; set; }         // nullable for guests
     public Address? Address { get; set; }
-
+    /*
     public string? AnonId { get; set; }         // optional: correlate guest orders to ANON_ID
 
     // Snapshot for all orders (users and guests)
@@ -22,7 +22,7 @@ public class Order
     public string ShippingCity { get; set; } = string.Empty;
     public string ShippingState { get; set; } = string.Empty;
     public string ShippingNeighbourhood { get; set; } = string.Empty;
-
+    */
     public string? Status { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
