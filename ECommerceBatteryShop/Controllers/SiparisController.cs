@@ -29,6 +29,8 @@ public class SiparisController : Controller
     private readonly ISavedCardRepository _savedCardRepository;
     private readonly ILogger<SiparisController> _logger;
 
+    private const string GuestInfoCookie = "GUEST_INFO";
+
     public SiparisController(
         ICartService cartService,
         ICurrencyService currencyService,
@@ -97,30 +99,304 @@ public class SiparisController : Controller
             return BadRequest(new { success = false, message = "Sepetiniz boş olduğu için ödeme alınamadı." });
         }
 
+        var isGuest = owner.UserId is null;
+
         if (string.Equals(input.PaymentMethod, "iban", StringComparison.OrdinalIgnoreCase))
         {
-            if (owner.UserId is not int userId1)
+            if (!isGuest)
             {
-                return BadRequest(new { success = false, message = "IBAN ile ödeme için giriş yapmanız gerekmektedir." });
+                // existing authenticated flow: unchanged
+                if (owner.UserId is not int userId1)
+                {
+                    return BadRequest(new { success = false, message = "IBAN ile ödeme için giriş yapmanız gerekmektedir." });
+                }
+
+                var address = await ResolveAddressAsync(userId1, cancellationToken);
+                if (address is null)
+                {
+                    return BadRequest(new { success = false, message = "Sipariş oluşturmak için kayıtlı bir adres bulunamadı." });
+                }
+
+                var orderTotalBeforeDiscount = CalculateOrderTotal(cart, (decimal)fxRate) + shippingPrice;
+                var discountedTotal = decimal.Round(orderTotalBeforeDiscount * (1 - IbanDiscountRate), 2, MidpointRounding.AwayFromZero);
+
+                var order1 = new Order
+                {
+                    OrderId = GenerateOrderNumber(),
+                    UserId = userId1,
+                    AddressId = address.Id,
+                    Status = "Sipariş alındı",
+                    OrderDate = DateTime.UtcNow,
+                    TotalAmount = discountedTotal,
+                    Items = cart.Items.Select(i => new OrderItem
+                    {
+                        ProductId = i.ProductId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice
+                    }).ToList(),
+                    Payments =
+                    {
+                        new PaymentTransaction
+                        {
+                            Amount = discountedTotal,
+                            TransactionDate = DateTime.UtcNow,
+                            PaymentMethod = "iban",
+                            TransactionId = null 
+                        }
+                    },
+                    Shipment = new Shipment
+                    {
+                        Carrier = ResolveCarrier(input.ShippingId),
+                        TrackingNumber = string.Empty,
+                        ShippedDate = DateTime.UtcNow
+                    }
+                };
+
+                await _orderRepository.InsertOrderAsync(order1, cancellationToken);
+                await _cartService.RemoveAllAsync(owner, cancellationToken);
+
+                _logger.LogInformation("IBAN order created successfully with discount. OrderNumber: {OrderNumber}, UserId: {UserId}", order1.OrderId, userId1);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Siparişiniz başarıyla alındı. IBAN ile ödeme indirimi (%3) uygulandı. Sipariş numaranız: {order1.OrderId.ToString("D6", CultureInfo.InvariantCulture)}. Sipariş numarasını açıklamaya giriniz."
+                });
+            }
+            else
+            {
+                // New guest flow for IBAN
+                var guest = ReadGuestInfoFromRequest() ?? FromInput(input);
+                if (guest is null)
+                {
+                    return BadRequest(new { success = false, message = "Misafir bilgileri eksik. Lütfen ad, soyad ve adres bilgilerini giriniz." });
+                }
+
+                var orderTotalBeforeDiscount = CalculateOrderTotal(cart, (decimal)fxRate) + shippingPrice;
+                var discountedTotal = decimal.Round(orderTotalBeforeDiscount * (1 - IbanDiscountRate), 2, MidpointRounding.AwayFromZero);
+
+                var order = new Order
+                {
+                    OrderId = GenerateOrderNumber(),
+                    UserId = null,
+                    AddressId = null,
+                    AnonId = cart.AnonId,
+                    BuyerName = $"{guest.Name} {guest.Surname}".Trim(),
+                    BuyerEmail = guest.Email,
+                    BuyerPhone = SanitizeDigits(guest.Phone),
+                    ShippingAddressText = guest.FullAddress,
+                    ShippingNeighbourhood = guest.Neighbourhood,
+                    ShippingState = guest.State,
+                    ShippingCity = guest.City,
+                    Status = "Sipariş alındı",
+                    OrderDate = DateTime.UtcNow,
+                    TotalAmount = discountedTotal,
+                    Items = cart.Items.Select(i => new OrderItem
+                    {
+                        ProductId = i.ProductId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice
+                    }).ToList(),
+                    Payments =
+                    {
+                        new PaymentTransaction
+                        {
+                            Amount = discountedTotal,
+                            TransactionDate = DateTime.UtcNow,
+                            PaymentMethod = "iban",
+                            TransactionId = null
+                        }
+                    },
+                    Shipment = new Shipment
+                    {
+                        Carrier = ResolveCarrier(input.ShippingId),
+                        TrackingNumber = string.Empty,
+                        ShippedDate = DateTime.UtcNow
+                    }
+                };
+
+                await _orderRepository.InsertOrderAsync(order, cancellationToken);
+                await _cartService.RemoveAllAsync(owner, cancellationToken);
+
+                _logger.LogInformation("Guest IBAN order created successfully. OrderNumber: {OrderNumber}, AnonId: {AnonId}", order.OrderId, cart.AnonId);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Siparişiniz başarıyla alındı. IBAN ile ödeme indirimi (%3) uygulandı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}. Sipariş numarasını açıklamaya giriniz."
+                });
+            }
+        }
+
+        // Handle card payments
+        bool useSaved = string.Equals(input.PaymentMethod, "card_saved", StringComparison.OrdinalIgnoreCase);
+        if (!useSaved && !string.Equals(input.PaymentMethod, "card_new", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { success = false, message = "Seçilen ödeme yöntemi şu anda desteklenmiyor." });
+        }
+
+        if (!isGuest)
+        {
+            // existing authenticated card flow: unchanged
+            if (owner.UserId is not int userId)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Kart ile ödeme için giriş yapmanız gerekmektedir."
+                });
             }
 
-            var address = await ResolveAddressAsync(userId1, cancellationToken);
-            if (address is null)
+            var orderAddress = await ResolveAddressAsync(userId, cancellationToken);
+            if (orderAddress is null)
             {
-                return BadRequest(new { success = false, message = "Sipariş oluşturmak için kayıtlı bir adres bulunamadı." });
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Kartla ödeme için kayıtlı bir adres bulunamadı."
+                });
             }
 
-            var orderTotalBeforeDiscount = CalculateOrderTotal(cart, (decimal)fxRate) + shippingPrice;
-            var discountedTotal = decimal.Round(orderTotalBeforeDiscount * (1 - IbanDiscountRate), 2, MidpointRounding.AwayFromZero);
+            var lineItems = new List<IyzicoBasketItem>();
+            decimal basketTotal = 0m;
+            foreach (var item in cart.Items)
+            {
+                var unitPriceTry = item.UnitPrice * (1 + KdvRate) * fxRate;
+                var linePrice = decimal.Round((decimal)(unitPriceTry * item.Quantity), 2, MidpointRounding.AwayFromZero);
+                basketTotal += linePrice;
+                lineItems.Add(new IyzicoBasketItem
+                {
+                    Id = item.ProductId.ToString(CultureInfo.InvariantCulture),
+                    Name = item.Product?.Name ?? $"Ürün #{item.ProductId}",
+                    Price = linePrice
+                });
+            }
 
-            var order1 = new Order
+            if (lineItems.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "Ödeme için sepet ürünü bulunamadı." });
+            }
+
+            var paidPrice = basketTotal + shippingPrice;
+
+            var buyerContext = await BuildBuyerContextAsync(owner, cart, cancellationToken);
+
+            var paymentModel = new IyzicoPaymentModel
+            {
+                ConversationId = Guid.NewGuid().ToString("N"),
+                BasketId = cart.Id.ToString(CultureInfo.InvariantCulture),
+                Price = basketTotal,
+                PaidPrice = paidPrice,
+                Buyer = buyerContext.Buyer,
+                BillingAddress = buyerContext.Billing,
+                ShippingAddress = buyerContext.Shipping,
+                Items = lineItems
+            };
+
+            if (useSaved)
+            {
+                if (string.IsNullOrWhiteSpace(input.CardId) || !int.TryParse(input.CardId, out var savedId))
+                {
+                    return BadRequest(new { success = false, message = "Kayıtlı kart seçimi geçersiz." });
+                }
+                var saved = (await _savedCardRepository.GetByUserAsync(userId, cancellationToken)).FirstOrDefault(c => c.Id == savedId);
+                if (saved is null)
+                {
+                    return BadRequest(new { success = false, message = "Kayıtlı kart bulunamadı." });
+                }
+                paymentModel.Saved = new IyzicoSavedCard { CardUserKey = saved.CardUserKey, CardToken = saved.CardToken };
+            }
+            else
+            {
+                if (!TryParseCard(input, out var cardInfo, out var cardError))
+                {
+                    return BadRequest(new { success = false, message = cardError ?? "Kart bilgileri eksik veya hatalı." });
+                }
+
+                cardInfo.RegisterCard = input.Save;
+                paymentModel.Card = cardInfo;
+            }
+
+            var result = await _paymentService.CreatePaymentAsync(paymentModel, cancellationToken);
+            if (!result.Success)
+            {
+                // If card saving is not enabled for merchant (Iyzico error 3007), retry without saving
+                if (!useSaved && input.Save && IsCardStorageNotEnabled(result.RawResponse))
+                {
+                    _logger.LogWarning("Card storage disabled on merchant. Retrying payment without saving card. ConversationId: {ConversationId}", paymentModel.ConversationId);
+                    if (paymentModel.Card is not null)
+                    {
+                        paymentModel.Card.RegisterCard = false;
+                        var retry = await _paymentService.CreatePaymentAsync(paymentModel, cancellationToken);
+                        if (!retry.Success)
+                        {
+                            var retryMessage = string.IsNullOrWhiteSpace(retry.ErrorMessage)
+                                ? "Ödeme sırasında bir hata oluştu. Lütfen tekrar deneyin."
+                                : retry.ErrorMessage;
+                            return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = retryMessage });
+                        }
+                        result = retry; // use successful retry result
+                    }
+                    else
+                    {
+                        var errorMessageA = string.IsNullOrWhiteSpace(result.ErrorMessage)
+                            ? "Ödeme sırasında bir hata oluştu. Lütfen tekrar deneyin."
+                            : result.ErrorMessage;
+                        return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = errorMessageA });
+                    }
+                }
+                else
+                {
+                    var errorMessage = string.IsNullOrWhiteSpace(result.ErrorMessage)
+                        ? "Ödeme sırasında bir hata oluştu. Lütfen tekrar deneyin."
+                        : result.ErrorMessage;
+                    return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = errorMessage });
+                }
+            }
+
+            // Parse payment response for card info when saved
+            if (!useSaved && input.Save)
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(result.RawResponse ?? "{}");
+                    var root = doc.RootElement;
+                    var cardUserKey = root.TryGetProperty("cardUserKey", out var cuk) ? cuk.GetString() : null;
+                    if (cardUserKey is null && root.TryGetProperty("CardUserKey", out var cuk2)) cardUserKey = cuk2.GetString();
+                    var cardToken = root.TryGetProperty("cardToken", out var ctok) ? ctok.GetString() : null;
+                    if (cardToken is null && root.TryGetProperty("CardToken", out var ctok2)) cardToken = ctok2.GetString();
+                    var cardAssociation = root.TryGetProperty("cardAssociation", out var assoc) ? assoc.GetString() : null;
+                    if (cardAssociation is null && root.TryGetProperty("CardAssociation", out var assoc2)) cardAssociation = assoc2.GetString();
+                    var last4 = root.TryGetProperty("lastFourDigits", out var l4) ? l4.GetString() : null;
+                    if (last4 is null && root.TryGetProperty("LastFourDigits", out var l42)) last4 = l42.GetString();
+                    var holder = input.Name ?? "";
+                    if (!string.IsNullOrWhiteSpace(cardUserKey) && !string.IsNullOrWhiteSpace(cardToken))
+                    {
+                        await _savedCardRepository.AddAsync(new SavedCard
+                        {
+                            UserId = userId,
+                            CardUserKey = cardUserKey!,
+                            CardToken = cardToken!,
+                            Brand = cardAssociation ?? "",
+                            Last4 = last4 ?? "",
+                            Holder = holder
+                        }, cancellationToken);
+                    }
+                }
+                catch { /* ignore parsing issues */ }
+            }
+
+            var orderTotal = paidPrice; // or basketTotal if your stored order excludes shipping
+            var transactionId = ExtractTransactionId(result.RawResponse, paymentModel.ConversationId);
+
+            var order = new Order
             {
                 OrderId = GenerateOrderNumber(),
-                UserId = userId1,
-                AddressId = address.Id,
-                Status = "Sipariş alındı",
+                UserId = userId,
+                AddressId = orderAddress.Id,
+                Status = "Ödeme alındı",
                 OrderDate = DateTime.UtcNow,
-                TotalAmount = discountedTotal,
+                TotalAmount = orderTotal,
                 Items = cart.Items.Select(i => new OrderItem
                 {
                     ProductId = i.ProductId,
@@ -131,10 +407,10 @@ public class SiparisController : Controller
                 {
                     new PaymentTransaction
                     {
-                        Amount = discountedTotal,
+                        Amount = orderTotal,
                         TransactionDate = DateTime.UtcNow,
-                        PaymentMethod = "iban",
-                        TransactionId = null 
+                        PaymentMethod = "iyzico",
+                        TransactionId = transactionId
                     }
                 },
                 Shipment = new Shipment
@@ -145,191 +421,153 @@ public class SiparisController : Controller
                 }
             };
 
-            await _orderRepository.InsertOrderAsync(order1, cancellationToken);
+            await _orderRepository.InsertOrderAsync(order, cancellationToken);
             await _cartService.RemoveAllAsync(owner, cancellationToken);
 
-            _logger.LogInformation("IBAN order created successfully with discount. OrderNumber: {OrderNumber}, UserId: {UserId}", order1.OrderId, userId1);
+            _logger.LogInformation(
+                "Iyzico payment completed successfully. ConversationId: {ConversationId}, OrderNumber: {OrderNumber}",
+                paymentModel.ConversationId,
+                order.OrderId);
 
             return Ok(new
             {
                 success = true,
-                message = $"Siparişiniz başarıyla alındı. IBAN ile ödeme indirimi (%3) uygulandı. Sipariş numaranız: {order1.OrderId.ToString("D6", CultureInfo.InvariantCulture)}. Sipariş numarasını açıklamaya giriniz."
+                message = $"Ödemeniz başarıyla tamamlandı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}",
+                raw = result.RawResponse
             });
-        }
-
-        // Handle saved card
-        bool useSaved = string.Equals(input.PaymentMethod, "card_saved", StringComparison.OrdinalIgnoreCase);
-        if (!useSaved && !string.Equals(input.PaymentMethod, "card_new", StringComparison.OrdinalIgnoreCase))
-        {
-            return BadRequest(new { success = false, message = "Seçilen ödeme yöntemi şu anda desteklenmiyor." });
-        }
-
-        if (owner.UserId is not int userId)
-        {
-            return BadRequest(new
-            {
-                success = false,
-                message = "Kart ile ödeme için giriş yapmanız gerekmektedir."
-            });
-        }
-
-        var orderAddress = await ResolveAddressAsync(userId, cancellationToken);
-        if (orderAddress is null)
-        {
-            return BadRequest(new
-            {
-                success = false,
-                message = "Kartla ödeme için kayıtlı bir adres bulunamadı."
-            });
-        }
-
-
-        var lineItems = new List<IyzicoBasketItem>();
-        decimal basketTotal = 0m;
-        foreach (var item in cart.Items)
-        {
-            var unitPriceTry = item.UnitPrice * (1 + KdvRate) * fxRate;
-            var linePrice = decimal.Round((decimal)(unitPriceTry * item.Quantity), 2, MidpointRounding.AwayFromZero);
-            basketTotal += linePrice;
-            lineItems.Add(new IyzicoBasketItem
-            {
-                Id = item.ProductId.ToString(CultureInfo.InvariantCulture),
-                Name = item.Product?.Name ?? $"Ürün #{item.ProductId}",
-                Price = linePrice
-            });
-        }
-
-        if (lineItems.Count == 0)
-        {
-            return BadRequest(new { success = false, message = "Ödeme için sepet ürünü bulunamadı." });
-        }
-
-        var paidPrice = basketTotal + shippingPrice;
-
-        var buyerContext = await BuildBuyerContextAsync(owner, cart, cancellationToken);
-
-        var paymentModel = new IyzicoPaymentModel
-        {
-            ConversationId = Guid.NewGuid().ToString("N"),
-            BasketId = cart.Id.ToString(CultureInfo.InvariantCulture),
-            Price = basketTotal,
-            PaidPrice = paidPrice,
-            Buyer = buyerContext.Buyer,
-            BillingAddress = buyerContext.Billing,
-            ShippingAddress = buyerContext.Shipping,
-            Items = lineItems
-        };
-
-        if (useSaved)
-        {
-            if (string.IsNullOrWhiteSpace(input.CardId) || !int.TryParse(input.CardId, out var savedId))
-            {
-                return BadRequest(new { success = false, message = "Kayıtlı kart seçimi geçersiz." });
-            }
-            var saved = (await _savedCardRepository.GetByUserAsync(userId, cancellationToken)).FirstOrDefault(c => c.Id == savedId);
-            if (saved is null)
-            {
-                return BadRequest(new { success = false, message = "Kayıtlı kart bulunamadı." });
-            }
-            paymentModel.Saved = new IyzicoSavedCard { CardUserKey = saved.CardUserKey, CardToken = saved.CardToken };
         }
         else
         {
-            if (!TryParseCard(input, out var cardInfo, out var cardError))
+            // New guest flow for card payments (Iyzico)
+            var guest = ReadGuestInfoFromRequest() ?? FromInput(input);
+            if (guest is null)
             {
-                return BadRequest(new { success = false, message = cardError ?? "Kart bilgileri eksik veya hatalı." });
+                return BadRequest(new { success = false, message = "Misafir bilgileri eksik. Lütfen ad, soyad ve adres bilgilerini giriniz." });
             }
 
-            cardInfo.RegisterCard = input.Save;
-            paymentModel.Card = cardInfo;
-        }
-
-        var result = await _paymentService.CreatePaymentAsync(paymentModel, cancellationToken);
-        if (!result.Success)
-        {
-            var errorMessage = string.IsNullOrWhiteSpace(result.ErrorMessage)
-                ? "Ödeme sırasında bir hata oluştu. Lütfen tekrar deneyin."
-                : result.ErrorMessage;
-            return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = errorMessage });
-        }
-
-        // Parse payment response for card info when saved
-        if (!useSaved && input.Save)
-        {
-            try
+            // Only new card is allowed for guests (no saved card capability)
+            if (useSaved)
             {
-                using var doc = JsonDocument.Parse(result.RawResponse ?? "{}");
-                var root = doc.RootElement;
-                var cardUserKey = root.TryGetProperty("cardUserKey", out var cuk) ? cuk.GetString() : null;
-                var cardToken = root.TryGetProperty("cardToken", out var ctok) ? ctok.GetString() : null;
-                var cardAssociation = root.TryGetProperty("cardAssociation", out var assoc) ? assoc.GetString() : null;
-                var last4 = root.TryGetProperty("lastFourDigits", out var l4) ? l4.GetString() : null;
-                var holder = input.Name ?? "";
-                if (!string.IsNullOrWhiteSpace(cardUserKey) && !string.IsNullOrWhiteSpace(cardToken))
+                return BadRequest(new { success = false, message = "Misafir kullanıcılar kayıtlı kart kullanamaz." });
+            }
+
+            if (!TryParseCard(input, out var cardInfo, out var cardErrorGuest))
+            {
+                return BadRequest(new { success = false, message = cardErrorGuest ?? "Kart bilgileri eksik veya hatalı." });
+            }
+
+            var lineItems = new List<IyzicoBasketItem>();
+            decimal basketTotal = 0m;
+            foreach (var item in cart.Items)
+            {
+                var unitPriceTry = item.UnitPrice * (1 + KdvRate) * fxRate;
+                var linePrice = decimal.Round((decimal)(unitPriceTry * item.Quantity), 2, MidpointRounding.AwayFromZero);
+                basketTotal += linePrice;
+                lineItems.Add(new IyzicoBasketItem
                 {
-                    await _savedCardRepository.AddAsync(new SavedCard
+                    Id = item.ProductId.ToString(CultureInfo.InvariantCulture),
+                    Name = item.Product?.Name ?? $"Ürün #{item.ProductId}",
+                    Price = linePrice
+                });
+            }
+
+            if (lineItems.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "Ödeme için sepet ürünü bulunamadı." });
+            }
+
+            var paidPrice = basketTotal + shippingPrice;
+
+            var buyerContext = BuildGuestBuyerContext(owner, cart, guest);
+
+            var paymentModel = new IyzicoPaymentModel
+            {
+                ConversationId = Guid.NewGuid().ToString("N"),
+                BasketId = cart.Id.ToString(CultureInfo.InvariantCulture),
+                Price = basketTotal,
+                PaidPrice = paidPrice,
+                Buyer = buyerContext.Buyer,
+                BillingAddress = buyerContext.Billing,
+                ShippingAddress = buyerContext.Shipping,
+                Items = lineItems,
+                Card = new IyzicoPaymentCard
+                {
+                    HolderName = input.Name!.Trim(),
+                    Number = SanitizeDigits(input.Number),
+                    ExpireMonth = TryParseExpiry(input.Exp, out var m, out var y) ? m : "",
+                    ExpireYear = TryParseExpiry(input.Exp, out m, out y) ? y : "",
+                    Cvc = SanitizeDigits(input.Cvc),
+                    RegisterCard = false
+                }
+            };
+
+            var result = await _paymentService.CreatePaymentAsync(paymentModel, cancellationToken);
+            if (!result.Success)
+            {
+                var errorMessage = string.IsNullOrWhiteSpace(result.ErrorMessage)
+                    ? "Ödeme sırasında bir hata oluştu. Lütfen tekrar deneyin."
+                    : result.ErrorMessage;
+                return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = errorMessage });
+            }
+
+            var transactionId = ExtractTransactionId(result.RawResponse, paymentModel.ConversationId);
+
+            var order = new Order
+            {
+                OrderId = GenerateOrderNumber(),
+                UserId = null,
+                AddressId = null,
+                AnonId = cart.AnonId,
+                BuyerName = $"{guest.Name} {guest.Surname}".Trim(),
+                BuyerEmail = guest.Email,
+                BuyerPhone = SanitizeDigits(guest.Phone),
+                ShippingAddressText = guest.FullAddress,
+                ShippingNeighbourhood = guest.Neighbourhood,
+                ShippingState = guest.State,
+                ShippingCity = guest.City,
+                Status = "Ödeme alındı",
+                OrderDate = DateTime.UtcNow,
+                TotalAmount = paidPrice,
+                Items = cart.Items.Select(i => new OrderItem
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList(),
+                Payments =
+                {
+                    new PaymentTransaction
                     {
-                        UserId = userId,
-                        CardUserKey = cardUserKey!,
-                        CardToken = cardToken!,
-                        Brand = cardAssociation ?? "",
-                        Last4 = last4 ?? "",
-                        Holder = holder
-                    }, cancellationToken);
-                }
-            }
-            catch { /* ignore parsing issues */ }
-        }
-
-        var orderTotal = paidPrice; // or basketTotal if your stored order excludes shipping
-        var transactionId = ExtractTransactionId(result.RawResponse, paymentModel.ConversationId);
-
-        var order = new Order
-        {
-            OrderId = GenerateOrderNumber(),
-            UserId = userId,
-            AddressId = orderAddress.Id,
-            Status = "Ödeme alındı",
-            OrderDate = DateTime.UtcNow,
-            TotalAmount = orderTotal,
-            Items = cart.Items.Select(i => new OrderItem
-            {
-                ProductId = i.ProductId,
-                Quantity = i.Quantity,
-                UnitPrice = i.UnitPrice
-            }).ToList(),
-            Payments =
-            {
-                new PaymentTransaction
+                        Amount = paidPrice,
+                        TransactionDate = DateTime.UtcNow,
+                        PaymentMethod = "iyzico",
+                        TransactionId = transactionId
+                    }
+                },
+                Shipment = new Shipment
                 {
-                    Amount = orderTotal,
-                    TransactionDate = DateTime.UtcNow,
-                    PaymentMethod = "iyzico",
-                    TransactionId = transactionId
+                    Carrier = ResolveCarrier(input.ShippingId),
+                    TrackingNumber = string.Empty,
+                    ShippedDate = DateTime.UtcNow
                 }
-            },
-            Shipment = new Shipment
+            };
+
+            await _orderRepository.InsertOrderAsync(order, cancellationToken);
+            await _cartService.RemoveAllAsync(owner, cancellationToken);
+
+            _logger.LogInformation(
+                "Guest Iyzico payment completed successfully. ConversationId: {ConversationId}, OrderNumber: {OrderNumber}, AnonId: {AnonId}",
+                paymentModel.ConversationId,
+                order.OrderId,
+                cart.AnonId);
+
+            return Ok(new
             {
-                Carrier = ResolveCarrier(input.ShippingId),
-                TrackingNumber = string.Empty,
-                ShippedDate = DateTime.UtcNow
-            }
-        };
-
-        await _orderRepository.InsertOrderAsync(order, cancellationToken);
-        await _cartService.RemoveAllAsync(owner, cancellationToken);
-
-        _logger.LogInformation(
-            "Iyzico payment completed successfully. ConversationId: {ConversationId}, OrderNumber: {OrderNumber}",
-            paymentModel.ConversationId,
-            order.OrderId);
-
-        return Ok(new
-        {
-            success = true,
-            message = $"Ödemeniz başarıyla tamamlandı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}",
-            raw = result.RawResponse
-        });
+                success = true,
+                message = $"Ödemeniz başarıyla tamamlandı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}",
+                raw = result.RawResponse
+            });
+        }
     }
 
     private static decimal CalculateOrderTotal(Cart cart, decimal fxRate)
@@ -448,6 +686,46 @@ public class SiparisController : Controller
         };
 
         return (buyer, billing, shipping);
+    }
+
+    private (IyzicoBuyer Buyer, IyzicoAddress Billing, IyzicoAddress Shipping) BuildGuestBuyerContext(
+        CartOwner owner, Cart cart, GuestCheckoutViewModel guest)
+    {
+        var contactName = $"{guest.Name} {guest.Surname}".Trim();
+        var fullAddress = string.Join(' ', new[]
+        {
+            guest.FullAddress,
+            guest.Neighbourhood,
+            guest.State,
+            guest.City
+        }.Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        var phone = NormalizePhone(guest.Phone) ?? "+905555555555";
+        var email = string.IsNullOrWhiteSpace(guest.Email) ? "no-reply@example.com" : guest.Email;
+
+        var buyer = new IyzicoBuyer
+        {
+            Id = cart.AnonId ?? Guid.NewGuid().ToString("N"),
+            Name = string.IsNullOrWhiteSpace(guest.Name) ? "Müşteri" : guest.Name,
+            Surname = guest.Surname ?? string.Empty,
+            GsmNumber = phone,
+            Email = email,
+            IdentityNumber = DeriveIdentityNumber(new Address { PhoneNumber = guest.Phone }),
+            RegistrationAddress = fullAddress,
+            City = string.IsNullOrWhiteSpace(guest.City) ? "Ankara" : guest.City,
+            Country = "Turkey",
+            Ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+        };
+
+        var addr = new IyzicoAddress
+        {
+            ContactName = contactName,
+            City = string.IsNullOrWhiteSpace(guest.City) ? "Ankara" : guest.City,
+            Address = fullAddress,
+            Country = "Turkey"
+        };
+
+        return (buyer, addr, addr);
     }
 
     private async Task<Address?> ResolveAddressAsync(int userId, CancellationToken cancellationToken)
@@ -589,11 +867,25 @@ public class SiparisController : Controller
                         _ => fallback
                     };
                 }
+                if (root.TryGetProperty("PaymentId", out var paymentId2))
+                {
+                    return paymentId2.ValueKind switch
+                    {
+                        JsonValueKind.String => paymentId2.GetString() ?? fallback,
+                        JsonValueKind.Number => paymentId2.ToString() ?? fallback,
+                        _ => fallback
+                    };
+                }
 
                 if (root.TryGetProperty("conversationId", out var conversationId)
                     && conversationId.ValueKind == JsonValueKind.String)
                 {
                     return conversationId.GetString() ?? fallback;
+                }
+                if (root.TryGetProperty("ConversationId", out var conversationId2)
+                    && conversationId2.ValueKind == JsonValueKind.String)
+                {
+                    return conversationId2.GetString() ?? fallback;
                 }
             }
             catch (JsonException)
@@ -603,5 +895,79 @@ public class SiparisController : Controller
         }
 
         return fallback;
+    }
+
+    private GuestCheckoutViewModel? ReadGuestInfoFromRequest()
+    {
+        try
+        {
+            if (Request.Cookies.TryGetValue(GuestInfoCookie, out var json) && !string.IsNullOrWhiteSpace(json))
+            {
+                var guest = System.Text.Json.JsonSerializer.Deserialize<GuestCheckoutViewModel>(json);
+                return guest;
+            }
+        }
+        catch
+        {
+            // ignore malformed cookie
+        }
+        return null;
+    }
+
+    private static GuestCheckoutViewModel? FromInput(PlaceOrderInputModel input)
+    {
+        if (string.IsNullOrWhiteSpace(input.GuestName) || string.IsNullOrWhiteSpace(input.GuestSurname) || string.IsNullOrWhiteSpace(input.GuestFullAddress))
+        {
+            return null;
+        }
+
+        return new GuestCheckoutViewModel
+        {
+            Name = input.GuestName!,
+            Surname = input.GuestSurname!,
+            Email = input.GuestEmail ?? string.Empty,
+            Phone = input.GuestPhone ?? string.Empty,
+            City = input.GuestCity ?? string.Empty,
+            State = input.GuestState ?? string.Empty,
+            Neighbourhood = input.GuestNeighbourhood ?? string.Empty,
+            FullAddress = input.GuestFullAddress!
+        };
+    }
+
+    private static bool IsCardStorageNotEnabled(string? rawResponse)
+    {
+        if (string.IsNullOrWhiteSpace(rawResponse)) return false;
+        try
+        {
+            using var doc = JsonDocument.Parse(rawResponse);
+            var root = doc.RootElement;
+            // errorCode can be in different casing depending on serializer
+            if (root.TryGetProperty("errorCode", out var ec))
+            {
+                if (ec.ValueKind == JsonValueKind.String && string.Equals(ec.GetString(), "3007", StringComparison.Ordinal)) return true;
+                if (ec.ValueKind == JsonValueKind.Number && ec.TryGetInt32(out var eci) && eci == 3007) return true;
+            }
+            if (root.TryGetProperty("ErrorCode", out var ec2))
+            {
+                if (ec2.ValueKind == JsonValueKind.String && string.Equals(ec2.GetString(), "3007", StringComparison.Ordinal)) return true;
+                if (ec2.ValueKind == JsonValueKind.Number && ec2.TryGetInt32(out var eci2) && eci2 == 3007) return true;
+            }
+            if (root.TryGetProperty("errorMessage", out var em) && em.ValueKind == JsonValueKind.String)
+            {
+                var msg = em.GetString();
+                if (!string.IsNullOrWhiteSpace(msg) && msg.Contains("kart saklama", StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            if (root.TryGetProperty("ErrorMessage", out var em2) && em2.ValueKind == JsonValueKind.String)
+            {
+                var msg = em2.GetString();
+                if (!string.IsNullOrWhiteSpace(msg) && msg.Contains("kart saklama", StringComparison.OrdinalIgnoreCase)) return true;
+            }
+        }
+        catch
+        {
+            // ignore parse errors, fallback to substring check
+        }
+        // last resort substring check
+        return rawResponse.Contains("3007", StringComparison.Ordinal);
     }
 }

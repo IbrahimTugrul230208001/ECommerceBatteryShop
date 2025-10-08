@@ -69,8 +69,12 @@
                                 .FirstOrDefault();
                             var isGuest = order.User == null;
                             var carrier = order.Shipment?.Carrier; // null-safe
-                            //var displayName = isGuest ? (string.IsNullOrWhiteSpace(order.BuyerName) ? "Misafir" : order.BuyerName) : (order.User?.UserName ?? "");
-                          //  var displayEmail = isGuest ? (order.BuyerEmail ?? "-") : (order.User?.Email ?? "-");
+                            var displayName = isGuest
+                                ? (!string.IsNullOrWhiteSpace(order.BuyerName) ? order.BuyerName : "Misafir")
+                                : (order.User?.UserName ?? "-");
+                            var displayEmail = isGuest
+                                ? (order.BuyerEmail ?? "-")
+                                : (order.User?.Email ?? "-");
                             <tr>
                                 <td class="px-4 py-4 align-top font-semibold text-slate-900">
                                     <div class="space-y-1">
@@ -81,13 +85,13 @@
                                 <td class="px-4 py-4 align-top">
                                     <div class="space-y-1 text-sm">
                                         <div class="flex items-center gap-2">
-                                            <p class="font-semibold text-slate-900">@order.User.UserName</p>
+                                            <p class="font-semibold text-slate-900">@displayName</p>
                                             @if (isGuest)
                                             {
                                                 <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Misafir</span>
                                             }
                                         </div>
-                                        <p class="text-xs text-slate-500">@order.User.UserName</p>
+                                        <p class="text-xs text-slate-500">@displayEmail</p>
                                     </div>
                                 </td>
                                 <td class="px-4 py-4 align-top font-semibold text-slate-900">@order.TotalAmount.ToString("C", culture)</td>
@@ -119,12 +123,11 @@
                                                 <p class="text-sm text-slate-700">@order.Address.FullAddress</p>
                                                 <p class="text-xs text-slate-500">@order.Address.Neighbourhood, @order.Address.State / @order.Address.City</p>
                                             }
-                                            @*
                                             else
                                             {
                                                 <p class="text-sm text-slate-700">@order.ShippingAddressText</p>
                                                 <p class="text-xs text-slate-500">@order.ShippingNeighbourhood, @order.ShippingState / @order.ShippingCity</p>
-                                            }*@
+                                            }
                                                
                                             <div class="h-px bg-slate-100 my-2"></div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Ürünler</p>
