@@ -86,7 +86,7 @@ public class HesapController : Controller
     }
     public IActionResult Kayit()
     {
-        return View();
+        return View("~/Views/Hesap/Kayit.cshtml");
     }
 
     [HttpPost]
@@ -161,7 +161,7 @@ public class HesapController : Controller
         }
         return RedirectToAction("Index", "Ev");
     }
-    public IActionResult SifremiUnuttum()
+    public IActionResult SifreUnuttum()
     {
         return View();
     }
