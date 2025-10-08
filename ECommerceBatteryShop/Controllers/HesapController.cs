@@ -82,7 +82,7 @@ public class HesapController : Controller
 
     public IActionResult Giris()
     {
-        return View("~/Views/Hesap/Giris",new LoginViewModel());
+        return View("~/Views/Hesap/Giris.cshtml",new LoginViewModel());
     }
     public IActionResult Kayit()
     {
@@ -121,7 +121,7 @@ public class HesapController : Controller
             var adminPrincipal = new ClaimsPrincipal(adminIdentity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, adminPrincipal);
 
-            return RedirectToAction("Index", "Admin");
+            return RedirectToAction("UrunPaneli", "Admin");
         }
 
         var user = await _accountRepository.LogInAsync(model.Email, model.Password, ct);

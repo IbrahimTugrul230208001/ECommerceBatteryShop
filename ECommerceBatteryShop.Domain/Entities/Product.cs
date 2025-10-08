@@ -9,9 +9,6 @@ public class Product
     public float Rating { get; set; }
     public int ExtraAmount { get; set; }
     public string? ImageUrl { get; set; } = string.Empty;
-
-    public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
-    public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public Inventory? Inventory { get; set; }
     public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
 }

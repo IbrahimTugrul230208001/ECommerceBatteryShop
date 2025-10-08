@@ -37,7 +37,6 @@ public class BatteryShopContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
-    public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<User> Users => Set<User>();
