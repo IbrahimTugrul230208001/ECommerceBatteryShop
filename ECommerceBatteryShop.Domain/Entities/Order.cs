@@ -20,31 +20,25 @@ public class Order
     // Immutable buyer and shipping snapshot captured at checkout time
     // Always populate these for both logged-in and guest orders
     [System.ComponentModel.DataAnnotations.MaxLength(256)]
-    public string BuyerName { get; set; } = string.Empty;
+    public string? BuyerName { get; set; }
 
     [System.ComponentModel.DataAnnotations.MaxLength(256)]
-    public string BuyerEmail { get; set; } = string.Empty;
+    public string? BuyerEmail { get; set; }
 
     [System.ComponentModel.DataAnnotations.MaxLength(32)]
-    public string BuyerPhone { get; set; } = string.Empty;
+    public string?   BuyerPhone { get; set; }
 
     [System.ComponentModel.DataAnnotations.MaxLength(512)]
-    public string ShippingAddressText { get; set; } = string.Empty;
+    public string? ShippingAddressText { get; set; }
 
     [System.ComponentModel.DataAnnotations.MaxLength(128)]
-    public string ShippingCity { get; set; } = string.Empty;
+    public string? ShippingCity { get; set; }
 
     [System.ComponentModel.DataAnnotations.MaxLength(128)]
-    public string ShippingState { get; set; } = string.Empty;
+    public string? ShippingState { get; set; }
 
     [System.ComponentModel.DataAnnotations.MaxLength(256)]
-    public string ShippingNeighbourhood { get; set; } = string.Empty;
-
-    [System.ComponentModel.DataAnnotations.MaxLength(32)]
-    public string? ShippingPostalCode { get; set; }
-
-    [System.ComponentModel.DataAnnotations.MaxLength(64)]
-    public string? ShippingCountry { get; set; }
+    public string? ShippingNeighbourhood { get; set; }
 
     public string? Status { get; set; }
     public DateTime OrderDate { get; set; }

@@ -17,9 +17,8 @@ namespace ECommerceBatteryShop.Controllers;
 [AutoValidateAntiforgeryToken]
 public class SiparisController : Controller
 {
-    private const decimal DefaultExchangeRate = 41.3m;
     private const decimal KdvRate = 0.20m;
-    private const decimal ShippingFee = 150m;
+    private const decimal ShippingFee = 129.99m;
     private const decimal IbanDiscountRate = 0.03m; // %3 indirim
 
     private readonly ICartService _cartService;
@@ -66,8 +65,8 @@ public class SiparisController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> PlaceOrder([FromForm] PlaceOrderInputModel input, CancellationToken cancellationToken)
     {
-        var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken) ?? DefaultExchangeRate;
-
+        var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken);
+        
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
@@ -99,7 +98,7 @@ public class SiparisController : Controller
                 return BadRequest(new { success = false, message = "Sipariş oluşturmak için kayıtlı bir adres bulunamadı." });
             }
 
-            var orderTotalBeforeDiscount = CalculateOrderTotal(cart, fxRate);
+            var orderTotalBeforeDiscount = CalculateOrderTotal(cart, (decimal)fxRate);
             var discountedTotal = decimal.Round(orderTotalBeforeDiscount * (1 - IbanDiscountRate), 2, MidpointRounding.AwayFromZero);
 
             var order1 = new Order
@@ -115,7 +114,17 @@ public class SiparisController : Controller
                     ProductId = i.ProductId,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice
-                }).ToList()
+                }).ToList(),
+                            Payments =
+            {
+                new PaymentTransaction
+                {
+                    Amount = discountedTotal,
+                    TransactionDate = DateTime.UtcNow,
+                    PaymentMethod = "iban",
+                    TransactionId = null 
+                }
+            } 
             };
 
             await _orderRepository.InsertOrderAsync(order1, cancellationToken);
@@ -162,7 +171,7 @@ public class SiparisController : Controller
         foreach (var item in cart.Items)
         {
             var unitPriceTry = item.UnitPrice * (1 + KdvRate) * fxRate;
-            var linePrice = decimal.Round(unitPriceTry * item.Quantity, 2, MidpointRounding.AwayFromZero);
+            var linePrice = decimal.Round((decimal)(unitPriceTry * item.Quantity), 2, MidpointRounding.AwayFromZero);
             basketTotal += linePrice;
             lineItems.Add(new IyzicoBasketItem
             {

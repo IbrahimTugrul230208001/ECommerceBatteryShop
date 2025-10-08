@@ -17,6 +17,7 @@
  }
 
 <div class="mx-auto max-w-7xl space-y-10">
+    <a href="c:\users\lenovo\source\repos\ecommercebatteryshop\ecommercebatteryshop\views\admin\siparispaneli.cshtml">c:\users\lenovo\source\repos\ecommercebatteryshop\ecommercebatteryshop\views\admin\siparispaneli.cshtml</a>
     <header class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div class="space-y-2">
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Sipariş Yönetim Paneli</p>
@@ -126,12 +127,12 @@
                                             <div class="h-px bg-slate-100 my-2"></div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Ürünler</p>
                                             <ul class="space-y-2 text-sm text-slate-600">
-                                                @foreach (var item in Model.Items)
+                                                @foreach (var item in order.Items)
                                                 {
                                                     <li class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                                                        <span class="font-medium text-slate-700">@item.ProductName</span>
+                                                        <span class="font-medium text-slate-700">@item.Product.Name</span>
                                                         <span class="text-xs text-slate-500">@item.Quantity adet</span>
-                                                        <span class="font-semibold text-slate-900">@item.UnitPrice.ToString("C", culture)</span>
+                                                    <span class="font-semibold text-slate-900">@(decimal.Round((item.UnitPrice * 1.2m * Model.Rate),2).ToString("C", culture))</span>
                                                     </li>
                                                 }
                                             </ul>
