@@ -23,7 +23,7 @@ public class AdminProductEntryViewModel : IValidatableObject
     [Display(Name = "Fiyat ($)")]
     public decimal? Price { get; set; }
 
-    [Required(ErrorMessage = "Açıklama zorunludur."), StringLength(1000, ErrorMessage = "Açıklama 1000 karakterden uzun olamaz.")]
+    [Required(ErrorMessage = "Açıklama zorunludur."), StringLength(3000, ErrorMessage = "Açıklama 3000 karakterden uzun olamaz.")]
     [Display(Name = "Ürün Açıklaması")]
     public string Description { get; set; } = string.Empty;
 

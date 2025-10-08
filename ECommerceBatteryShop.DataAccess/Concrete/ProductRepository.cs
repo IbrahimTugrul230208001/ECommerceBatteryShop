@@ -37,7 +37,6 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 IQueryable<Product> query = _ctx.Products
       .AsNoTracking()
       .Include(p => p.Inventory)
-      .Include(p => p.Variants)
       .OrderBy(p => p.Id)
       .ThenBy(p => p.Name);
                 // tie-breaker to keep stable plans
