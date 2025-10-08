@@ -18,7 +18,7 @@ namespace ECommerceBatteryShop.Controllers;
 public class SiparisController : Controller
 {
     private const decimal KdvRate = 0.20m;
-    private const decimal ShippingFee = 129.99m;
+    private const decimal DefaultShippingFee = 129.99m;
     private const decimal IbanDiscountRate = 0.03m; // %3 indirim
 
     private readonly ICartService _cartService;
@@ -47,6 +47,17 @@ public class SiparisController : Controller
         _logger = logger;
     }
 
+    private static string ResolveCarrier(string? shippingId)
+    {
+        return (shippingId ?? string.Empty).ToLowerInvariant() switch
+        {
+            "aras" => "Aras Kargo",
+            "hepsijet" => "HepsiJET",
+            "yurtici" => "Yurtiçi Kargo",
+            _ => "Bilinmeyen Kargo"
+        };
+    }
+
     [HttpGet]
     public async Task<IActionResult> SavedCards(CancellationToken ct)
     {
@@ -66,6 +77,7 @@ public class SiparisController : Controller
     public async Task<IActionResult> PlaceOrder([FromForm] PlaceOrderInputModel input, CancellationToken cancellationToken)
     {
         var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken);
+        var shippingPrice = SanitizeShipping(input.ShippingPrice);
         
         if (!ModelState.IsValid)
         {
@@ -98,7 +110,7 @@ public class SiparisController : Controller
                 return BadRequest(new { success = false, message = "Sipariş oluşturmak için kayıtlı bir adres bulunamadı." });
             }
 
-            var orderTotalBeforeDiscount = CalculateOrderTotal(cart, (decimal)fxRate);
+            var orderTotalBeforeDiscount = CalculateOrderTotal(cart, (decimal)fxRate) + shippingPrice;
             var discountedTotal = decimal.Round(orderTotalBeforeDiscount * (1 - IbanDiscountRate), 2, MidpointRounding.AwayFromZero);
 
             var order1 = new Order
@@ -115,16 +127,22 @@ public class SiparisController : Controller
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice
                 }).ToList(),
-                            Payments =
-            {
-                new PaymentTransaction
+                Payments =
                 {
-                    Amount = discountedTotal,
-                    TransactionDate = DateTime.UtcNow,
-                    PaymentMethod = "iban",
-                    TransactionId = null 
+                    new PaymentTransaction
+                    {
+                        Amount = discountedTotal,
+                        TransactionDate = DateTime.UtcNow,
+                        PaymentMethod = "iban",
+                        TransactionId = null 
+                    }
+                },
+                Shipment = new Shipment
+                {
+                    Carrier = ResolveCarrier(input.ShippingId),
+                    TrackingNumber = string.Empty,
+                    ShippedDate = DateTime.UtcNow
                 }
-            } 
             };
 
             await _orderRepository.InsertOrderAsync(order1, cancellationToken);
@@ -186,7 +204,7 @@ public class SiparisController : Controller
             return BadRequest(new { success = false, message = "Ödeme için sepet ürünü bulunamadı." });
         }
 
-        var paidPrice = basketTotal + ShippingFee;
+        var paidPrice = basketTotal + shippingPrice;
 
         var buyerContext = await BuildBuyerContextAsync(owner, cart, cancellationToken);
 
@@ -289,6 +307,12 @@ public class SiparisController : Controller
                     PaymentMethod = "iyzico",
                     TransactionId = transactionId
                 }
+            },
+            Shipment = new Shipment
+            {
+                Carrier = ResolveCarrier(input.ShippingId),
+                TrackingNumber = string.Empty,
+                ShippedDate = DateTime.UtcNow
             }
         };
 
@@ -318,12 +342,15 @@ public class SiparisController : Controller
             total += linePrice;
         }
 
-        if (cart.Items.Count > 0)
-        {
-            total += ShippingFee;
-        }
-
         return total;
+    }
+
+    private static decimal SanitizeShipping(decimal? shipping)
+    {
+        if (!shipping.HasValue) return DefaultShippingFee;
+        if (shipping.Value < 0) return 0m;
+        if (shipping.Value > 1000) return DefaultShippingFee; // guard
+        return decimal.Round(shipping.Value, 2, MidpointRounding.AwayFromZero);
     }
 
     private static int GenerateOrderNumber()
