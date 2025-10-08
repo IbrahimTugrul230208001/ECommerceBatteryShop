@@ -45,6 +45,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
+
         public async Task<Order?> GetOrdersByUserIdAsync(int userId)
         {
             return await _ctx.Orders
