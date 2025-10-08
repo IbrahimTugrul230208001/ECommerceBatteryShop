@@ -55,7 +55,7 @@ namespace ECommerceBatteryShop.Controllers
                 TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
                 _log.LogWarning("USD→TRY unavailable; using USD display.");
             }
-            var fx = rate ?? 1m; // display currency factor (TRY if rate!=null, USD otherwise)
+            var fx = rate ?? 41.5m; // display currency factor (TRY if rate!=null, USD otherwise)
           
             // --- PRICE FILTERING ---
             // Inputs are given in the display currency -> convert back to USD for filtering source prices.
@@ -176,7 +176,7 @@ namespace ECommerceBatteryShop.Controllers
 
             const decimal KdvRate = 0.20m;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
-            var fx = rate ?? 1m;
+            var fx = rate ?? 41.5m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
             var relatedProducts = await _repo.GetLatestProductsAsync();
 

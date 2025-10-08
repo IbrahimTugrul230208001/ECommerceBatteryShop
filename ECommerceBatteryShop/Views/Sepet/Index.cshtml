@@ -6,8 +6,8 @@
     var cookieMessage = Model.CookieMessage ?? "Çerezleri kabul etmediğiniz için sepetiniz kaydedilemiyor.";
     var isAuthenticated = User.Identity?.IsAuthenticated == true;
     var authenticateUrl = isAuthenticated
-      ? Url.Action("Checkout", "Cart") ?? "/Cart/Checkout"
-      : Url.Action("LogIn", "Account") ?? "/Account/LogIn";
+      ? Url.Action("Siparis", "Sepet") ?? "/Sepet/Siparis"
+      : Url.Action("Giris", "Hesap") ?? "/Hesap/Giris";
 }
 
 @functions {
@@ -72,7 +72,7 @@ else
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Sepetim</h1>
             <div class="flex items-center gap-3">
-                <button hx-post="/Cart/DeleteAll"
+                <button hx-post="/Sepet/DeleteAll"
                         :hx-vals="JSON.stringify({ productId: item.id })"
                         hx-swap="none"
                         @@click ="clearCart"
@@ -102,7 +102,7 @@ else
                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.3 5H21L19 12H7.38M20 16H8L6 3H3M9 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0ZM20 20a1 1 0 1 1-2 0a1 1 0 0 1 2 0Z" /></svg>
             </div>
             <p class="text-lg">Sepetiniz boş.</p>
-            <a href="/Product/Index" class="mt-4 inline-flex h-11 items-center justify-center rounded-xl bg-amber-300 px-5 font-semibold text-gray-900 shadow-sm hover:bg-amber-400 hover:shadow transition">Ürünlere Göz At</a>
+            <a href="/Urun/Index" class="mt-4 inline-flex h-11 items-center justify-center rounded-xl bg-amber-300 px-5 font-semibold text-gray-900 shadow-sm hover:bg-amber-400 hover:shadow transition">Ürünlere Göz At</a>
         </div>
 
         <!-- Grid -->
@@ -116,7 +116,7 @@ else
                             x-transition:leave="transition ease-in duration-200"
                             x-transition:leave-start="opacity-100 scale-100"
                             x-transition:leave-end="opacity-0 scale-95">
-                            <a :href="`/Product/Details/${item.id}`" class="block p-3 pb-0">
+                            <a :href="`/Urun/Detaylar/${item.id}`" class="block p-3 pb-0">
                                 <img :src="item.img" :alt="item.name" class="h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover">
                             </a>
                             <div class="min-w-0 flex-1">
@@ -125,7 +125,7 @@ else
                                         <h3 class="truncate text-slate-900 font-medium" x-text="item.name"></h3>
                                         <p class="text-slate-500 text-sm" x-text="item.variant"></p>
                                     </div>
-                                    <button hx-post="/Cart/Delete"
+                                    <button hx-post="/Sepet/Delete"
                                             :hx-vals="JSON.stringify({ productId: item.id })"
                                             hx-swap="none"
                                             @@click="remove(item.id)"
@@ -148,7 +148,7 @@ else
                                     <!-- Qty -->
                                     <label class="sr-only" :for="'qty-'+item.id">Adet</label>
                                     <div class="inline-flex h-10 items-center rounded-xl border border-slate-300 bg-white shadow-xs">
-                                            <button hx-post="/Cart/SetQuantity"
+                                            <button hx-post="/Sepet/SetQuantity"
                                                     :hx-vals="JSON.stringify({ productId: item.id , quantity: -1})"
                                                     hx-swap="none"
                                             @@click="dec(item)" class="px-3 hover:bg-gray-200 cursor-pointer h-full text-slate-700 rounded-l-xl hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Azalt">−</button>
