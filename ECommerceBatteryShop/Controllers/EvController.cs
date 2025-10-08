@@ -28,7 +28,7 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> Index(CancellationToken ct)
         {
             const decimal KdvRate = 0.20m;
-            const int perSection = 8;
+            const int perSection = 16;
 
             ViewData["Title"] = "Dayily Enerji | Lityum Pil ve Enerji Depolama Mağazası";
             ViewData["Description"] = "Dayily Enerji'de Li-ion ve LiFePO4 pil paketleri, BMS koruma devreleri ve enerji depolama sistemleriyle ihtiyaçlarınıza uygun çözümleri keşfedin.";
@@ -152,7 +152,7 @@ namespace ECommerceBatteryShop.Controllers
         }
         public IActionResult MesafeliSatis()
         {
-            return RedirectToAction("DistantSelling", "Cart");
+            return RedirectToAction("MesafeliSatis", "Sepet");
         }
     }
 }

@@ -19,4 +19,8 @@
     <ProjectReference Include="..\ECommerceBatteryShop.DataAccess\ECommerceBatteryShop.DataAccess.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\doc\" />
+  </ItemGroup>
+
 </Project>

@@ -35,7 +35,10 @@ public class HesapController : Controller
         _cartService = cartService;
         _orderRepository = orderRepository;
     }
-
+    public IActionResult Ayarlar()
+    {
+        return View("~/Views/Hesap/Ayarlar.cshtml");
+    }
     [HttpPost]
     public async Task<IActionResult> RegisterUser(UserViewModel userViewModel)
     {
@@ -163,12 +166,12 @@ public class HesapController : Controller
     }
     public IActionResult SifreUnuttum()
     {
-        return View();
+        return View("~/Views/Hesap/SifreUnuttum.cshtml");
     }
 
     public IActionResult SifreYenile()
     {
-        return View();
+        return View("~/Views/Hesap/SifreYenile.cshtml");
     }
 
     public async Task<IActionResult> Profil(CancellationToken ct)

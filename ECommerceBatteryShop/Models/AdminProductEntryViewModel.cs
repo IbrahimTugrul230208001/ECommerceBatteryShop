@@ -14,6 +14,8 @@ public class AdminProductEntryViewModel : IValidatableObject
 
     [Display(Name = "Mevcut Görsel")]
     public string? ExistingImageUrl { get; set; }
+    public IFormFile? Document { get; set; }
+    public string? ExistingDocumentUrl { get; set; }
 
     [Required(ErrorMessage = "Ürün adı zorunludur."), StringLength(120, ErrorMessage = "Ürün adı 120 karakterden uzun olamaz.")]
     [Display(Name = "Ürün Adı")]

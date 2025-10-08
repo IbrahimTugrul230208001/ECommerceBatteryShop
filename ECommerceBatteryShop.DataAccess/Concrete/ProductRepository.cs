@@ -206,7 +206,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 .AsNoTracking()
                 .Include(p => p.Inventory)
                 .OrderByDescending(p => p.Id)
-                .Take(8)
+                .Take(16)
                 .ToListAsync();
         }
     }
