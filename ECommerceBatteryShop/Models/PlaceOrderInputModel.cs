@@ -18,6 +18,10 @@ public class PlaceOrderInputModel
 
     public bool Save { get; set; }
 
+    // Shipping selection
+    public string? ShippingId { get; set; }
+    public decimal? ShippingPrice { get; set; }
+
     // Guest checkout fields (used when user is not authenticated)
     public string? GuestName { get; set; }
     public string? GuestSurname { get; set; }

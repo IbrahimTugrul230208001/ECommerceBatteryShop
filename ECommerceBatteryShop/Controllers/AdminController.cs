@@ -113,7 +113,9 @@ namespace ECommerceBatteryShop.Controllers
             {
                 await _orderRepository.UpdateOrderStatusAsync(orderId, newStatus);
                 TempData["OrderStatusSuccess"] = "Sipariş durumu başarıyla güncellendi.";
-                return RedirectToAction("Orders", "Admin");
+                Response.Headers["HX-Refresh"] = "true";  // veya HX-Redirect
+                return RedirectToAction("SiparisPaneli", "Admin");
+
             }
         }
         [HttpPost]
