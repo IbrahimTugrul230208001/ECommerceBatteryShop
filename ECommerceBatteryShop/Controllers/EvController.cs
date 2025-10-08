@@ -46,12 +46,7 @@ namespace ECommerceBatteryShop.Controllers
             const int batteryPackages12vId = 59;
             const int batteryPackages24vId = 60;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
-            if (rate is null)
-            {
-                TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
-                _logger.LogWarning("USD?TRY unavailable; using USD display.");
-            }
-            var fx = rate ?? 41.3m;
+            var fx = rate ?? 41.5m;
 
             // Ensure this includes ProductCategories (CategoryId is enough; Category.Include not required)
 

@@ -1,5 +1,4 @@
-﻿
-using ECommerceBatteryShop.DataAccess.Abstract;
+﻿using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Services;
 using ECommerceBatteryShop.Models;
@@ -24,6 +23,7 @@ namespace ECommerceBatteryShop.Controllers
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
+        private const string GuestInfoCookie = "GUEST_INFO";
         public SepetController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository)
         {
             _repo = repo;
@@ -53,6 +53,23 @@ namespace ECommerceBatteryShop.Controllers
             return StatusCode(StatusCodes.Status409Conflict, new { message });
         }
 
+        private GuestCheckoutViewModel? ReadGuestInfo()
+        {
+            try
+            {
+                if (Request.Cookies.TryGetValue(GuestInfoCookie, out var json) && !string.IsNullOrWhiteSpace(json))
+                {
+                    var guest = JsonSerializer.Deserialize<GuestCheckoutViewModel>(json);
+                    return guest;
+                }
+            }
+            catch
+            {
+                // ignore malformed cookie
+            }
+            return null;
+        }
+
         public async Task<IActionResult> Index(CancellationToken ct)
         {
             CartOwner owner;
@@ -79,7 +96,8 @@ namespace ECommerceBatteryShop.Controllers
                 }
                 owner = CartOwner.FromAnon(anonId);
             }
-
+            var rate = await _currencyService.GetCachedUsdTryAsync();
+            decimal fx = rate ?? 41.5m;
             var cart = await _cartService.GetAsync(owner, createIfMissing: false, ct);
             var model = new CartViewModel();
             if (cart is not null)
@@ -89,7 +107,7 @@ namespace ECommerceBatteryShop.Controllers
                     ProductId = i.ProductId,
                     Name = i.Product?.Name ?? string.Empty,
                     ImageUrl = i.Product?.ImageUrl,
-                    UnitPrice = i.UnitPrice*1.2m*41m,
+                    UnitPrice = i.UnitPrice*1.2m*fx,
                     Quantity = i.Quantity
                 }).ToList();
             }
@@ -101,7 +119,8 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> Siparis()
         {
             CartOwner owner;
-            if (User.Identity?.IsAuthenticated == true)
+            var isAuthenticated = User.Identity?.IsAuthenticated == true;
+            if (isAuthenticated)
             {
                 // adapt this to however you store user id in claims
                 var userId = int.Parse(User.FindFirst("sub")!.Value);
@@ -132,17 +151,21 @@ namespace ECommerceBatteryShop.Controllers
             var subTotal = cartTotalPrice * (rate ?? 41.5m); // 1.2 = KDV
 
             IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
-            if (User.Identity?.IsAuthenticated == true)
+            if (isAuthenticated)
             {
                 var userId = int.Parse(User.FindFirst("sub")!.Value);
                 var addressEntities = await _addressRepository.GetByUserAsync(userId, HttpContext.RequestAborted);
                 addresses = addressEntities.Select(MapAddress).ToList();
             }
 
+            var guest = isAuthenticated ? null : ReadGuestInfo();
+
             var model = new CheckoutPageViewModel
             {
                 SubTotal = subTotal,
-                Addresses = addresses
+                Addresses = addresses,
+                IsGuest = !isAuthenticated,
+                Guest = guest
             };
 
             return View(model);
@@ -211,6 +234,7 @@ namespace ECommerceBatteryShop.Controllers
             Address? selectedAddress = null;
             var buyerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
+            GuestCheckoutViewModel? guest = null;
             if (User.Identity?.IsAuthenticated == true)
             {
                 var userClaim = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
@@ -228,34 +252,53 @@ namespace ECommerceBatteryShop.Controllers
                     }
                 }
             }
-
-            string buyerName = selectedAddress is not null
-                ? $"{selectedAddress.Name} {selectedAddress.Surname}".Trim()
-                : "Belirtilmedi";
-            if (string.IsNullOrWhiteSpace(buyerName))
+            else
             {
-                buyerName = "Belirtilmedi";
+                guest = ReadGuestInfo();
             }
 
-            string buyerPhone = selectedAddress?.PhoneNumber ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(buyerPhone))
-            {
-                buyerPhone = "+90 000 000 00 00";
-            }
+            string buyerName;
+            string buyerPhone;
+            string buyerAddress;
 
-            var addressParts = selectedAddress is null
-                ? Array.Empty<string>()
-                : new[]
+            if (selectedAddress is not null)
+            {
+                buyerName = $"{selectedAddress.Name} {selectedAddress.Surname}".Trim();
+                buyerPhone = selectedAddress.PhoneNumber ?? string.Empty;
+                var addressParts = new[]
                 {
                     selectedAddress.FullAddress,
                     selectedAddress.Neighbourhood,
                     string.Join('/', new[] { selectedAddress.State, selectedAddress.City }.Where(s => !string.IsNullOrWhiteSpace(s)))
                 };
+                buyerAddress = string.Join(" ", addressParts.Where(part => !string.IsNullOrWhiteSpace(part)));
+            }
+            else if (guest is not null)
+            {
+                buyerName = $"{guest.Name} {guest.Surname}".Trim();
+                buyerPhone = guest.Phone ?? string.Empty;
+                var addressParts = new[]
+                {
+                    guest.FullAddress,
+                    guest.Neighbourhood,
+                    string.Join('/', new[] { guest.State, guest.City }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                };
+                buyerAddress = string.Join(" ", addressParts.Where(part => !string.IsNullOrWhiteSpace(part)));
+                if (string.IsNullOrWhiteSpace(buyerEmail))
+                {
+                    buyerEmail = guest.Email;
+                }
+            }
+            else
+            {
+                buyerName = "Belirtilmedi";
+                buyerPhone = "+90 000 000 00 00";
+                buyerAddress = "Belirtilmedi";
+            }
 
-            var buyerAddress = addressParts.Length == 0
-                ? "Belirtilmedi"
-                : string.Join(" ", addressParts.Where(part => !string.IsNullOrWhiteSpace(part)));
-
+            if (string.IsNullOrWhiteSpace(buyerName)) buyerName = "Belirtilmedi";
+            if (string.IsNullOrWhiteSpace(buyerPhone)) buyerPhone = "+90 000 000 00 00";
+            if (string.IsNullOrWhiteSpace(buyerAddress)) buyerAddress = "Belirtilmedi";
             buyerEmail = string.IsNullOrWhiteSpace(buyerEmail) ? "info@dayilyenerji.com" : buyerEmail;
 
             var shippingFee = orderItems.Any(i => i.UnitPrice > 0m)
@@ -267,18 +310,18 @@ namespace ECommerceBatteryShop.Controllers
                 BuyerName = buyerName,
                 BuyerAddress = buyerAddress,
                 BuyerPhone = buyerPhone,
-                BuyerEmail = buyerEmail,
+                BuyerEmail = buyerEmail!,
                 OrdererName = buyerName,
                 OrdererAddress = buyerAddress,
                 OrdererPhone = buyerPhone,
-                OrdererEmail = buyerEmail,
+                OrdererEmail = buyerEmail!,
                 Items = orderItems,
                 ShippingFee = shippingFee,
                 InvoiceTitle = buyerName,
                 InvoiceTax = "00000000000",
                 InvoiceAddress = buyerAddress,
                 InvoicePhone = buyerPhone,
-                InvoiceEmail = buyerEmail,
+                InvoiceEmail = buyerEmail!,
                 ReturnPath = Url.Action("Iade", "Ev") ?? "/Ev/Iade",
                 OrderDate = DateTime.Now
             };

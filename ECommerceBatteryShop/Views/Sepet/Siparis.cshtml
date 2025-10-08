@@ -17,9 +17,9 @@
     var defaultAddressId = Model.Addresses.FirstOrDefault(a => a.IsDefault)?.Id
         ?? Model.Addresses.FirstOrDefault()?.Id;
     var contractUrl = defaultAddressId.HasValue
-        ? Url.Action("DistantSelling", "Cart", new { addressId = defaultAddressId.Value, shipping })
-        : Url.Action("DistantSelling", "Cart", new { shipping });
-    contractUrl ??= "/Cart/DistantSelling";
+        ? Url.Action("MesafeliSatis", "Sepet", new { addressId = defaultAddressId.Value, shipping })
+        : Url.Action("MesafeliSatis", "Sepet", new { shipping });
+    contractUrl ??= "/Sepet/MesafeliSatis";
 }
 <main x-data="checkout(@(subTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)), 0.20)"
       class="bg-white min-h-screen pt-10 pb-24">
@@ -283,7 +283,7 @@
         luhn(num){ let d=this.digits(num), s=0, alt=false; for(let i=d.length-1;i>=0;i--){ let n=+d[i]; if(alt){ n*=2; if(n>9)n-=9; } s+=n; alt=!alt; } return d.length>=13 && s%10===0; },
         async refreshSaved(){
           try{
-            const res = await fetch('/Checkout/SavedCards');
+            const res = await fetch('/Siparis/SavedCards');
             if(!res.ok) return;
             this.saved = await res.json();
           }catch{}
@@ -327,7 +327,7 @@
           });
           this.loading = true;
           try {
-            const response = await fetch('/Checkout/PlaceOrder', {
+            const response = await fetch('/Siparis/PlaceOrder', {
               method:'POST',
               headers,
               body
