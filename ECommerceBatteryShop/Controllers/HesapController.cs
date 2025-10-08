@@ -82,7 +82,7 @@ public class HesapController : Controller
 
     public IActionResult Giris()
     {
-        return View(new LoginViewModel());
+        return View("~/Views/Hesap/Giris",new LoginViewModel());
     }
     public IActionResult Kayit()
     {
@@ -192,7 +192,7 @@ public class HesapController : Controller
             Orders = orders
         };
 
-        return View(model);
+        return View("~/Views/Hesap/Profil",model);
     }
 
 
