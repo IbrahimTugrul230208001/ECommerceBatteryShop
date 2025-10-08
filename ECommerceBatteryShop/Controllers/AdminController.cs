@@ -236,6 +236,8 @@ namespace ECommerceBatteryShop.Controllers
         {
             model.SearchTerm = string.IsNullOrWhiteSpace(model.SearchTerm) ? null : model.SearchTerm.Trim();
             model.SearchResults = await LoadProductSelectionItemsAsync(model.SearchTerm, cancellationToken);
+            // Ensure categories are available when returning the form
+            model.Categories = await LoadCategoryItemsAsync(null);
 
             if (model.ProductId.HasValue)
             {
@@ -254,9 +256,19 @@ namespace ECommerceBatteryShop.Controllers
                 }
             }
 
+            if (model.Document is not null)
+            {
+                var ext = Path.GetExtension(model.Document.FileName);
+                var isPdf = string.Equals(ext, ".pdf", StringComparison.OrdinalIgnoreCase) || string.Equals(model.Document.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase);
+                if (!isPdf)
+                {
+                    ModelState.AddModelError(nameof(model.Document), "Lütfen PDF belge yükleyin (.pdf).");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
-                return View("Index", model);
+                return View(nameof(UrunPaneli), model);
             }
 
             var isNew = !model.ProductId.HasValue;
@@ -280,10 +292,40 @@ namespace ECommerceBatteryShop.Controllers
             product.Description = model.Description.Trim();
 
             var imagesFolder = Path.Combine(_environment.WebRootPath ?? string.Empty, "img");
+            var documentsFolder = Path.Combine(_environment.WebRootPath ?? string.Empty, "doc");
             Directory.CreateDirectory(imagesFolder);
-
+            Directory.CreateDirectory(documentsFolder);
             string? savedFileName = product.ImageUrl ?? model.ExistingImageUrl;
+            string? savedDocumentFileName = product.DocumentUrl ?? model.ExistingDocumentUrl;
 
+            // Handle document upload (PDF)
+            if (model.Document is not null && model.Document.Length > 0)
+            {
+                var extension = Path.GetExtension(model.Document.FileName);
+                if (!string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase))
+                {
+                    extension = ".pdf";
+                }
+                var newDocFileName = CreateDocumentFileName(product.Name, extension);
+                var docPath = Path.Combine(documentsFolder, newDocFileName);
+                await using (var stream = System.IO.File.Create(docPath))
+                {
+                    await model.Document.CopyToAsync(stream);
+                }
+
+                if (!string.IsNullOrWhiteSpace(savedDocumentFileName) && !string.Equals(savedDocumentFileName, newDocFileName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    var previousDocPath = Path.Combine(documentsFolder, savedDocumentFileName);
+                    if (System.IO.File.Exists(previousDocPath))
+                    {
+                        System.IO.File.Delete(previousDocPath);
+                    }
+                }
+
+                savedDocumentFileName = newDocFileName;
+            }
+
+            // Handle image upload
             if (model.Image is not null && model.Image.Length > 0)
             {
                 var extension = Path.GetExtension(model.Image.FileName);
@@ -305,7 +347,7 @@ namespace ECommerceBatteryShop.Controllers
                     await model.Image.CopyToAsync(stream);
                 }
 
-                if (!string.IsNullOrWhiteSpace(savedFileName) && !string.IsNullOrWhiteSpace(newFileName) && !string.Equals(savedFileName, newFileName, System.StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(savedFileName) && !string.Equals(savedFileName, newFileName, System.StringComparison.OrdinalIgnoreCase))
                 {
                     var previousPath = Path.Combine(imagesFolder, savedFileName);
                     if (System.IO.File.Exists(previousPath))
@@ -321,14 +363,18 @@ namespace ECommerceBatteryShop.Controllers
             {
                 product.ImageUrl = savedFileName;
             }
+            if (!string.IsNullOrWhiteSpace(savedDocumentFileName))
+            {
+                product.DocumentUrl = savedDocumentFileName;
+            }
 
             await _context.SaveChangesAsync(cancellationToken);
-            await AssignCategoryAsync(product.Id,model.CategoryId);
+            await AssignCategoryAsync(product.Id, model.CategoryId, cancellationToken);
             TempData["ProductEntrySuccess"] = isNew
                 ? "Yeni ürün başarıyla oluşturuldu."
                 : "Ürün bilgileri başarıyla güncellendi.";
 
-            return RedirectToAction(nameof(Index), new { productId = product.Id, search = model.SearchTerm });
+            return RedirectToAction(nameof(UrunPaneli), new { productId = product.Id, search = model.SearchTerm });
         }
         private async Task AssignCategoryAsync(int productId, int? categoryId, CancellationToken ct=default)
         {
@@ -378,7 +424,7 @@ namespace ECommerceBatteryShop.Controllers
             searchTerm = searchTerm.Trim();
 
             var query = _context.Products.AsNoTracking();
-            var pattern = $"%{searchTerm}%";
+            var pattern = $"/StokPaneli/%{searchTerm}%";
 
             if (int.TryParse(searchTerm, out var productId))
             {
@@ -442,7 +488,7 @@ namespace ECommerceBatteryShop.Controllers
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 searchTerm = searchTerm.Trim();
-                var pattern = $"%{searchTerm}%";
+                var pattern = $"/UrunPaneli/%{searchTerm}%";
 
                 if (int.TryParse(searchTerm, out var productId))
                 {
@@ -483,7 +529,19 @@ namespace ECommerceBatteryShop.Controllers
 
             return sanitized + extension;
         }
-
+        public static string CreateDocumentFileName(string productName, string extension)
+        {
+            extension = string.IsNullOrWhiteSpace(extension) || !extension.StartsWith('.')
+                ? ".pdf"
+                : extension.ToLowerInvariant();
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var sanitized = new string(productName.Where(c => !char.IsWhiteSpace(c) && !invalidChars.Contains(c)).ToArray());
+            if (string.IsNullOrWhiteSpace(sanitized))
+            {
+                sanitized = "urun";
+            }
+            return sanitized + extension;
+        }
         private async Task<List<CategorySelectionViewModel>> LoadCategoryItemsAsync(int? selectedId = null)
         {
             var items = await _context.Categories

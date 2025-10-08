@@ -8,6 +8,9 @@
     var existingImagePath = string.IsNullOrWhiteSpace(Model.ExistingImageUrl)
         ? Url.Content("~/img/placeholder-image.svg")
         : Url.Content($"~/img/{Model.ExistingImageUrl}");
+    var existingDocumentPath = string.IsNullOrWhiteSpace(Model.ExistingDocumentUrl)
+        ? null
+        : Url.Content($"~/doc/{Model.ExistingDocumentUrl}");
 }
 <main class="mx-auto max-w-7xl px-6 py-10">
     <div class="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -41,7 +44,7 @@
                             </svg>
                             Ara
                         </button>
-                        <a href="@Url.Action("Index", "Admin")" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900">Temizle</a>
+                        <a href="@Url.Action("UrunPaneli", "Admin")" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900">Temizle</a>
                     </div>
                 </form>
                 <div class="mt-5 space-y-2">
@@ -54,7 +57,7 @@
                                     ? Url.Content("~/img/placeholder-image.svg")
                                     : Url.Content($"~/img/{item.ImageUrl}");
                                 <li >
-                                    <a class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition hover:border-slate-300 hover:bg-slate-100" href="@Url.Action("Index", "Admin", new { productId = item.Id, search = Model.SearchTerm })">
+                                    <a class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition hover:border-slate-300 hover:bg-slate-100" href="@Url.Action("UrunPaneli", "Admin", new { productId = item.Id, search = Model.SearchTerm })">
                                         <span class="flex items-center gap-3">
                                             <span class="h-9 w-9 overflow-hidden rounded-xl border border-slate-200 bg-white">
                                                 <img src="@imagePath" alt="@item.Name" class="h-full w-full object-cover" />
@@ -130,7 +133,7 @@
             <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50">
                 <h2 class="text-lg font-semibold text-slate-900">Ürün Görseli</h2>
                 <p class="mt-1 text-sm text-slate-500">Yüklenen görsel ürün listeleme sayfası ve detay sayfasında kullanılacaktır.</p>
-
+              
                 <div class="mt-5">
                     <label asp-for="Image" class="block text-sm font-medium text-slate-700"></label>
                     <div class="mt-2 flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/80 p-8 text-center transition hover:border-slate-300">
@@ -151,7 +154,32 @@
                     </div>
                 </div>
             </div>
+                    <div class="space-y-8">
+                        <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50">
+                            <h2 class="text-lg font-semibold text-slate-900">Ürün Dokümanı</h2>
+                            <p class="mt-1 text-sm text-slate-500">Yüklenen doküman ürün listeleme sayfası ve detay sayfasında kullanılacaktır.</p>
 
+                            <div class="mt-5">
+                        <label asp-for="Document" class="block text-sm font-medium text-slate-700"></label>
+                        <div class="mt-2 flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/80 p-8 text-center transition hover:border-slate-300">
+                            <div class="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-inner">
+                                <img id="docPreview" src="@existingDocumentPath" alt="Ürün önizleme" class="h-full w-full object-cover" />
+                            </div>
+                            <div class="space-y-2 text-sm text-slate-500">
+                                <p class="font-medium text-slate-700">Dokümanınızı sürükleyip bırakın veya tıklayarak seçin</p>
+                                <p>PDF · Maksimum 10 MB</p>
+                            </div>
+                            <div>
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800">
+                                    Dosya Seç
+                                    <input asp-for="Document" type="file" accept="doc/*" class="hidden" />
+                                </label>
+                            </div>
+                            <span asp-validation-for="Document" class="text-xs text-red-600"></span>
+                        </div>
+                    </div>
+                  </div>
+                  </div>
             <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50">
                 <h2 class="text-lg font-semibold text-slate-900">Ürün Bilgileri</h2>
                 <p class="mt-1 text-sm text-slate-500">İsim, fiyat ve açıklama müşterilerinizin göreceği şekilde yayınlanacaktır.</p>
@@ -179,6 +207,8 @@
                             <span asp-validation-for="Description" class="text-xs text-red-600"></span>
                             <span id="descriptionCounter">0 / 3000</span>
                         </div>
+                    
+
                     </div>
                             <div>
                                 <label asp-for="CategoryId" class="block text-sm font-medium text-slate-700"></label>
@@ -306,7 +336,7 @@
 
         descriptionInput?.addEventListener('input', () => {
             const value = descriptionInput.value.trim();
-            descriptionCounter.textContent = `${value.length} / 1000`;
+            descriptionCounter.textContent = `${value.length} / 3000`;
             cardPreviewDescription.textContent = value || 'Kısa açıklama burada görünecek.';
         });
 
@@ -324,7 +354,7 @@
 
         if (descriptionInput) {
             const value = descriptionInput.value.trim();
-            descriptionCounter.textContent = `${value.length} / 1000`;
+            descriptionCounter.textContent = `${value.length} / 3000`;
             cardPreviewDescription.textContent = value || 'Kısa açıklama burada görünecek.';
         }
     </script>

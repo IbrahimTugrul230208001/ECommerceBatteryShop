@@ -8,14 +8,6 @@
        : "Misafir Kullanıcı";
 
     var displayName = rawName.Replace("-", "").Trim();
-
-
-    var transactions = new[]
-    {
-        new { Title = "Kredi Kartı Ödemesi", Amount = "-₺1.299,00", Date = "15 Mart 2024", Status = "Tamamlandı", StatusClass = "text-emerald-600" },
-        new { Title = "İade Ücreti", Amount = "+₺249,00", Date = "02 Mart 2024", Status = "İade Tamamlandı", StatusClass = "text-blue-600" },
-        new { Title = "Kapıda Ödeme", Amount = "-₺899,00", Date = "25 Şubat 2024", Status = "Beklemede", StatusClass = "text-amber-600" }
-    };
 }
 
 <section x-data class="bg-gray-50 py-12">
@@ -160,20 +152,6 @@
                             <p class="mt-2 text-lg font-semibold text-gray-900">₺0,00</p>
                             <p class="mt-1 text-xs text-gray-500">Güncel fatura bulunmuyor.</p>
                         </div>
-                    </div>
-
-                    <div class="mt-6 space-y-3">
-                        @foreach (var transaction in transactions)
-                        {
-                            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm">
-                                <div>
-                                    <p class="font-medium text-gray-900">@transaction.Title</p>
-                                    <p class="text-xs text-gray-500">@transaction.Date</p>
-                                </div>
-                                <p class="font-semibold text-gray-900">@transaction.Amount</p>
-                                <span class="text-xs font-medium @transaction.StatusClass">@transaction.Status</span>
-                            </div>
-                        }
                     </div>
                 </section>
 

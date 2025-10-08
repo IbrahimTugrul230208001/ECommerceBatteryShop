@@ -215,11 +215,12 @@ namespace ECommerceBatteryShop.Controllers
                     ImageUrl = product.ImageUrl ?? string.Empty,
                     IsFavorite = favoriteIds.Contains(product.Id),
                     Description = product.Description ?? string.Empty,
-                    StockQuantity = product.Inventory?.Quantity ?? 0
+                    StockQuantity = product.Inventory?.Quantity ?? 0,
+                    AttachmentUrl = product.DocumentUrl ?? string.Empty
                 },
                 RelatedProducts = relatedProducts
                     .Where(p => p.Id != product.Id)
-                    .Take(8)
+                    .Take(16)
                     .Select(p => new ProductViewModel
                     {
                         Id = p.Id,
