@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
+using ECommerceBatteryShop.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +56,9 @@ builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 
 // Hosted service
 builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
+
+// API key auth for machine-to-machine
+builder.Services.AddApiKeyAuthentication(builder.Configuration);
 
 // ⬇️ AUTH: Cookie + Google
 builder.Services.AddAuthentication(o =>
