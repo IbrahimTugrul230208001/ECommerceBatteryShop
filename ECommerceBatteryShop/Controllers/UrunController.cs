@@ -50,12 +50,12 @@ namespace ECommerceBatteryShop.Controllers
             ViewData["OgImage"] = Url.Content("~/img/dayı_amber_banner.jpg");
 
             var rate = await _currency.GetCachedUsdTryAsync(ct);
+            decimal fx = rate ?? 41.5m;
             if (rate is null)
             {
                 TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
                 _log.LogWarning("USD→TRY unavailable; using USD display.");
             }
-            var fx = rate ?? 41.5m; // display currency factor (TRY if rate!=null, USD otherwise)
           
             // --- PRICE FILTERING ---
             // Inputs are given in the display currency -> convert back to USD for filtering source prices.

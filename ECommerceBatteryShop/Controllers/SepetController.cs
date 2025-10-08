@@ -158,6 +158,17 @@ namespace ECommerceBatteryShop.Controllers
                 addresses = addressEntities.Select(MapAddress).ToList();
             }
 
+            // build brief cart items for the checkout page
+            var cart = await _cartService.GetAsync(owner, createIfMissing: false, HttpContext.RequestAborted);
+            var cartItems = cart?.Items.Select(i => new CartItemViewModel
+            {
+                ProductId = i.ProductId,
+                Name = i.Product?.Name ?? string.Empty,
+                ImageUrl = i.Product?.ImageUrl,
+                UnitPrice = i.UnitPrice,
+                Quantity = i.Quantity
+            }).ToList() ?? new List<CartItemViewModel>();
+
             var guest = isAuthenticated ? null : ReadGuestInfo();
 
             var model = new CheckoutPageViewModel
@@ -165,7 +176,8 @@ namespace ECommerceBatteryShop.Controllers
                 SubTotal = subTotal,
                 Addresses = addresses,
                 IsGuest = !isAuthenticated,
-                Guest = guest
+                Guest = guest,
+                CartItems = cartItems
             };
 
             return View(model);

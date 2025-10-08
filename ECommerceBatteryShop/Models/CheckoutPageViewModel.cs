@@ -9,4 +9,7 @@ public class CheckoutPageViewModel
     // For guests: carry data captured on MisafirController to the checkout page
     public bool IsGuest { get; set; }
     public GuestCheckoutViewModel? Guest { get; set; }
+
+    // Brief cart summary to show on checkout
+    public IReadOnlyList<CartItemViewModel> CartItems { get; set; } = Array.Empty<CartItemViewModel>();
 }

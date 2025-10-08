@@ -67,4 +67,12 @@ public class CartRepository : ICartRepository
 
         return cart?.Items.Sum(i => i.Quantity) ?? 0;
     }
+    public async Task<Cart?> GetCartAsync(int userId, CancellationToken ct = default)
+    {
+        return await _ctx.Carts
+            .AsNoTracking()
+            .Include(c => c.Items)
+            .ThenInclude(i => i.Product)
+            .FirstOrDefaultAsync(c => c.UserId == userId, ct);
+    }
 }

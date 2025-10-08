@@ -1,3 +1,4 @@
+
 @using System.Linq
 @{
     ViewBag.Title = "Checkout";
@@ -21,6 +22,16 @@
         : Url.Action("MesafeliSatis", "Sepet", new { shipping });
     contractUrl ??= "/Sepet/MesafeliSatis";
 }
+@functions {
+    public static string NormalizeImg(string? u)
+    {
+        if (string.IsNullOrWhiteSpace(u)) return "/img/temsili.png";
+        u = u.Replace("\\", "/").Trim();
+        if (u.StartsWith("/img/", System.StringComparison.OrdinalIgnoreCase)) return u;
+        if (u.StartsWith("img/", System.StringComparison.OrdinalIgnoreCase)) return "/" + u;
+        return "/img/" + u.TrimStart('/');
+    }
+}
 <main x-data="checkout(@(subTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)), 0.20)"
       class="bg-white min-h-screen pt-10 pb-24">
     <div class="mx-auto max-w-5xl px-4">
@@ -34,26 +45,64 @@
             <!-- Sol sütun -->
             <div class="lg:col-span-2 space-y-8">
                 <!-- Adresler -->
-                <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                            <h2 class="text-lg font-semibold text-gray-900">Adresler & Fatura Bilgileri</h2>
-                            <p class="text-sm text-gray-500">Teslimat adreslerinizi ve fatura bilgilerinizi yönetin.</p>
+                @if (User?.Identity?.IsAuthenticated == true)
+                {
+                    <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-900">Adresler & Fatura Bilgileri</h2>
+                                <p class="text-sm text-gray-500">Teslimat adreslerinizi ve fatura bilgilerinizi yönetin.</p>
+                            </div>
+
+                            <button type="button"
+                                    @@click="$store.address.openNew()"
+                                    class="inline-flex items-center gap-2 rounded-full border border-amber-400 px-4 py-2 text-sm font-semibold text-amber-600 hover:border-amber-700 hover:text-amber-700">
+                                Yeni adres ekle
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M12 5v14" />
+                                    <path d="M5 12h14" />
+                                </svg>
+                            </button>
                         </div>
 
-                        <button type="button"
-                                @@click="$store.address.openNew()"
-                                class="inline-flex items-center gap-2 rounded-full border border-amber-400 px-4 py-2 text-sm font-semibold text-amber-600 hover:border-amber-700 hover:text-amber-700">
-                            Yeni adres ekle
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                                <path d="M12 5v14" />
-                                <path d="M5 12h14" />
-                            </svg>
-                        </button>
+                        @await Html.PartialAsync("_AddressListPartial", Model.Addresses)
+                    </section>
+                }
+                else
+                {
+                    <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">Adresler & Fatura Bilgileri</h2>
+                            <p class="text-sm text-gray-500">Adres seçimi yalnızca giriş yapan kullanıcılar için görünür. Lütfen giriş yapın.</p>
+                        </div>
+                    </section>
+                }
+                
+                <!-- Sepet özeti: sadece görseller + adet -->
+                <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-lg font-semibold text-gray-900">Sepettekiler</h2>
+                        <a href="@Url.Action("Index","Sepet")" class="text-sm text-amber-600 hover:text-amber-700 underline">Sepeti görüntüle</a>
                     </div>
-
-                    @await Html.PartialAsync("_AddressListPartial", Model.Addresses)
+                    @if (Model.CartItems != null && Model.CartItems.Any())
+                    {
+                        <ul class="flex flex-wrap gap-4">
+                            @foreach (var item in Model.CartItems)
+                            {
+                                var src = NormalizeImg(item.ImageUrl);
+                                <li class="relative">
+                                    <img src="@src" alt="@item.Name" loading="lazy" class="h-16 w-16 rounded-lg object-cover border border-slate-200" />
+                                    <span class="absolute -top-2 -right-2 inline-flex items-center justify-center rounded-full bg-amber-500 text-white text-xs font-semibold w-6 h-6">@item.Quantity</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-sm text-slate-600">Sepetiniz boş.</p>
+                    }
                 </section>
+                
                 <!-- Kargo Seçimi -->
                 <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 mb-8 ">
                     <h2 class="text-lg font-semibold text-gray-900 mb-3">Kargo Seçimi</h2>
@@ -214,7 +263,11 @@
     </div>
 </main>
 
+@if (User?.Identity?.IsAuthenticated == true)
+{
     @await Html.PartialAsync("_AddressModalPartial")
+}
+
 <script>
             function checkout(subTotal, vat, threshold){
       return {

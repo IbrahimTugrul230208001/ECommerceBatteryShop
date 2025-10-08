@@ -72,15 +72,7 @@ namespace ECommerceBatteryShop.Controllers
             {
                 Orders = orders,
                 Payments = orders.SelectMany(o => o.Payments).ToList(),
-                Items = orders
-                    .SelectMany(o => o.Items.Select(i => new OrderItemViewModel
-                    {
-                        OrderId = o.OrderId,
-                        ProductName = i.Product != null ? i.Product.Name : "Ürün silinmiş",
-                        Quantity = i.Quantity,
-                        UnitPrice = i.UnitPrice * fx * (1 + 0.20m)
-                    }))
-                    .ToList()
+                Rate= fx
             };
             return View(vm);
         }
