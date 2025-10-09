@@ -418,7 +418,7 @@ namespace ECommerceBatteryShop.Controllers
             searchTerm = searchTerm.Trim();
 
             var query = _context.Products.AsNoTracking();
-            var pattern = $"/StokPaneli/%{searchTerm}%";
+            var pattern = $"%{searchTerm}%";
 
             if (int.TryParse(searchTerm, out var productId))
             {
@@ -482,7 +482,7 @@ namespace ECommerceBatteryShop.Controllers
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 searchTerm = searchTerm.Trim();
-                var pattern = $"/UrunPaneli/%{searchTerm}%";
+                var pattern = $"%{searchTerm}%";
 
                 if (int.TryParse(searchTerm, out var productId))
                 {
