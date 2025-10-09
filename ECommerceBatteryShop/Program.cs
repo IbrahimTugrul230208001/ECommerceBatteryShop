@@ -33,6 +33,7 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
   builder.Services.AddScoped<IIyzicoPaymentService, IyzicoPaymentService>();
   builder.Services.AddScoped<ICategoryService, CategoryService>();
   builder.Services.AddScoped<ISavedCardRepository, SavedCardRepository>();
+  builder.Services.AddScoped<IThreeDSStore, ThreeDSStore>();
 builder.Services.AddMemoryCache();
 
 // Options
