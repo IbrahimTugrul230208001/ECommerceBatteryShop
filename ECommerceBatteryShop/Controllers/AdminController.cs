@@ -24,13 +24,15 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ICategoryRepository _categoryRepository;  
         private readonly IOrderRepository _orderRepository;
         private readonly ICurrencyService _currencyService;
-        public AdminController(BatteryShopContext context, IWebHostEnvironment environment, ICategoryRepository categoryRepository, IOrderRepository orderRepository, ICurrencyService currencyService)
+        private readonly IProductRepository _productRepository;
+        public AdminController(BatteryShopContext context, IWebHostEnvironment environment, ICategoryRepository categoryRepository, IOrderRepository orderRepository, ICurrencyService currencyService, IProductRepository productRepository)
         {
             _context = context;
             _environment = environment;
             _categoryRepository = categoryRepository;
             _orderRepository = orderRepository;
             _currencyService = currencyService;
+            _productRepository = productRepository;
         }
 
         [HttpGet]
@@ -56,10 +58,33 @@ namespace ECommerceBatteryShop.Controllers
             }
             return View(model);
         }
+
+        // NEW: Product sales analytics with search + paging
         [HttpGet]
-        public IActionResult AnalitikPaneli()
+        public async Task<IActionResult> AnalitikPaneli(string? q, int page = 1, int pageSize = 30, CancellationToken ct = default)
         {
-             return View();
+            if (page <= 0) page = 1;
+            if (pageSize <= 0 || pageSize > 50) pageSize = 30;
+
+            var (items, total) = await _productRepository.GetProductSalesAsync(q, page, pageSize, ct);
+
+            var vm = new ProductSalesAnalyticsViewModel
+            {
+                Search = string.IsNullOrWhiteSpace(q) ? null : q.Trim(),
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = total,
+                Items = items.Select(x => new ProductSalesAnalyticsItem
+                {
+                    ProductId = x.Product.Id,
+                    Name = x.Product.Name,
+                    ImageUrl = x.Product.ImageUrl,
+                    Price = x.Product.Price,
+                    SoldUnits = x.SoldUnits
+                }).ToList()
+            };
+
+            return View(vm);
         }
         [HttpGet]
         public async Task<IActionResult> SiparisPaneli()

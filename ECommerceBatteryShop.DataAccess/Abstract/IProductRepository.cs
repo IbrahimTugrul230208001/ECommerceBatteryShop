@@ -1,9 +1,7 @@
 ﻿using ECommerceBatteryShop.Domain.Entities;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 
 namespace ECommerceBatteryShop.DataAccess.Abstract
 {
@@ -32,5 +30,12 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
             decimal? maxUsd = null,
             CancellationToken ct = default);
         Task<List<Product>> GetLatestProductsAsync();
+
+        // NEW: product sales aggregation for admin analytics
+        Task<(IReadOnlyList<(Product Product, int SoldUnits)> Items, int TotalCount)> GetProductSalesAsync(
+            string? search,
+            int page,
+            int pageSize,
+            CancellationToken ct = default);
     }
 }
