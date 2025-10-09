@@ -168,11 +168,26 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 30;
 
-            // Simpler and robust: filter by direct category link (avoids Category table schema mismatches)
+            // Path-based hierarchy (no ParentCategoryId): include selected node and all descendants
+            var rootPath = await _ctx.Categories
+                .AsNoTracking()
+                .Where(c => c.Id == categoryId)
+                .Select(c => c.Path)
+                .SingleOrDefaultAsync(ct);
+
+            if (string.IsNullOrWhiteSpace(rootPath))
+                return (Array.Empty<Product>(), 0);
+
+            var categoryIds = await _ctx.Categories
+                .AsNoTracking()
+                .Where(c => c.Path.StartsWith(rootPath))
+                .Select(c => c.Id)
+                .ToListAsync(ct);
+
             var query = _ctx.Products
                 .AsNoTracking()
                 .Include(p => p.Inventory)
-                .Where(p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId));
+                .Where(p => p.ProductCategories.Any(pc => categoryIds.Contains(pc.CategoryId)));
 
             if (minUsd.HasValue)
                 query = query.Where(p => p.Price >= minUsd.Value);

@@ -269,7 +269,7 @@ namespace ECommerceBatteryShop.Controllers
 
             if (model.Image is not null)
             {
-                if (string.IsNullOrWhiteSpace(model.Image.ContentType) || !model.Image.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(model.Image.ContentType) || !model.Image.ContentType.StartsWith("image/", System.StringComparison.OrdinalIgnoreCase))
                 {
                     ModelState.AddModelError(nameof(model.Image), "Lütfen geçerli bir görsel dosyası yükleyin.");
                 }
@@ -278,7 +278,7 @@ namespace ECommerceBatteryShop.Controllers
             if (model.Document is not null)
             {
                 var ext = Path.GetExtension(model.Document.FileName);
-                var isPdf = string.Equals(ext, ".pdf", StringComparison.OrdinalIgnoreCase) || string.Equals(model.Document.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase);
+                var isPdf = string.Equals(ext, ".pdf", System.StringComparison.OrdinalIgnoreCase) || string.Equals(model.Document.ContentType, "application/pdf", System.StringComparison.OrdinalIgnoreCase);
                 if (!isPdf)
                 {
                     ModelState.AddModelError(nameof(model.Document), "Lütfen PDF belge yükleyin (.pdf).");
@@ -321,7 +321,7 @@ namespace ECommerceBatteryShop.Controllers
             if (model.Document is not null && model.Document.Length > 0)
             {
                 var extension = Path.GetExtension(model.Document.FileName);
-                if (!string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(extension, ".pdf", System.StringComparison.OrdinalIgnoreCase))
                 {
                     extension = ".pdf";
                 }
@@ -395,7 +395,7 @@ namespace ECommerceBatteryShop.Controllers
 
             return RedirectToAction(nameof(UrunPaneli), new { productId = product.Id, search = model.SearchTerm });
         }
-        private async Task AssignCategoryAsync(int productId, int? categoryId, CancellationToken ct=default)
+        private async Task AssignCategoryAsync(int productId, int? categoryId, CancellationToken ct = default)
         {
             // Treat null/zero/invalid as remove all links
             if (!categoryId.HasValue || categoryId.Value <= 0 || !await _context.Categories.AnyAsync(c => c.Id == categoryId.Value, ct))
@@ -563,9 +563,12 @@ namespace ECommerceBatteryShop.Controllers
         }
         private async Task<List<CategorySelectionViewModel>> LoadCategoryItemsAsync(int? selectedId = null)
         {
+            // Root-based: we don't use ParentCategoryId. Exclude depth 0 (top-level roots) like the previous logic did,
+            // and sort by path to present a stable order.
             var items = await _context.Categories
                 .AsNoTracking()
-                .OrderBy(c => c.Name).Where(c=>c.Id != null)
+                .Where(c => c.Depth != "0")
+                .OrderBy(c => c.Path)
                 .Select(c => new CategorySelectionViewModel
                 {
                     CategoryId = c.Id,
