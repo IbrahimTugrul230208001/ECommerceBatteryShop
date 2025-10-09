@@ -209,5 +209,44 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 .Take(16)
                 .ToListAsync();
         }
+
+        public async Task<(IReadOnlyList<(Product Product, int SoldUnits)> Items, int TotalCount)> GetProductSalesAsync(
+            string? search,
+            int page,
+            int pageSize,
+            CancellationToken ct = default)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 30;
+
+            var itemsQuery = _ctx.Products
+                .AsNoTracking()
+                .Select(p => new
+                {
+                    Product = p,
+                    SoldUnits = _ctx.OrderItems.Where(oi => oi.ProductId == p.Id).Sum(oi => (int?)oi.Quantity) ?? 0
+                });
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                itemsQuery = itemsQuery.Where(x => x.Product.Name.ToLower().Contains(term));
+            }
+
+            var totalCount = await itemsQuery.CountAsync(ct);
+
+            var pageItems = await itemsQuery
+                .OrderByDescending(x => x.SoldUnits)
+                .ThenBy(x => x.Product.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            var result = pageItems
+                .Select(x => (x.Product, x.SoldUnits))
+                .ToList();
+
+            return (result, totalCount);
+        }
     }
 }
