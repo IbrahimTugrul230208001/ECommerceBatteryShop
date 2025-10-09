@@ -17,7 +17,7 @@ public class PlaceOrderInputModel
     public string? CardId { get; set; }
 
     public bool Save { get; set; }
- //   public bool ThreeDSecure { get; set; } // NEW: request 3D Secure flow
+    public bool ThreeDSecure { get; set; } // NEW: request 3D Secure flow
 
     // Shipping selection
     public string? ShippingId { get; set; }

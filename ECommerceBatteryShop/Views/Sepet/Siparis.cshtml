@@ -175,6 +175,9 @@
                                         <input type="checkbox" x-model="newCard.save" :disabled="!isAuth" :title="isAuth ? '' : 'Kart kaydetmek için giriş yapın'" class="rounded border-slate-300"> Kaydet
                                     </label>
                                 </div>
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" x-model="newCard.threeD" class="rounded border-slate-300"> 3D Secure ile öde
+                                </label>
                             </div>
                         </details>
                     </div>
@@ -332,7 +335,7 @@
         method:'card',
         saved:[],
         selectedId:null,
-        newCard:{name:'', number:'', exp:'', cvc:'', save:true},
+        newCard:{name:'', number:'', exp:'', cvc:'', save:true, threeD:false},
         loading:false,
         notice:null,
         digits(s){ return (s||'').replace(/\D/g,''); },
@@ -365,7 +368,7 @@
           };
           if(this.method==='card'){
             if(this.selectedId){
-              await this.send({ paymentMethod:'card_saved', cardId:this.selectedId, ...payloadBase });
+              await this.send({ paymentMethod:'card_saved', cardId:this.selectedId, threeDSecure: true, ...payloadBase });
               return;
             }
             if(!this.luhn(this.newCard.number)){
@@ -379,6 +382,7 @@
               exp:this.newCard.exp,
               cvc:this.newCard.cvc,
               save:this.newCard.save,
+              threeDSecure:this.newCard.threeD === true,
               ...payloadBase
             });
           } else if(this.method==='iban'){
