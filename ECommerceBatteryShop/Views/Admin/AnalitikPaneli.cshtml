@@ -3,7 +3,6 @@
 @{
     ViewData["Title"] = "Ürün Analitikleri";
     Layout = "_AdminLayout";
-    var culture = new CultureInfo("tr-TR");
     var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize);
     if (totalPages <= 0) totalPages = 1;
 }
@@ -43,7 +42,7 @@
                 </div>
               </div>
             </td>
-            <td class="px-4 py-3 font-medium text-slate-900">@p.Price.ToString("C", culture)</td>
+            <td class="px-4 py-3 font-medium text-slate-900">$@p.Price</td>
             <td class="px-4 py-3 font-semibold text-slate-900">@p.SoldUnits</td>
           </tr>
         }
