@@ -565,7 +565,7 @@ namespace ECommerceBatteryShop.Controllers
         {
             var items = await _context.Categories
                 .AsNoTracking()
-                .OrderBy(c => c.Name).Where(c=>c.ParentCategoryId != null)
+                .OrderBy(c => c.Name).Where(c=>c.Id != null)
                 .Select(c => new CategorySelectionViewModel
                 {
                     CategoryId = c.Id,
