@@ -12,6 +12,10 @@ public class BatteryShopContext : DbContext
         const string trCollation = "tr_icu_det";
         modelBuilder.Entity<Product>(e => e.Property(p => p.Name).UseCollation(trCollation));
 
+        // IMPORTANT: Our categories do NOT use a parent FK. Prevent EF from generating a shadow FK (CategoryId)
+        // and querying a non-existent column by ignoring the self-referencing collection.
+        modelBuilder.Entity<Category>().Ignore(c => c.SubCategories);
+
         modelBuilder.Entity<Cart>(b =>
         {
             b.HasIndex(c => c.UserId).IsUnique().HasFilter("[UserId] IS NOT NULL");
@@ -43,7 +47,7 @@ public class BatteryShopContext : DbContext
     public DbSet<FavoriteList> FavoriteLists => Set<FavoriteList>();
     public DbSet<FavoriteListItem> FavoriteListItems => Set<FavoriteListItem>();
     public DbSet<SavedCard> SavedCards => Set<SavedCard>();
-
 }
+
 
 

@@ -168,19 +168,11 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 30;
 
-            var root = await _ctx.Categories.FindAsync(new object[] { categoryId }, ct);
-            if (root == null)
-                return (Array.Empty<Product>(), 0);
-
-            var categoryIds = await _ctx.Categories
-                .Where(c => c.Path.StartsWith(root.Path)) // root + descendants
-                .Select(c => c.Id)
-                .ToListAsync(ct);
-
+            // Simpler and robust: filter by direct category link (avoids Category table schema mismatches)
             var query = _ctx.Products
                 .AsNoTracking()
                 .Include(p => p.Inventory)
-                .Where(p => p.ProductCategories.Any(pc => categoryIds.Contains(pc.CategoryId)));
+                .Where(p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId));
 
             if (minUsd.HasValue)
                 query = query.Where(p => p.Price >= minUsd.Value);
