@@ -15,17 +15,6 @@ public sealed class CategoryRepository : ICategoryRepository
     }
 
 
-    public async Task<List<Category>> GetCategoriesWithChildrenAsync(CancellationToken ct = default)
-    {
-        return await _ctx.Categories
-            .AsNoTracking()
-            .Where(c => c.ParentCategoryId == null)
-            .Include(c => c.ProductCategories)
-            .Include(c => c.SubCategories)
-                .ThenInclude(sc => sc.ProductCategories)
-            .OrderBy(c => c.Id)
-            .ToListAsync(ct);
-    }
     public async Task<List<Category>> GetCategoryTreeAsync()
     {
         var all = await _ctx.Categories
