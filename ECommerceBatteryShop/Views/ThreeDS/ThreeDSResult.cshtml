@@ -1,0 +1,24 @@
+@model ECommerceBatteryShop.Controllers.ThreeDSViewModel
+@{
+    ViewBag.Title = "3D Secure";
+}
+<div class="max-w-xl mx-auto p-8">
+  <h1 class="text-xl font-semibold mb-4">3D Secure Sonucu</h1>
+  @if (Model.Success)
+  {
+    <div class="p-4 rounded border border-emerald-200 bg-emerald-50 text-emerald-700">
+      Ödemeniz baþarýyla doðrulandý. Sipariþiniz oluþturulduysa kýsa süre içinde yönlendirileceksiniz.
+    </div>
+    <script>
+      setTimeout(function(){ window.location.href = '/'; }, 3000);
+    </script>
+  }
+  else
+  {
+    <div class="p-4 rounded border border-red-200 bg-red-50 text-red-700">
+      Üzgünüz, 3D Secure doðrulamasý tamamlanamadý: @Model.ErrorMessage
+    </div>
+    <p class="mt-3 text-sm text-slate-600">Tekrar denemek için ödeme sayfasýna dönebilirsiniz.</p>
+    <a href="/Sepet/Siparis" class="inline-block mt-2 px-4 py-2 rounded bg-amber-300 text-slate-900">Ödeme sayfasýna dön</a>
+  }
+</div>
