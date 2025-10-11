@@ -4,6 +4,7 @@ using Iyzipay.Request;
 using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 
 namespace ECommerceBatteryShop.Services;
@@ -11,6 +12,8 @@ namespace ECommerceBatteryShop.Services;
 public interface IIyzicoPaymentService
 {
     Task<IyzicoPaymentResult> CreatePaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default);
+    Task<IyzicoThreeDSInitializeResult> InitializeThreeDSPaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default);
+    Task<IyzicoPaymentResult> CompleteThreeDSPaymentAsync(IyzicoThreeDSCompleteModel model, CancellationToken cancellationToken = default);
 }
 
 public class IyzicoPaymentService : IIyzicoPaymentService
@@ -154,11 +157,191 @@ public class IyzicoPaymentService : IIyzicoPaymentService
         }
     }
 
+    public async Task<IyzicoThreeDSInitializeResult> InitializeThreeDSPaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var callbackUrl = _settings.ThreeDSCallbackUrl ?? _settings.CallbackUrl;
+        if (string.IsNullOrWhiteSpace(callbackUrl))
+        {
+            const string message = "3D Secure callback adresi yapılandırılmamış.";
+            _logger.LogError("{Message}", message);
+            return new IyzicoThreeDSInitializeResult(false, message, null, null);
+        }
+
+        var request = new CreateThreeDSInitializeRequest
+        {
+            Locale = Locale.TR.ToString(),
+            ConversationId = model.ConversationId,
+            Price = ToPrice(model.Price),
+            PaidPrice = ToPrice(model.PaidPrice),
+            BasketId = model.BasketId,
+            Installment = model.Installment,
+            Currency = model.Currency,
+            PaymentChannel = model.PaymentChannel,
+            PaymentGroup = model.PaymentGroup,
+            CallbackUrl = callbackUrl
+        };
+
+        if (model.Card is not null)
+        {
+            request.PaymentCard = new PaymentCard
+            {
+                CardHolderName = model.Card.HolderName,
+                CardNumber = model.Card.Number,
+                ExpireMonth = model.Card.ExpireMonth,
+                ExpireYear = model.Card.ExpireYear,
+                Cvc = model.Card.Cvc,
+                RegisterCard = model.Card.RegisterCard ? 1 : 0
+            };
+        }
+        else if (model.Saved is not null)
+        {
+            request.PaymentCard = new PaymentCard
+            {
+                CardUserKey = model.Saved.CardUserKey,
+                CardToken = model.Saved.CardToken
+            };
+        }
+
+        var defaults = _configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
+
+        request.Buyer = new Buyer
+        {
+            Id = model.Buyer.Id,
+            Name = model.Buyer.Name,
+            Surname = model.Buyer.Surname,
+            GsmNumber = model.Buyer.GsmNumber,
+            Email = model.Buyer.Email,
+            IdentityNumber = model.Buyer.IdentityNumber,
+            RegistrationAddress = model.Buyer.RegistrationAddress,
+            City = model.Buyer.City,
+            Country = string.IsNullOrWhiteSpace(model.Buyer.Country)
+                ? defaults.Country
+                : model.Buyer.Country,
+            Ip = model.Buyer.Ip
+        };
+
+        request.ShippingAddress = new Iyzipay.Model.Address
+        {
+            ContactName = model.ShippingAddress.ContactName,
+            City = model.ShippingAddress.City,
+            Country = string.IsNullOrWhiteSpace(model.ShippingAddress.Country)
+                ? defaults.Country
+                : model.ShippingAddress.Country,
+            Description = string.IsNullOrWhiteSpace(model.ShippingAddress.Address)
+                ? "Adres belirtilmedi"
+                : model.ShippingAddress.Address
+        };
+
+        request.BillingAddress = new Iyzipay.Model.Address
+        {
+            ContactName = model.BillingAddress.ContactName,
+            City = model.BillingAddress.City,
+            Country = string.IsNullOrWhiteSpace(model.BillingAddress.Country)
+                ? defaults.Country
+                : model.BillingAddress.Country,
+            Description = string.IsNullOrWhiteSpace(model.BillingAddress.Address)
+                ? "Adres belirtilmedi"
+                : model.BillingAddress.Address
+        };
+
+        request.Buyer.Country = string.IsNullOrWhiteSpace(request.Buyer.Country)
+            ? defaults.Country
+            : request.Buyer.Country;
+
+        request.BasketItems = model.Items.Select(item => new BasketItem
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Category1 = item.Category1,
+            Category2 = item.Category2,
+            ItemType = item.ItemType,
+            Price = ToPrice(item.Price)
+        }).ToList();
+
+        try
+        {
+            var response = await Task.Run(() => ThreeDSInitialize.Create(request, _options), cancellationToken);
+            var success = string.Equals(response.Status, "success", StringComparison.OrdinalIgnoreCase);
+            var rawJson = JsonSerializer.Serialize(response);
+
+            string? html = null;
+            if (!string.IsNullOrWhiteSpace(response.HtmlContent))
+            {
+                try
+                {
+                    html = Encoding.UTF8.GetString(Convert.FromBase64String(response.HtmlContent));
+                }
+                catch (FormatException)
+                {
+                    html = response.HtmlContent;
+                }
+            }
+
+            if (!success)
+            {
+                _logger.LogWarning("Iyzico 3DS init failed. ConversationId: {ConversationId}, ErrorCode: {ErrorCode}, Message: {Message}",
+                    model.ConversationId,
+                    response.ErrorCode,
+                    response.ErrorMessage);
+            }
+
+            return new IyzicoThreeDSInitializeResult(success, response.ErrorMessage, html, rawJson);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "Error while initializing Iyzico 3DS payment. ConversationId: {ConversationId}", model.ConversationId);
+            return new IyzicoThreeDSInitializeResult(false, ex.Message, null, null);
+        }
+    }
+
+    public async Task<IyzicoPaymentResult> CompleteThreeDSPaymentAsync(IyzicoThreeDSCompleteModel model, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = new CreateThreeDSPaymentRequest
+        {
+            Locale = Locale.TR.ToString(),
+            ConversationId = model.ConversationId,
+            PaymentId = model.PaymentId,
+            ConversationData = model.ConversationData
+        };
+
+        try
+        {
+            var response = await Task.Run(() => ThreeDSPayment.Create(request, _options), cancellationToken);
+            var success = string.Equals(response.Status, "success", StringComparison.OrdinalIgnoreCase);
+            var rawJson = JsonSerializer.Serialize(response);
+
+            if (!success)
+            {
+                _logger.LogWarning("Iyzico 3DS finalize failed. ConversationId: {ConversationId}, ErrorCode: {ErrorCode}, Message: {Message}",
+                    model.ConversationId,
+                    response.ErrorCode,
+                    response.ErrorMessage);
+            }
+
+            return new IyzicoPaymentResult(success, response.ErrorMessage, rawJson);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "Error while completing Iyzico 3DS payment. ConversationId: {ConversationId}", model.ConversationId);
+            return new IyzicoPaymentResult(false, ex.Message, null);
+        }
+    }
+
     private static string ToPrice(decimal value)
         => decimal.Round(value, 2, MidpointRounding.AwayFromZero).ToString("0.00", CultureInfo.InvariantCulture);
 }
 
 public record IyzicoPaymentResult(bool Success, string? ErrorMessage, string? RawResponse);
+
+public record IyzicoThreeDSInitializeResult(bool Success, string? ErrorMessage, string? HtmlContent, string? RawResponse);
+
+public record IyzicoThreeDSCompleteModel(string PaymentId, string ConversationId, string ConversationData);
 
 public class IyzicoPaymentModel
 {
