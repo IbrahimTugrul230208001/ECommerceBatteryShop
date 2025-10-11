@@ -54,7 +54,8 @@ public record PendingThreeDSContext(
     decimal ShippingPrice,
     bool SaveCard,
     bool UsedSavedCard,
-    ECommerceBatteryShop.Models.GuestCheckoutViewModel? GuestInfo
+    ECommerceBatteryShop.Models.GuestCheckoutViewModel? GuestInfo,
+    string? CardHolderName
 );
 
-public record ThreeDSResult(bool Success, string? RawResponse, string? ErrorMessage);
+public record ThreeDSResult(bool Success, string? RawResponse, string? Message);
