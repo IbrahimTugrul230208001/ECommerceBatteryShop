@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
@@ -27,6 +29,7 @@ public class SiparisController : Controller
     private readonly IOrderRepository _orderRepository;
     private readonly IIyzicoPaymentService _paymentService;
     private readonly ISavedCardRepository _savedCardRepository;
+    private readonly IThreeDSStore _threeDSStore;
     private readonly ILogger<SiparisController> _logger;
 
     private const string GuestInfoCookie = "GUEST_INFO";
@@ -38,6 +41,7 @@ public class SiparisController : Controller
         IOrderRepository orderRepository,
         IIyzicoPaymentService paymentService,
         ISavedCardRepository savedCardRepository,
+        IThreeDSStore threeDSStore,
         ILogger<SiparisController> logger)
     {
         _cartService = cartService;
@@ -46,6 +50,7 @@ public class SiparisController : Controller
         _orderRepository = orderRepository;
         _paymentService = paymentService;
         _savedCardRepository = savedCardRepository;
+        _threeDSStore = threeDSStore;
         _logger = logger;
     }
 
@@ -237,7 +242,6 @@ public class SiparisController : Controller
 
         if (!isGuest)
         {
-            // existing authenticated card flow: unchanged
             if (owner.UserId is not int userId)
             {
                 return BadRequest(new
@@ -257,21 +261,7 @@ public class SiparisController : Controller
                 });
             }
 
-            var lineItems = new List<IyzicoBasketItem>();
-            decimal basketTotal = 0m;
-            foreach (var item in cart.Items)
-            {
-                var unitPriceTry = item.UnitPrice * (1 + KdvRate) * fxRate;
-                var linePrice = decimal.Round((decimal)(unitPriceTry * item.Quantity), 2, MidpointRounding.AwayFromZero);
-                basketTotal += linePrice;
-                lineItems.Add(new IyzicoBasketItem
-                {
-                    Id = item.ProductId.ToString(CultureInfo.InvariantCulture),
-                    Name = item.Product?.Name ?? $"Ürün #{item.ProductId}",
-                    Price = linePrice
-                });
-            }
-
+            var (lineItems, basketTotal) = BuildBasketItems(cart, (decimal)fxRate);
             if (lineItems.Count == 0)
             {
                 return BadRequest(new { success = false, message = "Ödeme için sepet ürünü bulunamadı." });
@@ -299,11 +289,13 @@ public class SiparisController : Controller
                 {
                     return BadRequest(new { success = false, message = "Kayıtlı kart seçimi geçersiz." });
                 }
+
                 var saved = (await _savedCardRepository.GetByUserAsync(userId, cancellationToken)).FirstOrDefault(c => c.Id == savedId);
                 if (saved is null)
                 {
                     return BadRequest(new { success = false, message = "Kayıtlı kart bulunamadı." });
                 }
+
                 paymentModel.Saved = new IyzicoSavedCard { CardUserKey = saved.CardUserKey, CardToken = saved.CardToken };
             }
             else
@@ -317,13 +309,51 @@ public class SiparisController : Controller
                 paymentModel.Card = cardInfo;
             }
 
+            if (input.ThreeDSecure)
+            {
+                var initResult = await _paymentService.InitializeThreeDSPaymentAsync(paymentModel, cancellationToken);
+                if (!initResult.Success || string.IsNullOrWhiteSpace(initResult.HtmlContent))
+                {
+                    var initMessage = string.IsNullOrWhiteSpace(initResult.ErrorMessage)
+                        ? "3D Secure başlatılırken bir hata oluştu. Lütfen tekrar deneyin."
+                        : initResult.ErrorMessage;
+                    return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = initMessage });
+                }
+
+                var redirectUrl = Url.Action(nameof(ThreeDSInit), new { conversationId = paymentModel.ConversationId })
+                                  ?? $"/Siparis/ThreeDSInit?conversationId={Uri.EscapeDataString(paymentModel.ConversationId)}";
+
+                var saveCard = !useSaved && input.Save;
+                _threeDSStore.SaveInitHtml(paymentModel.ConversationId, initResult.HtmlContent);
+                _threeDSStore.SaveContext(paymentModel.ConversationId, new PendingThreeDSContext(
+                    userId,
+                    null,
+                    input.ShippingId,
+                    shippingPrice,
+                    saveCard,
+                    useSaved,
+                    null,
+                    saveCard ? input.Name : null));
+
+                _logger.LogInformation("3D Secure initialization completed for user. ConversationId: {ConversationId}, UserId: {UserId}",
+                    paymentModel.ConversationId,
+                    userId);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "3D Secure doğrulama sayfasına yönlendiriliyorsunuz.",
+                    redirectUrl
+                });
+            }
+
             var result = await _paymentService.CreatePaymentAsync(paymentModel, cancellationToken);
             if (!result.Success)
             {
-                // If card saving is not enabled for merchant (Iyzico error 3007), retry without saving
                 if (!useSaved && input.Save && IsCardStorageNotEnabled(result.RawResponse))
                 {
-                    _logger.LogWarning("Card storage disabled on merchant. Retrying payment without saving card. ConversationId: {ConversationId}", paymentModel.ConversationId);
+                    _logger.LogWarning("Card storage disabled on merchant. Retrying payment without saving card. ConversationId: {ConversationId}",
+                        paymentModel.ConversationId);
                     if (paymentModel.Card is not null)
                     {
                         paymentModel.Card.RegisterCard = false;
@@ -335,7 +365,7 @@ public class SiparisController : Controller
                                 : retry.ErrorMessage;
                             return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = retryMessage });
                         }
-                        result = retry; // use successful retry result
+                        result = retry;
                     }
                     else
                     {
@@ -354,39 +384,12 @@ public class SiparisController : Controller
                 }
             }
 
-            // Parse payment response for card info when saved
             if (!useSaved && input.Save)
             {
-                try
-                {
-                    using var doc = JsonDocument.Parse(result.RawResponse ?? "{}");
-                    var root = doc.RootElement;
-                    var cardUserKey = root.TryGetProperty("cardUserKey", out var cuk) ? cuk.GetString() : null;
-                    if (cardUserKey is null && root.TryGetProperty("CardUserKey", out var cuk2)) cardUserKey = cuk2.GetString();
-                    var cardToken = root.TryGetProperty("cardToken", out var ctok) ? ctok.GetString() : null;
-                    if (cardToken is null && root.TryGetProperty("CardToken", out var ctok2)) cardToken = ctok2.GetString();
-                    var cardAssociation = root.TryGetProperty("cardAssociation", out var assoc) ? assoc.GetString() : null;
-                    if (cardAssociation is null && root.TryGetProperty("CardAssociation", out var assoc2)) cardAssociation = assoc2.GetString();
-                    var last4 = root.TryGetProperty("lastFourDigits", out var l4) ? l4.GetString() : null;
-                    if (last4 is null && root.TryGetProperty("LastFourDigits", out var l42)) last4 = l42.GetString();
-                    var holder = input.Name ?? "";
-                    if (!string.IsNullOrWhiteSpace(cardUserKey) && !string.IsNullOrWhiteSpace(cardToken))
-                    {
-                        await _savedCardRepository.AddAsync(new SavedCard
-                        {
-                            UserId = userId,
-                            CardUserKey = cardUserKey!,
-                            CardToken = cardToken!,
-                            Brand = cardAssociation ?? "",
-                            Last4 = last4 ?? "",
-                            Holder = holder
-                        }, cancellationToken);
-                    }
-                }
-                catch { /* ignore parsing issues */ }
+                await TrySaveCardFromResponseAsync(userId, input.Name ?? string.Empty, result.RawResponse, cancellationToken);
             }
 
-            var orderTotal = paidPrice; // or basketTotal if your stored order excludes shipping
+            var orderTotal = paidPrice;
             var transactionId = ExtractTransactionId(result.RawResponse, paymentModel.ConversationId);
 
             var order = new Order
@@ -438,14 +441,12 @@ public class SiparisController : Controller
         }
         else
         {
-            // New guest flow for card payments (Iyzico)
             var guest = ReadGuestInfoFromRequest() ?? FromInput(input);
             if (guest is null)
             {
                 return BadRequest(new { success = false, message = "Misafir bilgileri eksik. Lütfen ad, soyad ve adres bilgilerini giriniz." });
             }
 
-            // Only new card is allowed for guests (no saved card capability)
             if (useSaved)
             {
                 return BadRequest(new { success = false, message = "Misafir kullanıcılar kayıtlı kart kullanamaz." });
@@ -456,21 +457,9 @@ public class SiparisController : Controller
                 return BadRequest(new { success = false, message = cardErrorGuest ?? "Kart bilgileri eksik veya hatalı." });
             }
 
-            var lineItems = new List<IyzicoBasketItem>();
-            decimal basketTotal = 0m;
-            foreach (var item in cart.Items)
-            {
-                var unitPriceTry = item.UnitPrice * (1 + KdvRate) * fxRate;
-                var linePrice = decimal.Round((decimal)(unitPriceTry * item.Quantity), 2, MidpointRounding.AwayFromZero);
-                basketTotal += linePrice;
-                lineItems.Add(new IyzicoBasketItem
-                {
-                    Id = item.ProductId.ToString(CultureInfo.InvariantCulture),
-                    Name = item.Product?.Name ?? $"Ürün #{item.ProductId}",
-                    Price = linePrice
-                });
-            }
+            cardInfo.RegisterCard = false;
 
+            var (lineItems, basketTotal) = BuildBasketItems(cart, (decimal)fxRate);
             if (lineItems.Count == 0)
             {
                 return BadRequest(new { success = false, message = "Ödeme için sepet ürünü bulunamadı." });
@@ -490,16 +479,46 @@ public class SiparisController : Controller
                 BillingAddress = buyerContext.Billing,
                 ShippingAddress = buyerContext.Shipping,
                 Items = lineItems,
-                Card = new IyzicoPaymentCard
-                {
-                    HolderName = input.Name!.Trim(),
-                    Number = SanitizeDigits(input.Number),
-                    ExpireMonth = TryParseExpiry(input.Exp, out var m, out var y) ? m : "",
-                    ExpireYear = TryParseExpiry(input.Exp, out m, out y) ? y : "",
-                    Cvc = SanitizeDigits(input.Cvc),
-                    RegisterCard = false
-                }
+                Card = cardInfo
             };
+
+            if (input.ThreeDSecure)
+            {
+                var initResult = await _paymentService.InitializeThreeDSPaymentAsync(paymentModel, cancellationToken);
+                if (!initResult.Success || string.IsNullOrWhiteSpace(initResult.HtmlContent))
+                {
+                    var initMessage = string.IsNullOrWhiteSpace(initResult.ErrorMessage)
+                        ? "3D Secure başlatılırken bir hata oluştu. Lütfen tekrar deneyin."
+                        : initResult.ErrorMessage;
+                    return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = initMessage });
+                }
+
+                var redirectUrl = Url.Action(nameof(ThreeDSInit), new { conversationId = paymentModel.ConversationId })
+                                  ?? $"/Siparis/ThreeDSInit?conversationId={Uri.EscapeDataString(paymentModel.ConversationId)}";
+
+                var anonId = cart.AnonId ?? owner.AnonId;
+                _threeDSStore.SaveInitHtml(paymentModel.ConversationId, initResult.HtmlContent);
+                _threeDSStore.SaveContext(paymentModel.ConversationId, new PendingThreeDSContext(
+                    null,
+                    anonId,
+                    input.ShippingId,
+                    shippingPrice,
+                    saveCard: false,
+                    UsedSavedCard: false,
+                    guest,
+                    input.Name));
+
+                _logger.LogInformation("3D Secure initialization completed for guest. ConversationId: {ConversationId}, AnonId: {AnonId}",
+                    paymentModel.ConversationId,
+                    anonId);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "3D Secure doğrulama sayfasına yönlendiriliyorsunuz.",
+                    redirectUrl
+                });
+            }
 
             var result = await _paymentService.CreatePaymentAsync(paymentModel, cancellationToken);
             if (!result.Success)
@@ -568,6 +587,125 @@ public class SiparisController : Controller
                 raw = result.RawResponse
             });
         }
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ThreeDSInit([FromQuery] string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId))
+        {
+            return Content("<html><body>Geçersiz 3D Secure oturumu.</body></html>", "text/html");
+        }
+
+        if (_threeDSStore.TryGetInitHtml(conversationId, out var html) && !string.IsNullOrWhiteSpace(html))
+        {
+            return Content(html, "text/html");
+        }
+
+        var redirectUrl = Url.Action(nameof(ThreeDSStatus), new { conversationId })
+            ?? $"/Siparis/ThreeDSStatus?conversationId={Uri.EscapeDataString(conversationId)}";
+        var encodedUrl = WebUtility.HtmlEncode(redirectUrl);
+        var fallback = $"<html><head><meta charset=\"utf-8\" /></head><body><p>3D Secure oturumu bulunamadı.</p><a href=\"{encodedUrl}\">Durumu görmek için tıklayın</a></body></html>";
+        return Content(fallback, "text/html");
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> ThreeDSCallback([FromForm] IyzicoThreeDSCallbackModel model, CancellationToken cancellationToken)
+    {
+        if (model is null || string.IsNullOrWhiteSpace(model.ConversationId))
+        {
+            return RenderThreeDSRedirect("/Siparis/ThreeDSStatus");
+        }
+
+        var conversationId = model.ConversationId!;
+        var redirectUrl = Url.Action(nameof(ThreeDSStatus), new { conversationId })
+            ?? $"/Siparis/ThreeDSStatus?conversationId={Uri.EscapeDataString(conversationId)}";
+
+        if (_threeDSStore.TryGetResult(conversationId, out var existing) && existing is not null)
+        {
+            return RenderThreeDSRedirect(redirectUrl);
+        }
+
+        if (!_threeDSStore.TryGetContext(conversationId, out var context) || context is null)
+        {
+            _threeDSStore.SaveResult(conversationId, new ThreeDSResult(false, null, "Sipariş oturumu bulunamadı."));
+            return RenderThreeDSRedirect(redirectUrl);
+        }
+
+        if (!IsMdStatusSuccessful(model.MdStatus) || !string.Equals(model.Status, "success", StringComparison.OrdinalIgnoreCase))
+        {
+            var failureMessage = string.IsNullOrWhiteSpace(model.ErrorMessage)
+                ? "3D Secure doğrulaması başarısız oldu. Lütfen farklı bir kart deneyin."
+                : model.ErrorMessage;
+            _threeDSStore.SaveResult(conversationId, new ThreeDSResult(false, null, failureMessage));
+            return RenderThreeDSRedirect(redirectUrl);
+        }
+
+        if (string.IsNullOrWhiteSpace(model.PaymentId) || string.IsNullOrWhiteSpace(model.ConversationData))
+        {
+            _threeDSStore.SaveResult(conversationId, new ThreeDSResult(false, null, "Ödeme doğrulama bilgileri eksik."));
+            return RenderThreeDSRedirect(redirectUrl);
+        }
+
+        var completeModel = new IyzicoThreeDSCompleteModel(model.PaymentId!, conversationId, model.ConversationData!);
+        var paymentResult = await _paymentService.CompleteThreeDSPaymentAsync(completeModel, cancellationToken);
+        if (!paymentResult.Success)
+        {
+            var errorMessage = string.IsNullOrWhiteSpace(paymentResult.ErrorMessage)
+                ? "3D Secure ödeme tamamlanamadı. Lütfen tekrar deneyin."
+                : paymentResult.ErrorMessage;
+            _threeDSStore.SaveResult(conversationId, new ThreeDSResult(false, paymentResult.RawResponse, errorMessage));
+            return RenderThreeDSRedirect(redirectUrl);
+        }
+
+        var (success, message) = await FinalizeThreeDSOrderAsync(conversationId, model.PaymentId!, context, paymentResult, cancellationToken);
+        _threeDSStore.SaveResult(conversationId, new ThreeDSResult(success, paymentResult.RawResponse, message));
+
+        return RenderThreeDSRedirect(redirectUrl);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ThreeDSStatus([FromQuery] string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId))
+        {
+            return View("ThreeDSStatus", new ThreeDSStatusViewModel(false, "Geçersiz 3D Secure oturumu."));
+        }
+
+        if (_threeDSStore.TryGetResult(conversationId, out var result) && result is not null)
+        {
+            var message = string.IsNullOrWhiteSpace(result.Message)
+                ? (result.Success ? "Ödemeniz başarıyla tamamlandı." : "Ödeme sırasında bir hata oluştu.")
+                : result.Message!;
+            return View("ThreeDSStatus", new ThreeDSStatusViewModel(result.Success, message));
+        }
+
+        return View("ThreeDSStatus", new ThreeDSStatusViewModel(false, "Ödemeniz işleniyor. Lütfen birkaç saniye içinde tekrar deneyin."));
+    }
+
+    private static (List<IyzicoBasketItem> Items, decimal BasketTotal) BuildBasketItems(Cart cart, decimal fxRate)
+    {
+        var items = new List<IyzicoBasketItem>();
+        decimal total = 0m;
+
+        foreach (var item in cart.Items)
+        {
+            var unitPriceTry = item.UnitPrice * (1 + KdvRate) * fxRate;
+            var linePrice = decimal.Round(unitPriceTry * item.Quantity, 2, MidpointRounding.AwayFromZero);
+            total += linePrice;
+            items.Add(new IyzicoBasketItem
+            {
+                Id = item.ProductId.ToString(CultureInfo.InvariantCulture),
+                Name = item.Product?.Name ?? $"Ürün #{item.ProductId}",
+                Price = linePrice
+            });
+        }
+
+        return (items, total);
     }
 
     private static decimal CalculateOrderTotal(Cart cart, decimal fxRate)
@@ -732,6 +870,54 @@ public class SiparisController : Controller
     {
         var addresses = await _addressRepository.GetByUserAsync(userId, cancellationToken);
         return addresses.FirstOrDefault(a => a.IsDefault) ?? addresses.FirstOrDefault();
+    }
+
+    private async Task TrySaveCardFromResponseAsync(int userId, string? holderName, string? rawResponse, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(rawResponse))
+        {
+            return;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(rawResponse);
+            var root = doc.RootElement;
+
+            string? cardUserKey = null;
+            string? cardToken = null;
+            string? cardAssociation = null;
+            string? last4 = null;
+
+            if (root.TryGetProperty("cardUserKey", out var cuk)) cardUserKey = cuk.GetString();
+            if (cardUserKey is null && root.TryGetProperty("CardUserKey", out var cuk2)) cardUserKey = cuk2.GetString();
+
+            if (root.TryGetProperty("cardToken", out var ctok)) cardToken = ctok.GetString();
+            if (cardToken is null && root.TryGetProperty("CardToken", out var ctok2)) cardToken = ctok2.GetString();
+
+            if (root.TryGetProperty("cardAssociation", out var assoc)) cardAssociation = assoc.GetString();
+            if (cardAssociation is null && root.TryGetProperty("CardAssociation", out var assoc2)) cardAssociation = assoc2.GetString();
+
+            if (root.TryGetProperty("lastFourDigits", out var lastFour)) last4 = lastFour.GetString();
+            if (last4 is null && root.TryGetProperty("LastFourDigits", out var lastFour2)) last4 = lastFour2.GetString();
+
+            if (!string.IsNullOrWhiteSpace(cardUserKey) && !string.IsNullOrWhiteSpace(cardToken))
+            {
+                await _savedCardRepository.AddAsync(new SavedCard
+                {
+                    UserId = userId,
+                    CardUserKey = cardUserKey!,
+                    CardToken = cardToken!,
+                    Brand = cardAssociation ?? string.Empty,
+                    Last4 = last4 ?? string.Empty,
+                    Holder = holderName ?? string.Empty
+                }, cancellationToken);
+            }
+        }
+        catch
+        {
+            // Ignore parsing issues
+        }
     }
 
     private static bool TryParseCard(PlaceOrderInputModel input, out IyzicoPaymentCard card, out string? error)
@@ -932,6 +1118,170 @@ public class SiparisController : Controller
             Neighbourhood = input.GuestNeighbourhood ?? string.Empty,
             FullAddress = input.GuestFullAddress!
         };
+    }
+
+    private ContentResult RenderThreeDSRedirect(string redirectUrl)
+    {
+        var safeUrl = string.IsNullOrWhiteSpace(redirectUrl) ? "/" : redirectUrl;
+        var htmlEncoded = WebUtility.HtmlEncode(safeUrl);
+        var jsEncoded = JavaScriptEncoder.Default.Encode(safeUrl);
+
+        var html = $"<html><head><meta charset=\"utf-8\" /><script>window.top.location.href=\"{jsEncoded}\";</script></head>" +
+                   $"<body><noscript><meta http-equiv=\"refresh\" content=\"0;url={htmlEncoded}\" />" +
+                   $"<p>Devam etmek için <a href=\"{htmlEncoded}\">buraya tıklayın</a>.</p></noscript></body></html>";
+
+        return Content(html, "text/html");
+    }
+
+    private static bool IsMdStatusSuccessful(string? mdStatus)
+        => mdStatus is "1" or "2" or "3" or "4";
+
+    private async Task<(bool Success, string Message)> FinalizeThreeDSOrderAsync(
+        string conversationId,
+        string paymentId,
+        PendingThreeDSContext context,
+        IyzicoPaymentResult paymentResult,
+        CancellationToken cancellationToken)
+    {
+        if (context.UserId is int userId)
+        {
+            var owner = CartOwner.FromUser(userId);
+            var cart = await _cartService.GetAsync(owner, createIfMissing: false, cancellationToken);
+            if (cart is null || cart.Items.Count == 0)
+            {
+                _logger.LogWarning("3D Secure finalize failed: cart not found. ConversationId: {ConversationId}, UserId: {UserId}", conversationId, userId);
+                return (false, "Sepetiniz bulunamadı veya boş olduğu için sipariş oluşturulamadı.");
+            }
+
+            var orderAddress = await ResolveAddressAsync(userId, cancellationToken);
+            if (orderAddress is null)
+            {
+                _logger.LogWarning("3D Secure finalize failed: address not found. ConversationId: {ConversationId}, UserId: {UserId}", conversationId, userId);
+                return (false, "Sipariş oluşturmak için kayıtlı bir adres bulunamadı.");
+            }
+
+            var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken);
+            var total = CalculateOrderTotal(cart, (decimal)fxRate) + context.ShippingPrice;
+            var transactionId = ExtractTransactionId(paymentResult.RawResponse, paymentId);
+
+            var order = new Order
+            {
+                OrderId = GenerateOrderNumber(),
+                UserId = userId,
+                AddressId = orderAddress.Id,
+                Status = "Ödeme alındı",
+                OrderDate = DateTime.UtcNow,
+                TotalAmount = total,
+                Items = cart.Items.Select(i => new OrderItem
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList(),
+                Payments =
+                {
+                    new PaymentTransaction
+                    {
+                        Amount = total,
+                        TransactionDate = DateTime.UtcNow,
+                        PaymentMethod = "iyzico-3ds",
+                        TransactionId = transactionId
+                    }
+                },
+                Shipment = new Shipment
+                {
+                    Carrier = ResolveCarrier(context.ShippingId),
+                    TrackingNumber = string.Empty,
+                    ShippedDate = DateTime.UtcNow
+                }
+            };
+
+            await _orderRepository.InsertOrderAsync(order, cancellationToken);
+            await _cartService.RemoveAllAsync(owner, cancellationToken);
+
+            if (context.SaveCard && !context.UsedSavedCard && !string.IsNullOrWhiteSpace(context.CardHolderName))
+            {
+                await TrySaveCardFromResponseAsync(userId, context.CardHolderName, paymentResult.RawResponse, cancellationToken);
+            }
+
+            _logger.LogInformation("3D Secure payment finalized for user. ConversationId: {ConversationId}, OrderNumber: {OrderNumber}", conversationId, order.OrderId);
+
+            var message = $"Ödemeniz başarıyla tamamlandı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}";
+            return (true, message);
+        }
+        else
+        {
+            var anonId = context.AnonId;
+            var guest = context.GuestInfo;
+            if (string.IsNullOrWhiteSpace(anonId) || guest is null)
+            {
+                _logger.LogWarning("3D Secure finalize failed: guest context missing. ConversationId: {ConversationId}", conversationId);
+                return (false, "Misafir sipariş bilgileri bulunamadı.");
+            }
+
+            var owner = CartOwner.FromAnon(anonId);
+            var cart = await _cartService.GetAsync(owner, createIfMissing: false, cancellationToken);
+            if (cart is null || cart.Items.Count == 0)
+            {
+                _logger.LogWarning("3D Secure finalize failed: guest cart missing. ConversationId: {ConversationId}, AnonId: {AnonId}", conversationId, anonId);
+                return (false, "Sepetiniz bulunamadı veya boş olduğu için sipariş oluşturulamadı.");
+            }
+
+            var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken);
+            var total = CalculateOrderTotal(cart, (decimal)fxRate) + context.ShippingPrice;
+            var transactionId = ExtractTransactionId(paymentResult.RawResponse, paymentId);
+
+            var order = new Order
+            {
+                OrderId = GenerateOrderNumber(),
+                UserId = null,
+                AddressId = null,
+                AnonId = cart.AnonId,
+                BuyerName = $"{guest.Name} {guest.Surname}".Trim(),
+                BuyerEmail = guest.Email,
+                BuyerPhone = SanitizeDigits(guest.Phone),
+                ShippingAddressText = guest.FullAddress,
+                ShippingNeighbourhood = guest.Neighbourhood,
+                ShippingState = guest.State,
+                ShippingCity = guest.City,
+                Status = "Ödeme alındı",
+                OrderDate = DateTime.UtcNow,
+                TotalAmount = total,
+                Items = cart.Items.Select(i => new OrderItem
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList(),
+                Payments =
+                {
+                    new PaymentTransaction
+                    {
+                        Amount = total,
+                        TransactionDate = DateTime.UtcNow,
+                        PaymentMethod = "iyzico-3ds",
+                        TransactionId = transactionId
+                    }
+                },
+                Shipment = new Shipment
+                {
+                    Carrier = ResolveCarrier(context.ShippingId),
+                    TrackingNumber = string.Empty,
+                    ShippedDate = DateTime.UtcNow
+                }
+            };
+
+            await _orderRepository.InsertOrderAsync(order, cancellationToken);
+            await _cartService.RemoveAllAsync(owner, cancellationToken);
+
+            _logger.LogInformation("3D Secure payment finalized for guest. ConversationId: {ConversationId}, OrderNumber: {OrderNumber}, AnonId: {AnonId}",
+                conversationId,
+                order.OrderId,
+                cart.AnonId);
+
+            var message = $"Ödemeniz başarıyla tamamlandı. Sipariş numaranız: {order.OrderId.ToString("D6", CultureInfo.InvariantCulture)}";
+            return (true, message);
+        }
     }
 
     private static bool IsCardStorageNotEnabled(string? rawResponse)
