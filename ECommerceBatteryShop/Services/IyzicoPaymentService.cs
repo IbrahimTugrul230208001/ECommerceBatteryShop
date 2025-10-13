@@ -245,6 +245,13 @@ public async Task<IyzicoThreeDSInitializeResult> InitializeThreeDSPaymentAsync(
         if (ok && !string.IsNullOrWhiteSpace(resp.HtmlContent))
         {
             html = DecodeBase64ToUtf8Safe(resp.HtmlContent);
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                _logger.LogWarning(
+                    "3DS init HTML decode failed. Falling back to raw content. ConversationId: {Conv}",
+                    model.ConversationId);
+                html = resp.HtmlContent;
+            }
         }
 
         if (!ok)
