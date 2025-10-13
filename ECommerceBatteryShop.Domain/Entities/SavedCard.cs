@@ -2,7 +2,7 @@ namespace ECommerceBatteryShop.Domain.Entities;
 
 public class SavedCard
 {
-    public int Id { get; set; }
+    public int Id { get; set; } // EF configured as identity/serial
     public int UserId { get; set; }
     public User? User { get; set; }
 
