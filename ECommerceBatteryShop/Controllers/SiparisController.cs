@@ -312,39 +312,66 @@ public class SiparisController : Controller
             if (input.ThreeDSecure)
             {
                 var initResult = await _paymentService.InitializeThreeDSPaymentAsync(paymentModel, cancellationToken);
-                if (!initResult.Success || string.IsNullOrWhiteSpace(initResult.HtmlContent))
+
+                // 🔹 HtmlContent yoksa RawResponse'tan çek
+                string html = initResult.HtmlContent;
+
+                if (string.IsNullOrWhiteSpace(html) && !string.IsNullOrWhiteSpace(initResult.RawResponse))
                 {
-                    var initMessage = string.IsNullOrWhiteSpace(initResult.ErrorMessage)
-                        ? "3D Secure başlatılırken bir hata oluştu. Lütfen tekrar deneyin."
-                        : initResult.ErrorMessage;
-                    return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = initMessage });
+                    using var doc = JsonDocument.Parse(initResult.RawResponse);
+                    var root = doc.RootElement;
+
+                    if (root.TryGetProperty("HtmlContent", out var hc) ||
+                        root.TryGetProperty("htmlContent", out hc))
+                    {
+                        html = hc.GetString(); // Unicode escape’ler çözülür
+                    }
                 }
 
-                var redirectUrl = Url.Action(nameof(ThreeDSInit), new { conversationId = paymentModel.ConversationId })
-                                  ?? $"/Siparis/ThreeDSInit?conversationId={Uri.EscapeDataString(paymentModel.ConversationId)}";
-
-                var saveCard = !useSaved && input.Save;
-                _threeDSStore.SaveInitHtml(paymentModel.ConversationId, initResult.HtmlContent);
-                _threeDSStore.SaveContext(paymentModel.ConversationId, new PendingThreeDSContext(
-                    userId,
-                    null,
-                    input.ShippingId,
-                    shippingPrice,
-                    saveCard,
-                    useSaved,
-                    null,
-                    saveCard ? input.Name : null));
-
-                _logger.LogInformation("3D Secure initialization completed for user. ConversationId: {ConversationId}, UserId: {UserId}",
-                    paymentModel.ConversationId,
-                    userId);
-
-                return Ok(new
+                // 🔹 HTML varsa, logla + kaydet + yönlendir
+                if (!string.IsNullOrWhiteSpace(html))
                 {
-                    success = true,
-                    message = "3D Secure doğrulama sayfasına yönlendiriliyorsunuz.",
-                    redirectUrl
-                });
+                    _logger.LogInformation("3DS init html extracted. Length={Len}", html.Length);
+
+                    var redirectUrl = Url.Action(nameof(ThreeDSInit), new { conversationId = paymentModel.ConversationId })
+                                      ?? $"/Siparis/ThreeDSInit?conversationId={Uri.EscapeDataString(paymentModel.ConversationId)}";
+
+                    var saveCard = !useSaved && input.Save;
+
+                    _threeDSStore.SaveInitHtml(paymentModel.ConversationId, html);
+                    _threeDSStore.SaveContext(paymentModel.ConversationId, new PendingThreeDSContext(
+                        userId,
+                        null,
+                        input.ShippingId,
+                        shippingPrice,
+                        saveCard,
+                        useSaved,
+                        null,
+                        saveCard ? input.Name : null));
+
+                    _logger.LogInformation("3D Secure initialization completed. ConvId={ConvId}, UserId={UserId}",
+                        paymentModel.ConversationId,
+                        userId);
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "3D Secure doğrulama sayfasına yönlendiriliyorsunuz.",
+                        redirectUrl
+                    });
+                }
+
+                // 🔹 HTML yine yoksa — kontrollü hata
+                var initMessage = string.IsNullOrWhiteSpace(initResult.ErrorMessage)
+                    ? "3D Secure başlatılırken bir hata oluştu. Lütfen tekrar deneyin."
+                    : initResult.ErrorMessage;
+
+                _logger.LogError("3DS init failed (no HTML). Success={Success}, RawLen={RawLen}, ConvId={ConvId}",
+                    initResult.Success,
+                    initResult.RawResponse?.Length ?? 0,
+                    paymentModel.ConversationId);
+
+                return StatusCode((int)HttpStatusCode.BadGateway, new { success = false, message = initMessage });
             }
 
             var result = await _paymentService.CreatePaymentAsync(paymentModel, cancellationToken);
