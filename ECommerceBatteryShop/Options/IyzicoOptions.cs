@@ -19,5 +19,6 @@ public class IyzicoOptions
 }
 public sealed class IyzicoDefaults
 {
-    public string Country { get; init; } = "Türkiye";
+    // Iyzipay expects English country names like "Turkey"
+    public string Country { get; init; } = "Turkey";
 }

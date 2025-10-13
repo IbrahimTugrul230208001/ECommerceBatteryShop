@@ -14,6 +14,12 @@ public sealed class CategoryRepository : ICategoryRepository
         _ctx = ctx;
     }
 
+    public Task<Category?> GetBySlugAsync(string slug, CancellationToken ct = default)
+    {
+        return _ctx.Categories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Slug == slug, ct);
+    }
 
     public async Task<List<Category>> GetCategoryTreeAsync()
     {
