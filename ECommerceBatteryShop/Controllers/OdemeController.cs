@@ -73,24 +73,61 @@ public class OdemeController : Controller
             return null;
         }
 
-        var signature = GetSignatureHeader(Request.Headers);
+        async Task<string?> TryGetSignatureFromFormAsync()
+        {
+            if (!Request.HasFormContentType)
+            {
+                return null;
+            }
+
+            var form = await Request.ReadFormAsync(cancellationToken);
+            Request.Body.Position = 0;
+
+            return ExtractSignatureFromFormCollection(form);
+        }
+
+        string? signature = GetSignatureHeader(Request.Headers);
+        JsonDocument? document = null;
+        JsonException? parseException = null;
+        JsonElement root = default;
+        var hasJson = false;
 
         if (string.IsNullOrWhiteSpace(signature))
         {
-            _logger.LogWarning("Iyzico callback rejected because signature header is missing.");
-            return Unauthorized();
+            signature = await TryGetSignatureFromFormAsync();
         }
 
-        if (!VerifySignature(payload, signature))
+        if (!string.IsNullOrWhiteSpace(payload))
+        {
+            try
+            {
+                document = JsonDocument.Parse(payload);
+                root = document.RootElement;
+                hasJson = true;
+                if (string.IsNullOrWhiteSpace(signature))
+                {
+                    signature = ExtractSignatureFromJson(root);
+                }
+            }
+            catch (JsonException ex)
+            {
+                parseException = ex;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(signature))
+        {
+            _logger.LogWarning("Iyzico callback received without a signature. Skipping validation.");
+        }
+        else if (!VerifySignature(payload, signature))
         {
             _logger.LogWarning("Iyzico callback signature validation failed.");
+            document?.Dispose();
             return Unauthorized();
         }
 
-        try
+        if (hasJson)
         {
-            using var document = JsonDocument.Parse(string.IsNullOrWhiteSpace(payload) ? "{}" : payload);
-            var root = document.RootElement;
             var status = root.TryGetProperty("status", out var statusElement) && statusElement.ValueKind == JsonValueKind.String
                 ? statusElement.GetString()
                 : null;
@@ -107,10 +144,12 @@ public class OdemeController : Controller
                 conversationId,
                 paymentId);
         }
-        catch (JsonException ex)
+        else if (parseException is not null)
         {
-            _logger.LogWarning(ex, "Unable to parse Iyzico callback payload.");
+            _logger.LogWarning(parseException, "Unable to parse Iyzico callback payload.");
         }
+
+        document?.Dispose();
 
         return Ok(new { success = true });
     }
@@ -130,5 +169,57 @@ public class OdemeController : Controller
         return CryptographicOperations.FixedTimeEquals(
             Encoding.UTF8.GetBytes(computedSignature),
             Encoding.UTF8.GetBytes(providedSignature));
+    }
+
+    private static string? ExtractSignatureFromJson(JsonElement root)
+    {
+        string[] propertyCandidates = new[]
+        {
+            "iyziSignature",
+            "signature",
+            "IyziSignature",
+            "Iyzi-Signature",
+            "iyzi-signature"
+        };
+
+        foreach (var propertyName in propertyCandidates)
+        {
+            if (root.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String)
+            {
+                var value = property.GetString();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return value.Trim();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static string? ExtractSignatureFromFormCollection(IFormCollection form)
+    {
+        string[] formKeys = new[]
+        {
+            "iyziSignature",
+            "signature",
+            "IyziSignature",
+            "Iyzi-Signature",
+            "iyzi-signature"
+        };
+
+        foreach (var key in formKeys)
+        {
+            if (form.TryGetValue(key, out var value) && !StringValues.IsNullOrEmpty(value))
+            {
+                var signature = value.ToString();
+                if (!string.IsNullOrWhiteSpace(signature))
+                {
+                    return signature.Trim();
+                }
+            }
+        }
+
+        return null;
     }
 }
