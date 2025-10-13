@@ -1,9 +1,12 @@
-using ECommerceBatteryShop.Options;
+using ECommerceBatteryShop.Options;              // IyzicoOptions, IyzicoDefaults
+using Iyzipay;
 using Iyzipay.Model;
 using Iyzipay.Request;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Configuration;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -19,7 +22,7 @@ public interface IIyzicoPaymentService
 public class IyzicoPaymentService : IIyzicoPaymentService
 {
     private readonly IConfiguration _configuration;
-    private readonly Iyzipay.Options _options;
+    private readonly Iyzipay.Options _options;                  // <<< fully qualified
     private readonly ILogger<IyzicoPaymentService> _logger;
     private readonly IyzicoOptions _settings;
 
@@ -36,13 +39,12 @@ public class IyzicoPaymentService : IIyzicoPaymentService
         _configuration = configuration;
     }
 
-
     public async Task<IyzicoPaymentResult> CreatePaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var request = new CreatePaymentRequest
+        var req = new CreatePaymentRequest
         {
             Locale = Locale.TR.ToString(),
             ConversationId = model.ConversationId,
@@ -55,10 +57,10 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             PaymentGroup = model.PaymentGroup
         };
 
-        // Either raw card or saved card
+        // Card: raw or saved
         if (model.Card is not null)
         {
-            request.PaymentCard = new PaymentCard
+            req.PaymentCard = new PaymentCard
             {
                 CardHolderName = model.Card.HolderName,
                 CardNumber = model.Card.Number,
@@ -70,7 +72,7 @@ public class IyzicoPaymentService : IIyzicoPaymentService
         }
         else if (model.Saved is not null)
         {
-            request.PaymentCard = new PaymentCard
+            req.PaymentCard = new PaymentCard
             {
                 CardUserKey = model.Saved.CardUserKey,
                 CardToken = model.Saved.CardToken
@@ -78,13 +80,11 @@ public class IyzicoPaymentService : IIyzicoPaymentService
         }
 
         if (!string.IsNullOrWhiteSpace(_settings.CallbackUrl))
-        {
-            request.CallbackUrl = _settings.CallbackUrl;
-        }
+            req.CallbackUrl = _settings.CallbackUrl;
 
         var defaults = _configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
 
-        request.Buyer = new Buyer
+        req.Buyer = new Buyer
         {
             Id = model.Buyer.Id,
             Name = model.Buyer.Name,
@@ -94,37 +94,28 @@ public class IyzicoPaymentService : IIyzicoPaymentService
             IdentityNumber = model.Buyer.IdentityNumber,
             RegistrationAddress = model.Buyer.RegistrationAddress,
             City = model.Buyer.City,
-            Country = string.IsNullOrWhiteSpace(model.Buyer.Country)
-                ? defaults.Country
-                : model.Buyer.Country,
+            Country = string.IsNullOrWhiteSpace(model.Buyer.Country) ? defaults.Country : model.Buyer.Country,
             Ip = model.Buyer.Ip
         };
-        request.ShippingAddress = new Iyzipay.Model.Address
+
+        // <<< fully qualify Address and use Address=... field
+        req.ShippingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.ShippingAddress.ContactName,
             City = model.ShippingAddress.City,
-            Country = string.IsNullOrWhiteSpace(model.ShippingAddress.Country)
-                ? defaults.Country
-                : model.ShippingAddress.Country,
-            Description = string.IsNullOrWhiteSpace(model.ShippingAddress.Address)
-                ? "Adres belirtilmedi"
-                : model.ShippingAddress.Address
+            Country = string.IsNullOrWhiteSpace(model.ShippingAddress.Country) ? defaults.Country : model.ShippingAddress.Country,
+            Description = string.IsNullOrWhiteSpace(model.ShippingAddress.Address) ? "Adres belirtilmedi" : model.ShippingAddress.Address
         };
-        request.BillingAddress = new Iyzipay.Model.Address
+
+        req.BillingAddress = new Iyzipay.Model.Address
         {
             ContactName = model.BillingAddress.ContactName,
             City = model.BillingAddress.City,
-            Country = string.IsNullOrWhiteSpace(model.BillingAddress.Country)
-                ? defaults.Country
-                : model.BillingAddress.Country,
-            Description = string.IsNullOrWhiteSpace(model.BillingAddress.Address)
-                ? "Adres belirtilmedi"
-                : model.BillingAddress.Address
+            Country = string.IsNullOrWhiteSpace(model.BillingAddress.Country) ? defaults.Country : model.BillingAddress.Country,
+            Description = string.IsNullOrWhiteSpace(model.BillingAddress.Address) ? "Adres belirtilmedi" : model.BillingAddress.Address
         };
-        request.Buyer.Country = string.IsNullOrWhiteSpace(request.Buyer.Country)
-            ? defaults.Country
-            : request.Buyer.Country;
-        request.BasketItems = model.Items.Select(item => new BasketItem
+
+        req.BasketItems = model.Items.Select(item => new BasketItem
         {
             Id = item.Id,
             Name = item.Name,
@@ -136,19 +127,17 @@ public class IyzicoPaymentService : IIyzicoPaymentService
 
         try
         {
-            var response = await Task.Run(() => Payment.Create(request, _options), cancellationToken);
-            var success = string.Equals(response.Status, "success", StringComparison.OrdinalIgnoreCase);
+            var resp = await Task.Run(() => Payment.Create(req, _options), cancellationToken);
+            var ok = string.Equals(resp.Status, "success", StringComparison.OrdinalIgnoreCase);
 
-            var rawJson = JsonSerializer.Serialize(response);
-            if (!success)
+            if (!ok)
             {
                 _logger.LogWarning("Iyzico payment failed. ConversationId: {ConversationId}, ErrorCode: {ErrorCode}, Message: {Message}",
-                    model.ConversationId,
-                    response.ErrorCode,
-                    response.ErrorMessage);
+                    model.ConversationId, resp.ErrorCode, resp.ErrorMessage);
             }
 
-            return new IyzicoPaymentResult(success, response.ErrorMessage, rawJson);
+            var rawJson = SafeSerialize(resp);
+            return new IyzicoPaymentResult(ok, resp.ErrorMessage, rawJson);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -157,185 +146,185 @@ public class IyzicoPaymentService : IIyzicoPaymentService
         }
     }
 
-    public async Task<IyzicoThreeDSInitializeResult> InitializeThreeDSPaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default)
+
+// INIT 3DS
+public async Task<IyzicoThreeDSInitializeResult> InitializeThreeDSPaymentAsync(
+    IyzicoPaymentModel model, CancellationToken ct = default)
+{
+    ArgumentNullException.ThrowIfNull(model);
+    ct.ThrowIfCancellationRequested();
+
+    var callbackUrl = _settings.ThreeDSCallbackUrl ?? _settings.CallbackUrl;
+    if (string.IsNullOrWhiteSpace(callbackUrl))
+        return new(false, "3D Secure callback adresi yapılandırılmamış.", null, null);
+
+    var req = new CreatePaymentRequest
     {
-        ArgumentNullException.ThrowIfNull(model);
-        cancellationToken.ThrowIfCancellationRequested();
+        Locale = Locale.TR.ToString(),
+        ConversationId = model.ConversationId,
+        Price = ToPrice(model.Price),         // "0.00"
+        PaidPrice = ToPrice(model.PaidPrice), // "0.00"
+        BasketId = model.BasketId,
+        Installment = model.Installment,
+        Currency = model.Currency,
+        PaymentChannel = model.PaymentChannel,
+        PaymentGroup = model.PaymentGroup,
+        CallbackUrl = callbackUrl
+    };
 
-        var callbackUrl = _settings.ThreeDSCallbackUrl ?? _settings.CallbackUrl;
-        if (string.IsNullOrWhiteSpace(callbackUrl))
+    // payment card (raw or saved)
+    if (model.Card is not null)
+    {
+        req.PaymentCard = new PaymentCard
         {
-            const string message = "3D Secure callback adresi yapılandırılmamış.";
-            _logger.LogError("{Message}", message);
-            return new IyzicoThreeDSInitializeResult(false, message, null, null);
-        }
-
-        var request = new CreateThreeDSInitializeRequest
-        {
-            Locale = Locale.TR.ToString(),
-            ConversationId = model.ConversationId,
-            Price = ToPrice(model.Price),
-            PaidPrice = ToPrice(model.PaidPrice),
-            BasketId = model.BasketId,
-            Installment = model.Installment,
-            Currency = model.Currency,
-            PaymentChannel = model.PaymentChannel,
-            PaymentGroup = model.PaymentGroup,
-            CallbackUrl = callbackUrl
+            CardHolderName = model.Card.HolderName,
+            CardNumber = model.Card.Number,
+            ExpireMonth = model.Card.ExpireMonth,
+            ExpireYear = model.Card.ExpireYear,
+            Cvc = model.Card.Cvc,
+            RegisterCard = model.Card.RegisterCard ? 1 : 0
         };
-
-        if (model.Card is not null)
+    }
+    else if (model.Saved is not null)
+    {
+        req.PaymentCard = new PaymentCard
         {
-            request.PaymentCard = new PaymentCard
-            {
-                CardHolderName = model.Card.HolderName,
-                CardNumber = model.Card.Number,
-                ExpireMonth = model.Card.ExpireMonth,
-                ExpireYear = model.Card.ExpireYear,
-                Cvc = model.Card.Cvc,
-                RegisterCard = model.Card.RegisterCard ? 1 : 0
-            };
-        }
-        else if (model.Saved is not null)
-        {
-            request.PaymentCard = new PaymentCard
-            {
-                CardUserKey = model.Saved.CardUserKey,
-                CardToken = model.Saved.CardToken
-            };
-        }
-
-        var defaults = _configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
-
-        request.Buyer = new Buyer
-        {
-            Id = model.Buyer.Id,
-            Name = model.Buyer.Name,
-            Surname = model.Buyer.Surname,
-            GsmNumber = model.Buyer.GsmNumber,
-            Email = model.Buyer.Email,
-            IdentityNumber = model.Buyer.IdentityNumber,
-            RegistrationAddress = model.Buyer.RegistrationAddress,
-            City = model.Buyer.City,
-            Country = string.IsNullOrWhiteSpace(model.Buyer.Country)
-                ? defaults.Country
-                : model.Buyer.Country,
-            Ip = model.Buyer.Ip
+            CardUserKey = model.Saved.CardUserKey,
+            CardToken = model.Saved.CardToken
         };
-
-        request.ShippingAddress = new Iyzipay.Model.Address
-        {
-            ContactName = model.ShippingAddress.ContactName,
-            City = model.ShippingAddress.City,
-            Country = string.IsNullOrWhiteSpace(model.ShippingAddress.Country)
-                ? defaults.Country
-                : model.ShippingAddress.Country,
-            Description = string.IsNullOrWhiteSpace(model.ShippingAddress.Address)
-                ? "Adres belirtilmedi"
-                : model.ShippingAddress.Address
-        };
-
-        request.BillingAddress = new Iyzipay.Model.Address
-        {
-            ContactName = model.BillingAddress.ContactName,
-            City = model.BillingAddress.City,
-            Country = string.IsNullOrWhiteSpace(model.BillingAddress.Country)
-                ? defaults.Country
-                : model.BillingAddress.Country,
-            Description = string.IsNullOrWhiteSpace(model.BillingAddress.Address)
-                ? "Adres belirtilmedi"
-                : model.BillingAddress.Address
-        };
-
-        request.Buyer.Country = string.IsNullOrWhiteSpace(request.Buyer.Country)
-            ? defaults.Country
-            : request.Buyer.Country;
-
-        request.BasketItems = model.Items.Select(item => new BasketItem
-        {
-            Id = item.Id,
-            Name = item.Name,
-            Category1 = item.Category1,
-            Category2 = item.Category2,
-            ItemType = item.ItemType,
-            Price = ToPrice(item.Price)
-        }).ToList();
-
-        try
-        {
-            var response = await Task.Run(() => ThreeDSInitialize.Create(request, _options), cancellationToken);
-            var success = string.Equals(response.Status, "success", StringComparison.OrdinalIgnoreCase);
-            var rawJson = JsonSerializer.Serialize(response);
-
-            string? html = null;
-            if (!string.IsNullOrWhiteSpace(response.HtmlContent))
-            {
-                try
-                {
-                    html = Encoding.UTF8.GetString(Convert.FromBase64String(response.HtmlContent));
-                }
-                catch (FormatException)
-                {
-                    html = response.HtmlContent;
-                }
-            }
-
-            if (!success)
-            {
-                _logger.LogWarning("Iyzico 3DS init failed. ConversationId: {ConversationId}, ErrorCode: {ErrorCode}, Message: {Message}",
-                    model.ConversationId,
-                    response.ErrorCode,
-                    response.ErrorMessage);
-            }
-
-            return new IyzicoThreeDSInitializeResult(success, response.ErrorMessage, html, rawJson);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            _logger.LogError(ex, "Error while initializing Iyzico 3DS payment. ConversationId: {ConversationId}", model.ConversationId);
-            return new IyzicoThreeDSInitializeResult(false, ex.Message, null, null);
-        }
     }
 
-    public async Task<IyzicoPaymentResult> CompleteThreeDSPaymentAsync(IyzicoThreeDSCompleteModel model, CancellationToken cancellationToken = default)
+    var defaults = _configuration.GetSection("IyzicoDefaults").Get<IyzicoDefaults>() ?? new();
+
+    req.Buyer = new Buyer
     {
-        ArgumentNullException.ThrowIfNull(model);
-        cancellationToken.ThrowIfCancellationRequested();
+        Id = model.Buyer.Id,
+        Name = model.Buyer.Name,
+        Surname = model.Buyer.Surname,
+        GsmNumber = model.Buyer.GsmNumber,
+        Email = model.Buyer.Email,
+        IdentityNumber = model.Buyer.IdentityNumber,
+        RegistrationAddress = model.Buyer.RegistrationAddress,
+        City = model.Buyer.City,
+        Country = string.IsNullOrWhiteSpace(model.Buyer.Country) ? defaults.Country : model.Buyer.Country,
+        Ip = model.Buyer.Ip
+    };
 
-        var request = new CreateThreeDSPaymentRequest
+    req.ShippingAddress = new Iyzipay.Model.Address
+    {
+        ContactName = model.ShippingAddress.ContactName,
+        City = model.ShippingAddress.City,
+        Country = string.IsNullOrWhiteSpace(model.ShippingAddress.Country) ? defaults.Country : model.ShippingAddress.Country,
+        Description = string.IsNullOrWhiteSpace(model.ShippingAddress.Address) ? "Adres belirtilmedi" : model.ShippingAddress.Address
+    };
+    req.BillingAddress = new Iyzipay.Model.Address
+    {
+        ContactName = model.BillingAddress.ContactName,
+        City = model.BillingAddress.City,
+        Country = string.IsNullOrWhiteSpace(model.BillingAddress.Country) ? defaults.Country : model.BillingAddress.Country,
+        Description = string.IsNullOrWhiteSpace(model.BillingAddress.Address) ? "Adres belirtilmedi" : model.BillingAddress.Address
+    };
+
+    req.BasketItems = model.Items.Select(i => new BasketItem
+    {
+        Id = i.Id,
+        Name = i.Name,
+        Category1 = i.Category1,
+        Category2 = i.Category2,
+        ItemType = i.ItemType,
+        Price = ToPrice(i.Price)
+    }).ToList();
+
+    try
+    {
+        // 3DS INIT
+        var resp = await Task.Run(() => ThreedsInitialize.Create(req, _options), ct);
+        var ok = string.Equals(resp.Status, "success", StringComparison.OrdinalIgnoreCase);
+
+        string? html = null;
+        if (ok && !string.IsNullOrWhiteSpace(resp.HtmlContent))
         {
-            Locale = Locale.TR.ToString(),
-            ConversationId = model.ConversationId,
-            PaymentId = model.PaymentId,
-            ConversationData = model.ConversationData
-        };
-
-        try
-        {
-            var response = await Task.Run(() => ThreeDSPayment.Create(request, _options), cancellationToken);
-            var success = string.Equals(response.Status, "success", StringComparison.OrdinalIgnoreCase);
-            var rawJson = JsonSerializer.Serialize(response);
-
-            if (!success)
-            {
-                _logger.LogWarning("Iyzico 3DS finalize failed. ConversationId: {ConversationId}, ErrorCode: {ErrorCode}, Message: {Message}",
-                    model.ConversationId,
-                    response.ErrorCode,
-                    response.ErrorMessage);
-            }
-
-            return new IyzicoPaymentResult(success, response.ErrorMessage, rawJson);
+            html = DecodeBase64ToUtf8Safe(resp.HtmlContent);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+
+        if (!ok)
         {
-            _logger.LogError(ex, "Error while completing Iyzico 3DS payment. ConversationId: {ConversationId}", model.ConversationId);
-            return new IyzicoPaymentResult(false, ex.Message, null);
+            _logger.LogWarning("3DS init failed. ConversationId: {Conv}, ErrorCode: {ErrorCode}, Message: {Message}", model.ConversationId, resp.ErrorCode, resp.ErrorMessage);
         }
+
+        return new(ok, resp.ErrorMessage, html, SafeSerialize(resp));
     }
-
-    private static string ToPrice(decimal value)
-        => decimal.Round(value, 2, MidpointRounding.AwayFromZero).ToString("0.00", CultureInfo.InvariantCulture);
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+        _logger.LogError(ex, "3DS init error. ConversationId:{Conv}", model.ConversationId);
+        return new(false, ex.Message, null, null);
+    }
 }
+
+// COMPLETE 3DS
+public async Task<IyzicoPaymentResult> CompleteThreeDSPaymentAsync(
+    IyzicoThreeDSCompleteModel model, CancellationToken ct = default)
+{
+    ArgumentNullException.ThrowIfNull(model);
+    ct.ThrowIfCancellationRequested();
+
+    var req = new CreateThreedsPaymentRequest
+    {
+        Locale = Locale.TR.ToString(),
+        ConversationId = model.ConversationId,
+        PaymentId = model.PaymentId,
+        ConversationData = model.ConversationData
+    };
+
+    try
+    {
+        var resp = await Task.Run(() => ThreedsPayment.Create(req, _options), ct);
+        var ok = string.Equals(resp.Status, "success", StringComparison.OrdinalIgnoreCase);
+        return new(ok, resp.ErrorMessage, JsonSerializer.Serialize(resp));
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+        _logger.LogError(ex, "3DS complete error. ConversationId:{Conv}", model.ConversationId);
+        return new(false, ex.Message, null);
+    }
+}
+
+// helper
+private static string ToPrice(decimal value) =>
+    decimal.Round(value, 2, MidpointRounding.AwayFromZero).ToString("0.00", CultureInfo.InvariantCulture);
+
+
+private static string SafeSerialize(object resp)
+    {
+        try { return JsonSerializer.Serialize(resp); }
+        catch { return resp?.ToString() ?? "{}"; }
+    }
+
+    private static string? DecodeBase64ToUtf8Safe(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return null;
+
+        // Normalize possible URL-safe base64 and add padding if needed
+        var normalized = s.Trim().Replace('-', '+').Replace('_', '/');
+        int mod4 = normalized.Length % 4;
+        if (mod4 > 0)
+        {
+            normalized = normalized.PadRight(normalized.Length + (4 - mod4), '=');
+        }
+
+        try
+        {
+            var bytes = Convert.FromBase64String(normalized);
+            return Encoding.UTF8.GetString(bytes);
+        }
+        catch
+        {
+            return null; // do not throw, let caller handle null
+        }
+    }
+}
+
+// ====== Records / models (kept here to resolve CS0246) ======
 
 public record IyzicoPaymentResult(bool Success, string? ErrorMessage, string? RawResponse);
 
@@ -377,7 +366,6 @@ public class IyzicoSavedCard
     public required string CardToken { get; init; }
 }
 
-
 public class IyzicoBuyer
 {
     public required string Id { get; init; }
@@ -399,7 +387,6 @@ public class IyzicoAddress
     public required string Address { get; init; }
     public required string Country { get; init; }
 }
-
 public class IyzicoBasketItem
 {
     public required string Id { get; init; }
