@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives; // for StringValues
 
 namespace ECommerceBatteryShop.Controllers;
 
@@ -33,30 +34,10 @@ public class OdemeController : Controller
         return View();
     }
 
-    public async Task<IActionResult> InsertOrder()
-    {
-        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return RedirectToAction("Index", "Sepet");
-        }
-
-        var owner = CartOwner.FromUser(userId);
-
-        var cart = await _cartService.GetAsync(owner);
-        if (cart is null || !cart.Items.Any())
-        {
-            return RedirectToAction("Index", "Sepet");
-        }
-
-        return View(cart);
-    }
-
     [AllowAnonymous]
     [HttpPost]
     [IgnoreAntiforgeryToken]
-    [Route("Payment/iyzicoCallback")]
-    public async Task<IActionResult> IyzicoCallback(CancellationToken cancellationToken)
+    public async Task<IActionResult> IyzicoCallback(CancellationToken cancellationToken = default)
     {
         Request.EnableBuffering();
         string payload;
@@ -66,8 +47,33 @@ public class OdemeController : Controller
         }
         Request.Body.Position = 0;
 
-        var signature = Request.Headers["iyziSignature"].FirstOrDefault()
-            ?? Request.Headers["x-iyzi-signature"].FirstOrDefault();
+        // Accept common header name variants used by IyziCo webhooks
+        static string? GetSignatureHeader(IHeaderDictionary headers)
+        {
+            // Header names are case-insensitive, but include common alternates to be safe
+            string[] candidates = new[]
+            {
+                "X-IYZ-Signature",   // most common, official docs
+                "x-iyz-signature",
+                "IYZ-Signature",
+                "iyz-signature",
+                "X-IYZI-Signature",  // some community samples use iyzi spelling
+                "x-iyzi-signature",
+                "iyzi-signature",
+                "iyziSignature"
+            };
+
+            foreach (var name in candidates)
+            {
+                if (headers.TryGetValue(name, out var value) && !StringValues.IsNullOrEmpty(value))
+                {
+                    return value.ToString();
+                }
+            }
+            return null;
+        }
+
+        var signature = GetSignatureHeader(Request.Headers);
 
         if (string.IsNullOrWhiteSpace(signature))
         {
