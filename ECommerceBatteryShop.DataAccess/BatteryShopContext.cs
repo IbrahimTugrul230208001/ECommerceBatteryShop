@@ -29,6 +29,14 @@ public class BatteryShopContext : DbContext
                 "([UserId] IS NOT NULL AND [AnonId] IS NULL) OR ([UserId] IS NULL AND [AnonId] IS NOT NULL)"
             ));
 
+        // Ensure SavedCard PK is value-generated and add a uniqueness guard to avoid duplicates
+        modelBuilder.Entity<SavedCard>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).ValueGeneratedOnAdd();
+            b.HasIndex(x => new { x.UserId, x.CardToken }).IsUnique();
+        });
+
         base.OnModelCreating(modelBuilder);
     }
 
