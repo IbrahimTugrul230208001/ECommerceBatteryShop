@@ -640,8 +640,15 @@ public class SiparisController : Controller
     [HttpPost]
     [AllowAnonymous]
     [IgnoreAntiforgeryToken]
+    [Consumes("application/x-www-form-urlencoded")]
+    [Route("Siparis/ThreeDSCallback")] // conventional path we configure in settings
+    [Route("Payment/Iyzico3DSReturn")] // optional aliases if configured on Iyzi dashboard
+    [Route("Odeme/Iyzico3DSReturn")]   // optional Turkish alias
     public async Task<IActionResult> ThreeDSCallback([FromForm] IyzicoThreeDSCallbackModel model, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("[3DS CALLBACK] status={Status} mdStatus={MdStatus} paymentId={PaymentId} convId={ConvId}",
+            model?.Status, model?.MdStatus, model?.PaymentId, model?.ConversationId);
+
         if (model is null || string.IsNullOrWhiteSpace(model.ConversationId))
         {
             return RenderThreeDSRedirect("/Siparis/ThreeDSStatus");
@@ -662,7 +669,8 @@ public class SiparisController : Controller
             return RenderThreeDSRedirect(redirectUrl);
         }
 
-        if (!IsMdStatusSuccessful(model.MdStatus) || !string.Equals(model.Status, "success", StringComparison.OrdinalIgnoreCase))
+        // Accept only mdStatus == "1" as successful per Iyzi docs
+        if (!string.Equals(model.MdStatus, "1", StringComparison.Ordinal) || !string.Equals(model.Status, "success", StringComparison.OrdinalIgnoreCase))
         {
             var failureMessage = string.IsNullOrWhiteSpace(model.ErrorMessage)
                 ? "3D Secure doğrulaması başarısız oldu. Lütfen farklı bir kart deneyin."
@@ -671,13 +679,69 @@ public class SiparisController : Controller
             return RenderThreeDSRedirect(redirectUrl);
         }
 
-        if (string.IsNullOrWhiteSpace(model.PaymentId) || string.IsNullOrWhiteSpace(model.ConversationData))
+        // Resilient extraction of paymentId and conversationData (case-insensitive, with fallbacks and URL-decoding)
+        string? paymentId = model.PaymentId;
+        string? conversationData = model.ConversationData;
+
+        string? TryGetFromFormOrQuery(params string[] keys)
         {
-            _threeDSStore.SaveResult(conversationId, new ThreeDSResult(false, null, "Ödeme doğrulama bilgileri eksik."));
+            foreach (var key in keys)
+            {
+                if (Request.HasFormContentType && Request.Form.TryGetValue(key, out var v1) && !string.IsNullOrWhiteSpace(v1))
+                {
+                    var s = v1.ToString();
+                    if (!string.IsNullOrWhiteSpace(s)) return WebUtility.UrlDecode(s);
+                }
+                if (Request.Query.TryGetValue(key, out var v2) && !string.IsNullOrWhiteSpace(v2))
+                {
+                    var s = v2.ToString();
+                    if (!string.IsNullOrWhiteSpace(s)) return WebUtility.UrlDecode(s);
+                }
+            }
+            // Try case-insensitive search across all keys when exact names fail
+            if (Request.HasFormContentType)
+            {
+                foreach (var kvp in Request.Form)
+                {
+                    var k = kvp.Key;
+                    if (keys.Any(target => string.Equals(k, target, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var s = kvp.Value.ToString();
+                        if (!string.IsNullOrWhiteSpace(s)) return WebUtility.UrlDecode(s);
+                    }
+                }
+            }
+            foreach (var kvp in Request.Query)
+            {
+                var k = kvp.Key;
+                if (keys.Any(target => string.Equals(k, target, StringComparison.OrdinalIgnoreCase)))
+                {
+                    var s = kvp.Value.ToString();
+                    if (!string.IsNullOrWhiteSpace(s)) return WebUtility.UrlDecode(s);
+                }
+            }
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(paymentId))
+        {
+            paymentId = TryGetFromFormOrQuery("paymentId", "PaymentId", "paymentid", "payment_id", "paymentID");
+        }
+        if (string.IsNullOrWhiteSpace(conversationData))
+        {
+            conversationData = TryGetFromFormOrQuery("conversationData", "ConversationData", "conversationdata", "conversation_data");
+        }
+
+        if (string.IsNullOrWhiteSpace(paymentId))
+        {
+            _threeDSStore.SaveResult(conversationId, new ThreeDSResult(false, null, "paymentId eksik."));
             return RenderThreeDSRedirect(redirectUrl);
         }
 
-        var completeModel = new IyzicoThreeDSCompleteModel(model.PaymentId!, conversationId, model.ConversationData!);
+        var completeModel = new IyzicoThreeDSCompleteModel(
+            paymentId!,
+            conversationId,
+            string.IsNullOrWhiteSpace(conversationData) ? null : conversationData);
         var paymentResult = await _paymentService.CompleteThreeDSPaymentAsync(completeModel, cancellationToken);
         if (!paymentResult.Success)
         {
@@ -688,7 +752,7 @@ public class SiparisController : Controller
             return RenderThreeDSRedirect(redirectUrl);
         }
 
-        var (success, message) = await FinalizeThreeDSOrderAsync(conversationId, model.PaymentId!, context, paymentResult, cancellationToken);
+        var (success, message) = await FinalizeThreeDSOrderAsync(conversationId, paymentId!, context, paymentResult, cancellationToken);
         _threeDSStore.SaveResult(conversationId, new ThreeDSResult(success, paymentResult.RawResponse, message));
 
         return RenderThreeDSRedirect(redirectUrl);
@@ -1159,9 +1223,6 @@ public class SiparisController : Controller
 
         return Content(html, "text/html");
     }
-
-    private static bool IsMdStatusSuccessful(string? mdStatus)
-        => mdStatus is "1" or "2" or "3" or "4";
 
     private async Task<(bool Success, string Message)> FinalizeThreeDSOrderAsync(
         string conversationId,
