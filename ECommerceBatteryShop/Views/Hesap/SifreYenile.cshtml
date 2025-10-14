@@ -1,5 +1,43 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model ResetPasswordViewModel
 @{
+    Layout = "_AccountLayout";
+}
+
+<div class="space-y-4">
+    <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+        <span class="font-semibold">@Model.Email</span> adresi için yeni şifre belirliyorsunuz.
+    </div>
+
+    <form asp-action="SifreYenile" method="post" class="space-y-4" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Token" />
+        <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
+
+        <div>
+            <div class="flex items-center justify-between">
+                <label asp-for="Password" class="block text-sm font-medium text-gray-900">Yeni şifre</label>
+                <span asp-validation-for="Password" class="text-xs text-red-600"></span>
+            </div>
+            <input asp-for="Password" placeholder="Yeni şifreniz"
+                   class="mt-1 w-full rounded-lg border border-gray-300 p-3 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+        </div>
+
+        <div>
+            <div class="flex items-center justify-between">
+                <label asp-for="ConfirmPassword" class="block text-sm font-medium text-gray-900">Şifre tekrarı</label>
+                <span asp-validation-for="ConfirmPassword" class="text-xs text-red-600"></span>
+            </div>
+            <input asp-for="ConfirmPassword" placeholder="Şifreyi tekrar giriniz"
+                   class="mt-1 w-full rounded-lg border border-gray-300 p-3 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+        </div>
+
+        <button type="submit"
+                class="mt-3 w-full cursor-pointer rounded-full bg-amber-300 py-3 font-semibold text-black shadow-sm transition hover:bg-amber-400 hover:shadow-lg active:bg-amber-500">
+            <span>Şifreyi Güncelle</span>
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }
