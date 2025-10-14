@@ -1,9 +1,10 @@
-using System.Security.Cryptography;
-using System.Text;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
+using System.Text;
+using System.Linq;
 
 namespace ECommerceBatteryShop.DataAccess.Concrete;
 
@@ -58,10 +59,14 @@ public sealed class AccountRepository : IAccountRepository
     }
 
 
-    private static string HashPassword(string password)
+    private static string HashPassword(string password) => HashValue(password);
+
+    private static string HashToken(string token) => HashValue(token);
+
+    private static string HashValue(string value)
     {
         using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
+        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(value));
         return Convert.ToBase64String(bytes);
     }
 
@@ -78,4 +83,66 @@ public sealed class AccountRepository : IAccountRepository
 
     }
 
+    public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
+    {
+        return _ctx.Users.SingleOrDefaultAsync(u => u.Email == email, ct);
+    }
+
+    public async Task<PasswordResetToken> CreatePasswordResetTokenAsync(int userId, string token, DateTime expiresAt, CancellationToken ct = default)
+    {
+        var existing = await _ctx.PasswordResetTokens
+            .Where(x => x.UserId == userId)
+            .ToListAsync(ct);
+
+        if (existing.Count > 0)
+        {
+            _ctx.PasswordResetTokens.RemoveRange(existing);
+        }
+
+        var entity = new PasswordResetToken
+        {
+            UserId = userId,
+            TokenHash = HashToken(token),
+            ExpiresAt = expiresAt,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _ctx.PasswordResetTokens.Add(entity);
+        await _ctx.SaveChangesAsync(ct);
+        return entity;
+    }
+
+    public Task<PasswordResetToken?> GetPasswordResetTokenAsync(string token, CancellationToken ct = default)
+    {
+        var hash = HashToken(token);
+        return _ctx.PasswordResetTokens
+            .Include(x => x.User)
+            .SingleOrDefaultAsync(x => x.TokenHash == hash, ct);
+    }
+
+    public async Task<bool> UpdatePasswordAsync(int userId, string newPassword, CancellationToken ct = default)
+    {
+        var user = await _ctx.Users.SingleOrDefaultAsync(u => u.Id == userId, ct);
+        if (user is null)
+        {
+            _log.LogWarning("User {UserId} not found when updating password", userId);
+            return false;
+        }
+
+        user.PasswordHash = HashPassword(newPassword);
+        await _ctx.SaveChangesAsync(ct);
+        return true;
+    }
+
+    public async Task InvalidatePasswordResetTokenAsync(int tokenId, CancellationToken ct = default)
+    {
+        var entity = await _ctx.PasswordResetTokens.SingleOrDefaultAsync(x => x.Id == tokenId, ct);
+        if (entity is null)
+        {
+            return;
+        }
+
+        entity.UsedAt = DateTime.UtcNow;
+        await _ctx.SaveChangesAsync(ct);
+    }
 }

@@ -1,6 +1,7 @@
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
 using ECommerceBatteryShop.Models;
+using ECommerceBatteryShop.Options;
 using ECommerceBatteryShop.Services;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -8,12 +9,16 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ECommerceBatteryShop.Controllers;
@@ -26,7 +31,18 @@ public class HesapController : Controller
     private readonly IAddressRepository _addressRepository;
     private readonly ICartService _cartService;
     private readonly IOrderRepository _orderRepository;
-    public HesapController(IAccountRepository accountRepository,IOrderRepository orderRepository, IConfiguration configuration, IUserService userService, IAddressRepository addressRepository, ICartService cartService)
+    private readonly IOptions<SmtpOptions> _smtpOptions;
+    private readonly ILogger<HesapController> _logger;
+
+    public HesapController(
+        IAccountRepository accountRepository,
+        IOrderRepository orderRepository,
+        IConfiguration configuration,
+        IUserService userService,
+        IAddressRepository addressRepository,
+        ICartService cartService,
+        IOptions<SmtpOptions> smtpOptions,
+        ILogger<HesapController> logger)
     {
         _accountRepository = accountRepository;
         _configuration = configuration;
@@ -34,6 +50,8 @@ public class HesapController : Controller
         _addressRepository = addressRepository;
         _cartService = cartService;
         _orderRepository = orderRepository;
+        _smtpOptions = smtpOptions;
+        _logger = logger;
     }
     public IActionResult Ayarlar()
     {
@@ -164,14 +182,119 @@ public class HesapController : Controller
         }
         return RedirectToAction("Index", "Ev");
     }
+    [HttpGet]
     public IActionResult SifreUnuttum()
     {
-        return View("~/Views/Hesap/SifreUnuttum.cshtml");
+        if (TempData.TryGetValue("SuccessMessage", out var success))
+        {
+            ViewBag.SuccessMessage = success;
+        }
+
+        if (TempData.TryGetValue("ErrorMessage", out var error))
+        {
+            ViewBag.ErrorMessage = error;
+        }
+
+        return View("~/Views/Hesap/SifreUnuttum.cshtml", new ForgotPasswordViewModel());
     }
 
-    public IActionResult SifreYenile()
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SifreUnuttum(ForgotPasswordViewModel model, CancellationToken ct)
     {
-        return View("~/Views/Hesap/SifreYenile.cshtml");
+        if (!ModelState.IsValid)
+        {
+            return View("~/Views/Hesap/SifreUnuttum.cshtml", model);
+        }
+
+        var user = await _accountRepository.GetByEmailAsync(model.Email, ct);
+        if (user is null)
+        {
+            TempData["SuccessMessage"] = "E-posta adresiniz kayıtlı ise şifre yenileme bağlantısı gönderildi.";
+            return RedirectToAction(nameof(SifreUnuttum));
+        }
+
+        var tokenBytes = RandomNumberGenerator.GetBytes(48);
+        var token = WebEncoders.Base64UrlEncode(tokenBytes);
+        var expiresAt = DateTime.UtcNow.AddHours(1);
+
+        var resetRecord = await _accountRepository.CreatePasswordResetTokenAsync(user.Id, token, expiresAt, ct);
+
+        try
+        {
+            await SendPasswordResetEmailAsync(user.Email, token, expiresAt, ct);
+            TempData["SuccessMessage"] = "Şifre yenileme bağlantısı e-posta adresinize gönderildi.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send password reset email for {Email}", user.Email);
+            await _accountRepository.InvalidatePasswordResetTokenAsync(resetRecord.Id, ct);
+            TempData["ErrorMessage"] = "Şifre yenileme bağlantısı gönderilirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+        }
+
+        return RedirectToAction(nameof(SifreUnuttum));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> SifreYenile(string token, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            TempData["ErrorMessage"] = "Şifre yenileme bağlantısı geçersiz.";
+            return RedirectToAction(nameof(SifreUnuttum));
+        }
+
+        var resetToken = await _accountRepository.GetPasswordResetTokenAsync(token, ct);
+        if (resetToken is null || resetToken.ExpiresAt < DateTime.UtcNow || resetToken.UsedAt is not null)
+        {
+            TempData["ErrorMessage"] = "Şifre yenileme bağlantısı geçersiz veya süresi dolmuş.";
+            return RedirectToAction(nameof(SifreUnuttum));
+        }
+
+        var model = new ResetPasswordViewModel
+        {
+            Token = token,
+            Email = resetToken.User.Email
+        };
+
+        return View("~/Views/Hesap/SifreYenile.cshtml", model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SifreYenile(ResetPasswordViewModel model, CancellationToken ct)
+    {
+        var resetToken = await _accountRepository.GetPasswordResetTokenAsync(model.Token, ct);
+        if (resetToken is null)
+        {
+            TempData["ErrorMessage"] = "Şifre yenileme bağlantısı geçersiz veya süresi dolmuş.";
+            return RedirectToAction(nameof(SifreUnuttum));
+        }
+
+        model.Email = resetToken.User.Email;
+
+        if (!ModelState.IsValid)
+        {
+            return View("~/Views/Hesap/SifreYenile.cshtml", model);
+        }
+
+        if (resetToken.ExpiresAt < DateTime.UtcNow || resetToken.UsedAt is not null)
+        {
+            TempData["ErrorMessage"] = "Şifre yenileme bağlantısı geçersiz veya süresi dolmuş.";
+            return RedirectToAction(nameof(SifreUnuttum));
+        }
+
+        var updated = await _accountRepository.UpdatePasswordAsync(resetToken.UserId, model.Password, ct);
+        if (!updated)
+        {
+            TempData["ErrorMessage"] = "Şifreniz güncellenemedi. Lütfen tekrar deneyin.";
+            return RedirectToAction(nameof(SifreUnuttum));
+        }
+
+        await _accountRepository.InvalidatePasswordResetTokenAsync(resetToken.Id, ct);
+
+        TempData["SuccessMessage"] = "Şifreniz başarıyla güncellendi. Giriş yapabilirsiniz.";
+        return RedirectToAction(nameof(Giris));
     }
 
     public async Task<IActionResult> Profil(CancellationToken ct)
@@ -253,6 +376,44 @@ public class HesapController : Controller
         }
 
         return LocalRedirect(returnUrl);
+    }
+
+    private async Task SendPasswordResetEmailAsync(string recipientEmail, string token, DateTime expiresAt, CancellationToken ct)
+    {
+        var options = _smtpOptions.Value;
+        if (string.IsNullOrWhiteSpace(options.Host) || string.IsNullOrWhiteSpace(options.SenderEmail))
+        {
+            throw new InvalidOperationException("SMTP ayarları eksik. Şifre yenileme e-postası gönderilemedi.");
+        }
+
+        var resetUrl = Url.Action(nameof(SifreYenile), "Hesap", new { token }, Request.Scheme);
+        if (string.IsNullOrWhiteSpace(resetUrl))
+        {
+            throw new InvalidOperationException("Şifre yenileme bağlantısı oluşturulamadı.");
+        }
+
+        var expiresInMinutes = Math.Max(1, (int)Math.Round((expiresAt - DateTime.UtcNow).TotalMinutes));
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(options.SenderName ?? "ECommerce Battery Shop", options.SenderEmail));
+        message.To.Add(MailboxAddress.Parse(recipientEmail));
+        message.Subject = "Şifre Yenileme Bağlantınız";
+        message.Body = new TextPart("plain")
+        {
+            Text = $"Merhaba,\n\nŞifrenizi yenilemek için aşağıdaki bağlantıya tıklayın:\n{resetUrl}\n\nBağlantı {expiresInMinutes} dakika boyunca geçerlidir.\n\nEğer bu talebi siz oluşturmadıysanız lütfen bu e-postayı yok sayın."
+        };
+
+        using var client = new SmtpClient();
+        var socketOptions = options.UseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTlsWhenAvailable;
+        await client.ConnectAsync(options.Host, options.Port, socketOptions, ct);
+
+        if (!string.IsNullOrEmpty(options.UserName))
+        {
+            await client.AuthenticateAsync(options.UserName, options.Password ?? string.Empty, ct);
+        }
+
+        await client.SendAsync(message, ct);
+        await client.DisconnectAsync(true, ct);
     }
 
     private static AddressViewModel MapAddress(Address address)
