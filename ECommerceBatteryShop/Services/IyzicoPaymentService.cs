@@ -22,7 +22,7 @@ public interface IIyzicoPaymentService
 public class IyzicoPaymentService : IIyzicoPaymentService
 {
     private readonly IConfiguration _configuration;
-    private readonly Iyzipay.Options _options;                  // <<< fully qualified
+    private readonly Iyzipay.Options _options;                  
     private readonly ILogger<IyzicoPaymentService> _logger;
     private readonly IyzicoOptions _settings;
 
@@ -247,6 +247,26 @@ public async Task<IyzicoThreeDSInitializeResult> InitializeThreeDSPaymentAsync(
             html = DecodeBase64ToUtf8Safe(resp.HtmlContent);
         }
 
+        if (ok && string.IsNullOrWhiteSpace(html))
+        {
+            // Fallback: try to parse from raw response JSON (may contain HtmlContent as string)
+            var raw = SafeSerialize(resp);
+            try
+            {
+                using var doc = JsonDocument.Parse(raw);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("HtmlContent", out var hc) || root.TryGetProperty("htmlContent", out hc))
+                {
+                    var base64 = hc.GetString();
+                    html = DecodeBase64ToUtf8Safe(base64);
+                }
+            }
+            catch(Exception ex)
+            {
+               Console.WriteLine("Hata: ", ex);
+            }
+        }
+
         if (!ok)
         {
             _logger.LogWarning("3DS init failed. ConversationId: {Conv}, ErrorCode: {ErrorCode}, Message: {Message}", model.ConversationId, resp.ErrorCode, resp.ErrorMessage);
@@ -330,7 +350,14 @@ public record IyzicoPaymentResult(bool Success, string? ErrorMessage, string? Ra
 
 public record IyzicoThreeDSInitializeResult(bool Success, string? ErrorMessage, string? HtmlContent, string? RawResponse);
 
-public record IyzicoThreeDSCompleteModel(string PaymentId, string ConversationId, string ConversationData);
+public sealed record IyzicoThreeDSCompleteModel(
+    string PaymentId,
+    string ConversationId,
+    string? ConversationData,
+    decimal? PaidPrice = null,   // for v2
+    string? BasketId = null,     // for v2
+    string? Currency = "TRY"     // for v2
+);
 
 public class IyzicoPaymentModel
 {
