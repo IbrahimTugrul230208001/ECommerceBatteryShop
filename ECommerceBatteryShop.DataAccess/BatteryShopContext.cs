@@ -37,6 +37,17 @@ public class BatteryShopContext : DbContext
             b.HasIndex(x => new { x.UserId, x.CardToken }).IsUnique();
         });
 
+        modelBuilder.Entity<PasswordResetToken>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TokenHash).IsRequired();
+            b.HasIndex(x => x.TokenHash).IsUnique();
+            b.HasOne(x => x.User)
+                .WithMany(u => u.PasswordResetTokens)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         base.OnModelCreating(modelBuilder);
     }
 
@@ -55,6 +66,7 @@ public class BatteryShopContext : DbContext
     public DbSet<FavoriteList> FavoriteLists => Set<FavoriteList>();
     public DbSet<FavoriteListItem> FavoriteListItems => Set<FavoriteListItem>();
     public DbSet<SavedCard> SavedCards => Set<SavedCard>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 }
 
 

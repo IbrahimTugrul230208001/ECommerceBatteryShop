@@ -3,6 +3,20 @@
     Layout = "_AccountLayout";
 }
 
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+        @successMessage
+    </div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        @errorMessage
+    </div>
+}
+
 <!-- Google -->
 <a asp-action="GoogleLogin"
    asp-controller="Hesap"
@@ -76,7 +90,7 @@
     </form>
 
     <div class="flex flex-col gap-2 pt-2  text-sm">
-        <a href="/Hesap/SifremiUnuttum" class="flex justify-center text-blue-600 transition hover:underline">
+        <a asp-action="SifreUnuttum" asp-controller="Hesap" class="flex justify-center text-blue-600 transition hover:underline">
             Şifremi unuttum
         </a>
         <a href="/Hesap/Kayit" class="flex justify-center text-blue-600 transition hover:underline">

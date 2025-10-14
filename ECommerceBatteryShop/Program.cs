@@ -52,6 +52,8 @@ builder.Services.AddOptions<IyzicoOptions>()
         "Iyzico configuration (ApiKey, SecretKey, BaseUrl) is required")
     .ValidateOnStart();
 
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+
 // Typed HttpClient for currency service
 builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 
