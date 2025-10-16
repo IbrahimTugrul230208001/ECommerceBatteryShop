@@ -5,6 +5,11 @@
     var products = Model?.Products ?? Array.Empty<ECommerceBatteryShop.Models.ProductViewModel>();
 
     var hasResults = products.Any();
+    // When there are no results, reduce extra footer mobile padding (gap below footer)
+    if (!hasResults)
+    {
+        ViewData["NoFooterMobileSpace"] = true;
+    }
     var minQ = (ViewBag.MinPrice as decimal?)?.ToString("0.##") ?? string.Empty;
     var maxQ = (ViewBag.MaxPrice as decimal?)?.ToString("0.##") ?? string.Empty;
     var hasFilter = (bool)(ViewBag.HasFilter ?? false);
@@ -166,20 +171,7 @@ else
                         <div class="flex items-baseline gap-2">
                             <span class="text-lg font-bold">@price</span>
                         </div>
-                        @* Rating istersen aç *@
-                        @*
-                        <div class="flex items-center gap-1 text-yellow-500">
-                            @for (int i = 0; i < fullStars && i < 5; i++)
-                            {
-                                @:<svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.967 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.839-.197-1.54-1.118l-1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.379-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.17-3.292z" /></svg>
-                            }
-                            @if (hasHalf && fullStars < 5)
-                            {
-                                @:<svg class="w-4 h-4 text-yellow-500" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.967 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.839-.197-1.54-1.118l-1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.379-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.17-3.292z" /></svg>
-                            }
-                            <span class="ml-1 text-sm text-gray-500">(@product.Rating.ToString("0.0"))</span>
-                        </div>
-                        *@
+                        @* Rating placeholder *@
                     </div>
                 </a>
 
@@ -200,7 +192,7 @@ else
                                       x-transition:enter-end="translate-y-0 opacity-100"
                                       x-transition:leave="transition transform ease-in duration-200"
                                       x-transition:leave-start="translate-y-0 opacity-100"
-                                      x-transition:leave-end="translate-y-3 opacity-0"
+                                      x-transition:leave-end="-translate-y-3 opacity-0"
                                       class="block">
                                     Sepete ekle
                                 </span>

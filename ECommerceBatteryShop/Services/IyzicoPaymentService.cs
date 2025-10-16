@@ -353,10 +353,7 @@ public record IyzicoThreeDSInitializeResult(bool Success, string? ErrorMessage, 
 public sealed record IyzicoThreeDSCompleteModel(
     string PaymentId,
     string ConversationId,
-    string? ConversationData,
-    decimal? PaidPrice = null,   // for v2
-    string? BasketId = null,     // for v2
-    string? Currency = "TRY"     // for v2
+    string? ConversationData
 );
 
 public class IyzicoPaymentModel
