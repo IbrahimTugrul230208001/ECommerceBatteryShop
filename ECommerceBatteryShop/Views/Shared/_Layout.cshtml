@@ -37,6 +37,7 @@
         ? Url.Action("Profil", "Hesap") ?? "/Hesap/Profil"
         : Url.Action("Kayit", "Hesap") ?? "/Hesap/Kayit";
     var accountText = isAuthenticated ? "Hesabım" : "Üye Ol";
+    var noFooterMobileSpace = (ViewData["NoFooterMobileSpace"] as bool?) == true; // new flag
 }
 <!DOCTYPE html>
 @{
@@ -395,7 +396,7 @@
         </div>
 
     </header>
-    <main class="max-w-7xl mx-auto px-2 pt-4 pb-20 md:pb-6">
+    <main class="max-w-7xl mx-auto px-2 pt-4 pb-20 md:pb-6" @*@(noFooterMobileSpace ? "style=padding-bottom:10rem" : null)*@>
         @RenderBody()
     </main>
     <nav class="md:hidden fixed inset-x-0 bottom-0 z-50 bg-gray-900 text-white border-t border-white/10" aria-label="Mobil gezinme">
@@ -450,7 +451,7 @@
             </ul>
         </div>
     </nav>
-    <footer class="bg-gray-900 text-gray-300 pb-28 md:pb-0" aria-labelledby="site-footer">
+    <footer class="bg-gray-900 text-gray-300 pb-28 md:pb-0 pb-0" aria-labelledby="site-footer">
         <h2 id="site-footer" class="sr-only">Site alt bilgisi</h2>
 
         <!-- Main Footer -->
@@ -570,6 +571,15 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
     <script src="~/js/layout.js"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17649197142"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'AW-17649197142');
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

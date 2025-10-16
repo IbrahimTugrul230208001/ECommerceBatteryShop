@@ -1,24 +1,40 @@
 @model ECommerceBatteryShop.Models.ThreeDSStatusViewModel
 @{
-    ViewData["Title"] = "3D Secure Ödeme";
+    var success = Model?.Success ?? false;
+    var message = Model?.Message ?? "Ödeme sağlayıcıdan alınan yanıt işlendi.";
+    ViewData["Title"] = "Siparişiniz Alındı";
 }
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h1 class="h4 mb-3">3D Secure Sonucu</h1>
-                    <div class="alert @(Model.Success ? "alert-success" : "alert-danger")" role="alert">
-                        @Model.Message
+        <div class="col-lg-7 col-md-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center p-5">
+                    <div class="mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="currentColor" class="bi bi-check-circle-fill text-success" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 1 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05"/>
+                        </svg>
                     </div>
-                    <p class="text-muted">Ana sayfaya yönlendirme birkaç saniye sürebilir. Beklemek istemezseniz aşağıdaki butona tıklayın.</p>
-                    <a href="/" class="btn btn-primary">Ana Sayfaya Dön</a>
+                    <h1 class="h4 mb-2">Siparişiniz alındı</h1>
+                    <p class="text-muted mb-4">Teşekkür ederiz! Siparişiniz başarıyla oluşturuldu. Size e-posta ile bilgilendirme yapılacaktır.</p>
+
+                    <div class="border rounded p-3 text-start mx-auto" style="max-width:560px;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <strong class="me-2">Ödeme doğrulama</strong>
+                            <span class="badge @(success ? "bg-success" : "bg-danger")">@(success ? "Başarılı" : "Başarısız")</span>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            @message
+                        </div>
+                        <div class="form-text mt-2">(3D Secure sonucu veya ödeme sağlayıcı geri bildirimi)</div>
+                    </div>
+
+                    <a href="/" class="btn btn-primary text-amber-700">Ana sayfaya dön</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-@if (Model.Success)
+@if (success)
 {
     <script>
         setTimeout(function(){ window.location.href = '/'; }, 4000);
