@@ -73,9 +73,9 @@
     <li class="menu-li depth-@depth rounded-lg hover:rounded-lg">
         @if (hasKids)
         {
-            <a href="@Url.Action("Index", "Urun", new { categoryId = node.Id })"
+            <a href="@Url.Action("Index", "Urun", new { categorySlug = node.Slug })"
                class="@(depth == 0
-                                          ? "relative z-30 font-semibold flex items-center gap-1 cursor-pointer after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-white after:origin-left after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100"
+                                          ? "relative z-30 font-semibold flex items-center gap-1 cursor-pointer after:content-[''] after:absolute after:left-0 after:origin-left after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100"
                                                          : "flex items-center justify-between px-3 py-2 block font-semibold rounded-lg")"
        aria-haspopup="true" aria-expanded="false">
         @node.Name
@@ -103,7 +103,7 @@
 
         else
     {
-        <a href="@Url.Action("Index", "Urun", new { categoryId = node.Id })"
+        <a href="@Url.Action("Index", "Urun", new { categorySlug = node.Slug })"
            class="@(depth == 0
                                           ? "relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 hover:after:scale-x-100"
                                           : "block px-4 py-2 text-sm text-gray-700 font-semibold rounded-lg hover:bg-gray-50 hover:text-gray-900")">

@@ -20,16 +20,18 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ICartService _cartService;
         private readonly ICurrencyService _currencyService;
         private readonly IAddressRepository _addressRepository;
+        public readonly ILogger<SepetController> _logger;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
         private const string GuestInfoCookie = "GUEST_INFO";
-        public SepetController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository)
+        public SepetController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository, ILogger<SepetController> logger)
         {
             _repo = repo;
             _cartService = cartService;
             _currencyService = currencyService;
             _addressRepository = addressRepository;
+            _logger = logger;
         }
 
         private bool IsCookieConsentRejected()
@@ -65,7 +67,7 @@ namespace ECommerceBatteryShop.Controllers
             }
             catch
             {
-                // ignore malformed cookie
+                _logger.LogInformation("Misafir bilgisi bulunmadı.");
             }
             return null;
         }

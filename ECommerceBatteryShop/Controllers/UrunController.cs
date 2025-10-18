@@ -15,18 +15,35 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ICurrencyService _currency;
         private readonly ILogger<UrunController> _log;
         private readonly IFavoritesService _favorites;
+        private readonly ICategoryRepository _categories;
 
-        public UrunController(IProductRepository repo, ICurrencyService currency, ILogger<UrunController> log, IFavoritesService favorites)
+        public UrunController(
+            IProductRepository repo,
+            ICurrencyService currency,
+            ILogger<UrunController> log,
+            IFavoritesService favorites,
+            ICategoryRepository categories)
         {
-            _repo = repo; _currency = currency; _log = log; _favorites = favorites;
+            _repo = repo; _currency = currency; _log = log; _favorites = favorites; _categories = categories;
 
         }
 
-        public async Task<IActionResult> Index(string? search, string? q, int? categoryId,
+        [HttpGet("/Urun/Index/{categorySlug?}")]
+        public async Task<IActionResult> Index(string? categorySlug, string? search, string? q, int? categoryId,
                                          decimal? minPrice, decimal? maxPrice,
                                          int page = 1,
                                          CancellationToken ct = default)
         {
+            // Resolve category by slug if provided
+            if (!string.IsNullOrWhiteSpace(categorySlug) && (!categoryId.HasValue || categoryId <= 0))
+            {
+                var cat = await _categories.GetBySlugAsync(Uri.UnescapeDataString(categorySlug), ct);
+                if (cat != null)
+                {
+                    categoryId = cat.Id;
+                }
+            }
+
             var term = search ?? q;
             const decimal KdvRate = 0.20m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
@@ -168,10 +185,28 @@ namespace ECommerceBatteryShop.Controllers
                 ? new HashSet<int>()
                 : new HashSet<int>(list.Items.Select(i => i.ProductId));
         }
-        [HttpGet] // optional
-        public async Task<IActionResult> Detaylar(int id, CancellationToken ct = default)
+        [HttpGet("/Urun/Detaylar/{key?}")] // attribute route only; avoid mixing with conventional
+        public async Task<IActionResult> Detaylar(string? key, int? id, CancellationToken ct = default)
         {
-            var product = await _repo.GetProductAsync(id, ct);
+            Product? product = null;
+
+            if (id.HasValue)
+            {
+                product = await _repo.GetProductAsync(id.Value, ct);
+            }
+            else if (!string.IsNullOrWhiteSpace(key))
+            {
+                if (int.TryParse(key, out var parsedId))
+                {
+                    product = await _repo.GetProductAsync(parsedId, ct);
+                }
+                else
+                {
+                    var decoded = Uri.UnescapeDataString(key);
+                    product = await _repo.GetProductByNameAsync(decoded, ct);
+                }
+            }
+
             if (product is null) return NotFound();
 
             const decimal KdvRate = 0.20m;
@@ -235,7 +270,7 @@ namespace ECommerceBatteryShop.Controllers
 
             return View("Detaylar", vm); // full view under _Layout
         }
-        [HttpGet("/Urun/Search")]
+        [HttpGet("/Urun/Search")] 
         public async Task<IActionResult> Search([FromQuery] string q, CancellationToken ct = default)
         {
             var productData = await _repo.ProductSearchPairsAsync(q ?? string.Empty, ct);

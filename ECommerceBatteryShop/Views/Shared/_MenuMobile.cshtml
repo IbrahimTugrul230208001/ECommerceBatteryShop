@@ -179,7 +179,7 @@
 
           btn.addEventListener('click', () => {
             if (hasKids) pushLevel(node.name, node.subCategories);
-            else window.location.href = catIndexUrl + '?categoryId=' + encodeURIComponent(node.id);
+            else window.location.href = catIndexUrl + "/" +  encodeURIComponent(node.slug);
           });
 
           li.appendChild(btn);
