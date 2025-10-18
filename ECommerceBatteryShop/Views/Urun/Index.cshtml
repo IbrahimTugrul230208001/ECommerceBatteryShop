@@ -153,7 +153,7 @@ else
             var inStock = product.StockQuantity > 0;
             var stockText = inStock ? "Stokta var" : "Stokta yok";
             var stockClass = inStock ? "text-emerald-600" : "text-rose-600";
-            var href = Url.Action("Detaylar", "Urun", new { id = product.Id });
+            var href = Url.Action("Detaylar", "Urun", new { key = product.Name });
             var price = product.Price.ToString("C", new CultureInfo("tr-TR"));
             var fullStars = (int)Math.Floor(product.Rating);
             var hasHalf = product.Rating - fullStars >= 0.5;

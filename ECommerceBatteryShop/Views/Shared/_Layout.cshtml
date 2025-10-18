@@ -129,6 +129,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="request-verification-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17649197142"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'AW-17649197142');
+    </script>
     <title>@title</title>
     <meta name="description" content="@description" />
     <meta name="keywords" content="@keywords" />
@@ -396,7 +404,7 @@
         </div>
 
     </header>
-    <main class="max-w-7xl mx-auto px-2 pt-4 pb-20 md:pb-6" @*@(noFooterMobileSpace ? "style=padding-bottom:10rem" : null)*@>
+    <main class="max-w-7xl mx-auto px-2 pt-4 pb-20 md:pb-6" @(noFooterMobileSpace ? "style=padding-bottom:10rem" : null)>
         @RenderBody()
     </main>
     <nav class="md:hidden fixed inset-x-0 bottom-0 z-50 bg-gray-900 text-white border-t border-white/10" aria-label="Mobil gezinme">
@@ -572,14 +580,7 @@
     <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
     <script src="~/js/layout.js"></script>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17649197142"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'AW-17649197142');
-    </script>
+ 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
