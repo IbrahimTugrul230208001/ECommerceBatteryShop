@@ -27,7 +27,7 @@
             transform: translateY(4px)
         }
 
-        .menu-li.depth-1 > .submenu, .menu-li.depth-2 > .submenu, .menu-li.depth-3 > .submenu {
+        .menu-li.depth-1 > .submenu, .menu-li.depth-2 > .submenu, .menu-li.depth-3 > .submenu, .menu-li.depth-4>.submenu {
             top: 0;
             left: 100%;
             transform: translateX(4px)
@@ -43,7 +43,7 @@
             height: 8px
         }
 
-        .menu-li.depth-1 > .submenu::before, .menu-li.depth-2 > .submenu::before, .menu-li.depth-3 > .submenu::before {
+        .menu-li.depth-1 > .submenu::before, .menu-li.depth-2 > .submenu::before, .menu-li.depth-3 > .submenu::before, .menu-li.depth-4 > .submenu:before{
             content: "";
             position: absolute;
             top: 0;
@@ -68,7 +68,7 @@
 @foreach (var node in Model.Items)
 {
     var depth = Model.Depth;                        // 0..3
-    var hasKids = node.SubCategories?.Any() == true && depth < 3;
+    var hasKids = node.SubCategories?.Any() == true && depth < 4;
 
     <li class="menu-li depth-@depth rounded-lg hover:rounded-lg">
         @if (hasKids)

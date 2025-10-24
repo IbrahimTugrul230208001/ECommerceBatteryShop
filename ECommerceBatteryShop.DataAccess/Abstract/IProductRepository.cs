@@ -15,6 +15,7 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
             CancellationToken ct = default);
         Task<Product?> GetProductAsync(int id, CancellationToken ct);
         Task<Product?> GetProductByNameAsync(string name, CancellationToken ct);
+        Task<Product?> GetProductBySlugAsync(string slug, CancellationToken ct);
         Task<(IReadOnlyList<Product> Items, int TotalCount)> ProductSearchResultAsync(
             string searchTerm,
             int page,

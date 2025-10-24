@@ -125,12 +125,12 @@
             </a>
         </div>
 
-        <div x-data="{
+        <div x-data='{
              atStart: true, atEnd: false,
              onScroll(){ const el=$refs.scroller; this.atStart=el.scrollLeft<=5; this.atEnd = el.scrollLeft+el.clientWidth>=el.scrollWidth-5; },
-               next(){ const el=$refs.scroller; el.scrollBy({left: el.clientWidth, behavior:'smooth'}); },
-               prev(){ const el=$refs.scroller; el.scrollBy({left: -el.clientWidth, behavior:'smooth'}); }
-             }"
+               next(){ const el=$refs.scroller; el.scrollBy({left: el.clientWidth, behavior:"smooth"}); },
+               prev(){ const el=$refs.scroller; el.scrollBy({left: -el.clientWidth, behavior:"smooth"}); }
+             }'
              x-init="onScroll()"
              class="relative">
 
@@ -161,7 +161,7 @@
                         var inStock = product.StockQuantity > 0;
                         var stockText = inStock ? "Stokta var" : "Stokta yok";
                         var stockClass = inStock ? "text-emerald-600" : "text-rose-600"; 
-                        var href = Url.Action("Detaylar", "Urun", new { key = product.Name });
+                        var href = Url.Action("Detaylar", "Urun", new { slug = product.Slug });
 
                         <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
                             <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
@@ -297,12 +297,6 @@
           </div>
         </button>
 
-
-
-
-
-
-
                                     </div>
                                 </div>
    </article>
@@ -375,5 +369,3 @@
   scrollbar-width: none;
 }
 </style>
-
- 

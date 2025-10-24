@@ -10,6 +10,7 @@ public class Product
     public int ExtraAmount { get; set; }
     public string? ImageUrl { get; set; } = string.Empty;
     public string? DocumentUrl { get; set; } = string.Empty;
+    public string? Slug { get; set; } = string.Empty;
     public Inventory? Inventory { get; set; }
     public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
 }

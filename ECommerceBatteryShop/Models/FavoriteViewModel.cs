@@ -10,6 +10,7 @@
         public decimal LineTotal => UnitPrice * Quantity;
         public int StockQuantity { get; set; }
         public bool IsInStock => StockQuantity > 0;
+        public string? Slug { get; set; }
     }
 
     public class FavoriteViewModel

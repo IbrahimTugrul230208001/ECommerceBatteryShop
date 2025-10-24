@@ -82,13 +82,13 @@ else
                     x-transition.opacity.scale.duration.200ms
                     class="will-change-transform will-change-opacity">
                     <article class="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                        <a href="@Url.Action("Details", "Product", new { id })" class="block aspect-[4/3] bg-white">
+                        <a href="@Url.Action("Details", "Product", new { Slug = p.Slug })" class="block aspect-[4/3] bg-white">
                             <img src="@image" alt="@name" class="h-full w-full object-contain" loading="lazy" decoding="async" />
                         </a>
 
                         <div class="p-4 space-y-3">
                             <div class="min-h-[2.5rem]">
-                                <a href="@Url.Action("Details", "Product", new { id })"
+                                <a href="@Url.Action("Details", "Product", new { Slug = p.Slug })"
                                    class="line-clamp-2 font-medium text-gray-900 hover:underline">@name</a>
                             </div>
 
