@@ -22,8 +22,6 @@ public sealed class FxThreeTimesDailyRefresher : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        // run once immediately so you see Console/Log output
-        //await TryRun(ct);
 
         while (!ct.IsCancellationRequested)
         {
@@ -44,7 +42,8 @@ public sealed class FxThreeTimesDailyRefresher : BackgroundService
         }
         catch (Exception ex)
         {
-            _log.LogWarning(ex, "FX refresh tick failed");
+            // Use Error so Serilog's error file sink captures it
+            _log.LogError(ex, "FX refresh tick failed");
         }
     }
 

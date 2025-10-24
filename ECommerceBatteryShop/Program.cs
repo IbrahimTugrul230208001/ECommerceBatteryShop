@@ -12,9 +12,29 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
-using ECommerceBatteryShop.Authentication;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog to log only Error+ to a dedicated file
+var logsDir = Path.Combine(builder.Environment.ContentRootPath, "logs");
+Directory.CreateDirectory(logsDir);
+
+builder.Host.UseSerilog((ctx, services, lc) => lc
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    // Errors file (daily rolling)
+    .WriteTo.File(
+        path: Path.Combine(logsDir, "errors-.log"),
+        restrictedToMinimumLevel: LogEventLevel.Error,
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 14,
+        shared: true,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+);
 
 // MVC + EF
 builder.Services.AddControllersWithViews();
@@ -59,10 +79,6 @@ builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 
 // Hosted service
 builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
-
-// API key auth for machine-to-machine
-builder.Services.AddApiKeyAuthentication(builder.Configuration);
-
 // ⬇️ AUTH: Cookie + Google
 builder.Services.AddAuthentication(o =>
 {

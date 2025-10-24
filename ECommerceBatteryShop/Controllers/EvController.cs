@@ -63,6 +63,7 @@ namespace ECommerceBatteryShop.Controllers
                 ExtraAmount = p.ExtraAmount,
                 Description = p.Description ?? string.Empty,
                 IsFavorite = favoriteIds.Contains(p.Id),
+                Slug = p.Slug,
                 StockQuantity = p.Inventory?.Quantity ?? 0
             };
             var plan = new[]
@@ -71,11 +72,11 @@ namespace ECommerceBatteryShop.Controllers
     new { Title = "Lithium-ion Pil",          CatId = LiIonId },
     new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId   },
     new { Title = "LiFePO4 - Silindirik Pil", CatId = LfpId   },
-    new {Title = "LifePO4 12V Batarya Paketleri", CatId = batteryPackages12vId },
-    new {Title = "LifePO4 24V Batarya Paketleri", CatId = batteryPackages24vId },
+    new { Title = "LifePO4 12V Batarya Paketleri", CatId = batteryPackages12vId },
+    new { Title = "LifePO4 24V Batarya Paketleri", CatId = batteryPackages24vId },
     new { Title = "Soketler", CatId = socketsId },
     new { Title = "Silikon Kablolar" , CatId  = siliconCablesId },
-    new {Title = "Bantlar" , CatId = bandsId }
+    new { Title = "Bantlar" , CatId = bandsId }
 
 };
 

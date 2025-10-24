@@ -88,6 +88,15 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 .FirstOrDefaultAsync(p => p.Name == normalized, ct);
         }
 
+        public async Task<Product?> GetProductBySlugAsync(string slug, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(slug)) return null;
+            var normalized = slug.Trim();
+            return await _ctx.Products
+                .Include(p => p.Inventory)
+                .FirstOrDefaultAsync(p => p.Slug == normalized, ct);
+        }
+
         public async Task<(IReadOnlyList<Product> Items, int TotalCount)> ProductSearchResultAsync(
             string searchTerm,
             int page,

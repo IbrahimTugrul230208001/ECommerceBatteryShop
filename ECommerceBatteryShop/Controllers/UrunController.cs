@@ -125,6 +125,7 @@ namespace ECommerceBatteryShop.Controllers
                 Rating = p.Rating,
                 ImageUrl = p.ImageUrl,
                 IsFavorite = favoriteIds.Contains(p.Id),
+                Slug= p.Slug,
                 StockQuantity = p.Inventory?.Quantity ?? 0
             }).OrderBy(p=>p.Id).ToList();
 
@@ -185,8 +186,8 @@ namespace ECommerceBatteryShop.Controllers
                 ? new HashSet<int>()
                 : new HashSet<int>(list.Items.Select(i => i.ProductId));
         }
-        [HttpGet("/Urun/Detaylar/{key?}")] // attribute route only; avoid mixing with conventional
-        public async Task<IActionResult> Detaylar(string? key, int? id, CancellationToken ct = default)
+        [HttpGet("/Urun/Detaylar/{slug?}")] // attribute route only; avoid mixing with conventional
+        public async Task<IActionResult> Detaylar(string? slug, int? id, CancellationToken ct = default)
         {
             Product? product = null;
 
@@ -194,16 +195,22 @@ namespace ECommerceBatteryShop.Controllers
             {
                 product = await _repo.GetProductAsync(id.Value, ct);
             }
-            else if (!string.IsNullOrWhiteSpace(key))
+            else if (!string.IsNullOrWhiteSpace(slug))
             {
-                if (int.TryParse(key, out var parsedId))
+                var decoded = Uri.UnescapeDataString(slug);
+                // Prefer slug resolution
+                product = await _repo.GetProductBySlugAsync(decoded, ct);
+                // Backward compatibility fallbacks
+                if (product is null)
                 {
-                    product = await _repo.GetProductAsync(parsedId, ct);
-                }
-                else
-                {
-                    var decoded = Uri.UnescapeDataString(key);
-                    product = await _repo.GetProductByNameAsync(decoded, ct);
+                    if (int.TryParse(decoded, out var parsedId))
+                    {
+                        product = await _repo.GetProductAsync(parsedId, ct);
+                    }
+                    else
+                    {
+                        product = await _repo.GetProductByNameAsync(decoded, ct);
+                    }
                 }
             }
 
@@ -264,7 +271,8 @@ namespace ECommerceBatteryShop.Controllers
                         Rating = p.Rating,
                         ImageUrl = p.ImageUrl ?? string.Empty,
                         IsFavorite = favoriteIds.Contains(p.Id),
-                        StockQuantity = p.Inventory?.Quantity ?? 0
+                        StockQuantity = p.Inventory?.Quantity ?? 0,
+                        Slug = p.Slug
                     }).ToList()
             };
 
