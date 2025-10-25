@@ -388,7 +388,7 @@
                 <ul class="h-12 flex items-center gap-8 whitespace-nowrap overflow-x-auto md:overflow-visible overflow-y-visible max-h-12">
                     @await Html.PartialAsync("_MenuRecursive", new CategoryMenuModel { Items = categoriesByService, Depth = 0 })
                     <li>
-                        <a href="/Ev/Iletisim"
+                        <a href="https://api.whatsapp.com/send/?phone=905013176653"
                            class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
                               after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
                               hover:after:scale-x-100">İletişim</a>
@@ -459,7 +459,7 @@
             </ul>
         </div>
     </nav>
-    <footer class="bg-gray-900 text-gray-300 pb-28 md:pb-0 pb-0" aria-labelledby="site-footer">
+    <footer class="bg-gray-900 text-gray-300 pb-32 md:pb-0" aria-labelledby="site-footer">
         <h2 id="site-footer" class="sr-only">Site alt bilgisi</h2>
 
         <!-- Main Footer -->
@@ -478,7 +478,7 @@
             <div>
                 <div class="text-white font-semibold">Mağaza</div>
                 <ul class="mt-3 space-y-2 text-sm">
-                    <li><a class="hover:underline" href="#">Yeni Gelenler</a></li>
+                    <li><a class="hover:underline" href="/Urun/Index">Tüm Ürünler</a></li>
                     <li><a class="hover:underline" href="#">Kategoriler</a></li>
                 </ul>
             </div>
@@ -489,8 +489,6 @@
                 <ul class="mt-3 space-y-2 text-sm">
                     <li><a class="hover:underline" href="/Ev/Hakkimizda">Hakkımızda</a></li>
                     <li><a class="hover:underline" href="/Ev/Iade">İade & Değişim</a></li>
-                    <li><a class="hover:underline" href="/Ev/MesafeliSatis">Mesafeli Satış</a></li>
-                    <li><a class="hover:underline" href="#">Kargo Takip</a></li>
                 </ul>
             </div>
 

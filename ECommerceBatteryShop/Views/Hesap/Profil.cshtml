@@ -71,7 +71,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#wallet" class="group flex items-center justify-between rounded-xl px-4 py-3 transition hover:bg-gray-50">
+                            <a href="#addresses" class="group flex items-center justify-between rounded-xl px-4 py-3 transition hover:bg-gray-50">
                                 <span class="flex items-center gap-3 text-gray-700 group-hover:text-gray-900">
                                     <svg class="h-4 w-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M2 7h20v10H2z" />
@@ -94,14 +94,8 @@
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900">Son Siparişler</h2>
-                            <p class="text-sm text-gray-500">Son 90 güne ait siparişlerinizi görüntüleyin ve takip edin.</p>
+                            <p class="text-sm text-gray-500">Geçmiş siparişlerinizi görüntüleyin ve takip edin.</p>
                         </div>
-                        <a href="/Hesap/Profil#orders" class="inline-flex items-center gap-2 text-sm font-semibold text-amber-600 hover:text-amber-700">
-                            Tüm siparişleri gör
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9 5l7 7-7 7" />
-                            </svg>
-                        </a>
                     </div>
 
                     <div class="mt-6 space-y-4">
@@ -121,7 +115,7 @@
                                     @foreach (var item in order.Items)
                                     {
                                         <div class="flex items-center justify-between text-sm text-gray-700 border-b pb-1">
-                                            <img class="h-10 w-10 border border-slate-200 rounded-lg" href="@item.Product.ImageUrl"/>
+                                            <img class="h-10 w-10 border border-slate-200 rounded-lg" src="@item.Product.ImageUrl"/>
                                             <span>@item.Product.Name<span>
                                             <span>@item.Quantity x ₺@item.UnitPrice</span>
                                         </div>
@@ -133,33 +127,14 @@
                     </div>
                 </section>
 
-                <section id="wallet" class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+                <section id="addresses" class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div>
-                            <h2 class="text-lg font-semibold text-gray-900">İşlem Geçmişi</h2>
-                            <p class="text-sm text-gray-500">Ödemelerinizi ve iadelerinizi buradan takip edin.</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 grid gap-4 lg:grid-cols-3">
-                        <div class="rounded-xl bg-gray-50 p-4">
-                            <p class="text-sm text-gray-500">Son Ödeme</p>
-                            <p class="mt-2 text-lg font-semibold text-gray-900">Mastercard •••• 9245</p>
-                            <p class="mt-1 text-xs text-gray-500">₺1.299,00 • 15 Mart 2024</p>
-                        </div>
-                        <div class="rounded-xl bg-gray-50 p-4">
-                            <p class="text-sm text-gray-500">Bekleyen Fatura</p>
-                            <p class="mt-2 text-lg font-semibold text-gray-900">₺0,00</p>
-                            <p class="mt-1 text-xs text-gray-500">Güncel fatura bulunmuyor.</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                            <h2 class="text-lg font-semibold text-gray-900">Adresler & Fatura Bilgileri</h2>
-                            <p class="text-sm text-gray-500">Teslimat adreslerinizi ve fatura bilgilerinizi yönetin.</p>
+                          
+                                <h2 class="text-lg font-semibold text-gray-900">Adresler & Fatura Bilgileri</h2>
+                                <p class="text-sm text-gray-500">Teslimat adreslerinizi ve fatura bilgilerinizi yönetin.</p>
+                       
+                         
                         </div>
                         <button type="button"
                                 @@click="$store.address.openNew()"

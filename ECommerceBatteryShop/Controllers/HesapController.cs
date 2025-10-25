@@ -58,6 +58,44 @@ public class HesapController : Controller
         return View("~/Views/Hesap/Ayarlar.cshtml");
     }
     [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View("~/Views/Profil/Ayarlar.cshtml", model);
+        }
+
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        var sub = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(email) || sub is null || !int.TryParse(sub.Value, out var userId))
+        {
+            _logger.LogWarning("ChangePassword: user context missing");
+            TempData["ErrorMessage"] = "Oturum doğrulanamadı.";
+            return RedirectToAction(nameof(Ayarlar));
+        }
+
+        var user = await _accountRepository.LogInAsync(email, model.CurrentPassword, ct);
+        if (user is null)
+        {
+            ModelState.AddModelError(string.Empty, "Mevcut şifreniz hatalı.");
+            return View("~/Views/Profil/Ayarlar.cshtml", model);
+        }
+
+        var updated = await _accountRepository.UpdatePasswordAsync(userId, model.NewPassword, ct);
+        if (!updated)
+        {
+            TempData["ErrorMessage"] = "Şifreniz güncellenemedi. Lütfen tekrar deneyin.";
+            return RedirectToAction(nameof(Ayarlar));
+        }
+
+        TempData["SuccessMessage"] = "Şifreniz başarıyla güncellendi.";
+        return RedirectToAction(nameof(Ayarlar));
+    }
+
+
+    [HttpPost]
     public async Task<IActionResult> RegisterUser(UserViewModel userViewModel)
     {
         try
