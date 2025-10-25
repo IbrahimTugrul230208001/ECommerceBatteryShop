@@ -67,7 +67,7 @@ namespace ECommerceBatteryShop.Controllers
             ViewData["OgImage"] = Url.Content("~/img/dayı_amber_banner.jpg");
 
             var rate = await _currency.GetCachedUsdTryAsync(ct);
-            decimal fx = rate ?? 41.5m;
+            decimal fx = rate ?? 42m;
             if (rate is null)
             {
                 TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
@@ -187,38 +187,16 @@ namespace ECommerceBatteryShop.Controllers
                 : new HashSet<int>(list.Items.Select(i => i.ProductId));
         }
         [HttpGet("/Urun/Detaylar/{slug?}")] // attribute route only; avoid mixing with conventional
-        public async Task<IActionResult> Detaylar(string? slug, int? id, CancellationToken ct = default)
+        public async Task<IActionResult> Detaylar(string slug, CancellationToken ct = default)
         {
-            Product? product = null;
-
-            if (id.HasValue)
-            {
-                product = await _repo.GetProductAsync(id.Value, ct);
-            }
-            else if (!string.IsNullOrWhiteSpace(slug))
-            {
-                var decoded = Uri.UnescapeDataString(slug);
-                // Prefer slug resolution
-                product = await _repo.GetProductBySlugAsync(decoded, ct);
-                // Backward compatibility fallbacks
-                if (product is null)
-                {
-                    if (int.TryParse(decoded, out var parsedId))
-                    {
-                        product = await _repo.GetProductAsync(parsedId, ct);
-                    }
-                    else
-                    {
-                        product = await _repo.GetProductByNameAsync(decoded, ct);
-                    }
-                }
-            }
+            var decoded = Uri.UnescapeDataString(slug);
+            var product = await _repo.GetProductBySlugAsync(decoded, ct);
 
             if (product is null) return NotFound();
 
             const decimal KdvRate = 0.20m;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
-            var fx = rate ?? 41.5m;
+            var fx = rate ?? 42m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
             var relatedProducts = await _repo.GetLatestProductsAsync();
 
