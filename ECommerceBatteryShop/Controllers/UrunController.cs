@@ -28,7 +28,7 @@ namespace ECommerceBatteryShop.Controllers
 
         }
 
-        [HttpGet("/Urun/Index/{categorySlug?}")]
+        [HttpGet("/Urun/{categorySlug?}")]
         public async Task<IActionResult> Index(string? categorySlug, string? search, string? q, int? categoryId,
                                          decimal? minPrice, decimal? maxPrice,
                                          int page = 1,

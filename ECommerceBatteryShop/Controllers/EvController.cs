@@ -69,7 +69,7 @@ namespace ECommerceBatteryShop.Controllers
             var plan = new[]
             {
     new { Title = "Punta Cihazları", CatId = puntaCihazıId, CatSlug = "punta-cihazi" },
-    new { Title = "Lithium-ion Pil",          CatId = LiIonId, CatSlug = "lithiun-ion-pil" },
+    new { Title = "Lithium-ion Pil",          CatId = LiIonId, CatSlug = "lithium-ion-pil" },
     new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId, CatSlug = "bms-pil-koruma-devresi"  },
     new { Title = "LiFePO4 Pil", CatId = LfpId, CatSlug = "lifepo4-pil"  },
     new { Title = "LifePO4 12V Batarya Paketleri", CatId = batteryPackages12vId, CatSlug = "lifepo4-batarya-paketleri-12v" },

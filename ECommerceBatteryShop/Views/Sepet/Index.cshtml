@@ -153,7 +153,7 @@ else
                                                     hx-swap="none"
                                             @@click="dec(item)" class="px-3 hover:bg-gray-200 cursor-pointer h-full text-slate-700 rounded-l-xl hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Azalt">−</button>
                                         <input :id="'qty-'+item.id" type="number" min="1" inputmode="numeric" x-model.number="item.qty" class="w-16 bg-transparent text-center text-slate-900 outline-none" @@change="sanitize(item)" aria-live="polite" aria-label="Adet">
-                                            <button hx-post="/Cart/SetQuantity"
+                                            <button hx-post="/Sepet/SetQuantity"
                                                     :hx-vals="JSON.stringify({ productId: item.id , quantity: +1})"
                                                     hx-swap="none"
                                                     @@click="inc(item)" class="px-3 hover:bg-gray-200 cursor-pointer  h-full text-slate-700 rounded-r-xl hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
