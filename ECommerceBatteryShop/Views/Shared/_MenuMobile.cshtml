@@ -1,14 +1,14 @@
 ﻿@model CategoryMenuModel
 @using System.Text.Json
 @{
-    // Model.Items: IEnumerable<CategoryNode> where CategoryNode { int Id; string Name; List<CategoryNode> SubCategories; }
+    // Model.Items: IEnumerable<Category> with SubCategories and Slug
     var json = JsonSerializer.Serialize(Model.Items ?? Enumerable.Empty<object>(),
         new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-    var catIndexUrl = Url.Action("Index", "Urun"); // /Product/Index?categoryId=...
+    // Base path for category listing by slug
+    var catIndexUrl = Url.Content("~/Urun"); // results in /Urun
 }
 
 <style>
-    
     .cat-overlay {
         position: fixed;
         inset: 0;
@@ -120,7 +120,7 @@
       const closeBtn= root?.querySelector('[data-cat-close]');
       const backBtn = root?.querySelector('[data-cat-back]');
 
-      const catIndexUrl = '@catIndexUrl';
+      const catIndexUrl = '@catIndexUrl'; // e.g. /Urun
 
       const stack = [];  // each level: { label: string, items: [] }
 

@@ -110,6 +110,7 @@ namespace ECommerceBatteryShop.Controllers
                     Name = i.Product?.Name ?? string.Empty,
                     ImageUrl = i.Product?.ImageUrl,
                     UnitPrice = i.UnitPrice*1.2m*fx,
+                    Slug = i.Product?.Slug,
                     Quantity = i.Quantity
                 }).ToList();
             }
