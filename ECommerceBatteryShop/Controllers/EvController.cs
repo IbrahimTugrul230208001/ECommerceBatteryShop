@@ -50,7 +50,19 @@ namespace ECommerceBatteryShop.Controllers
             var fx = rate ?? 41.5m;
 
             // Ensure this includes ProductCategories (CategoryId is enough; Category.Include not required)
+            var plan = new[]
+  {
+    new { Title = "Punta Cihazları", CatId = puntaCihazıId, CatSlug = "punta-cihazi" },
+    new { Title = "Lithium-ion Pil",          CatId = LiIonId, CatSlug = "lithium-ion-pil" },
+    new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId, CatSlug = "bms-pil-koruma-devresi"  },
+    new { Title = "LiFePO4 Pil", CatId = LfpId, CatSlug = "lifepo4-pil"  },
+    new { Title = "LifePO4 12V Batarya Paketleri", CatId = batteryPackages12vId, CatSlug = "lifepo4-batarya-paketleri-12v" },
+    new { Title = "LifePO4 24V Batarya Paketleri", CatId = batteryPackages24vId,  CatSlug = "lifepo4-batarya-paketleri-24v"},
+    new { Title = "Soketler", CatId = socketsId, CatSlug = "soketler" },
+    new { Title = "Silikon Kablolar" , CatId  = siliconCablesId, CatSlug = "silikon-kablolar" },
+    new { Title = "Bantlar" , CatId = bandsId, CatSlug = "bantlar" }
 
+};
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
             ProductViewModel Map(Product p) => new()
@@ -66,19 +78,7 @@ namespace ECommerceBatteryShop.Controllers
                 Slug = p.Slug,
                 StockQuantity = p.Inventory?.Quantity ?? 0
             };
-            var plan = new[]
-            {
-    new { Title = "Punta Cihazları", CatId = puntaCihazıId, CatSlug = "punta-cihazi" },
-    new { Title = "Lithium-ion Pil",          CatId = LiIonId, CatSlug = "lithium-ion-pil" },
-    new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId, CatSlug = "bms-pil-koruma-devresi"  },
-    new { Title = "LiFePO4 Pil", CatId = LfpId, CatSlug = "lifepo4-pil"  },
-    new { Title = "LifePO4 12V Batarya Paketleri", CatId = batteryPackages12vId, CatSlug = "lifepo4-batarya-paketleri-12v" },
-    new { Title = "LifePO4 24V Batarya Paketleri", CatId = batteryPackages24vId,  CatSlug = "lifepo4-batarya-paketleri-24v"},
-    new { Title = "Soketler", CatId = socketsId, CatSlug = "soketler" },
-    new { Title = "Silikon Kablolar" , CatId  = siliconCablesId, CatSlug = "silikon-kablolar" },
-    new { Title = "Bantlar" , CatId = bandsId, CatSlug = "bantlar" }
-
-};
+  
 
             var sections = new List<ProductSectionViewModel>();
             var used = new HashSet<int>();
@@ -88,12 +88,12 @@ namespace ECommerceBatteryShop.Controllers
                 var raw = await _repo.BringProductsByCategoryIdAsync(def.CatId, 1, perSection * 2);
                 var ps = raw.Items.Where(p => !used.Contains(p.Id)).Take(perSection).ToList();
                 foreach (var p in ps) used.Add(p.Id);
-
+                
                 if (ps.Count > 0)
                     sections.Add(new ProductSectionViewModel
                     {
                         Title = def.Title,
-                        AllLink = $"/Urun/Index/{def.CatSlug}",
+                        AllLink = $"/Urun/{def.CatSlug}",
                         Products = ps.Select(Map).ToList()
                     });
             }

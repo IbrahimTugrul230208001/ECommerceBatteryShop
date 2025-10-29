@@ -28,8 +28,8 @@ namespace ECommerceBatteryShop.Controllers
 
         }
 
-        [HttpGet("/Urun/{categorySlug?}")]
-        public async Task<IActionResult> Index(string? categorySlug, string? search, string? q, int? categoryId,
+        [HttpGet("/Urun/{categorySlug}")]
+        public async Task<IActionResult> Index(string categorySlug, string? search, string? q, int? categoryId,
                                          decimal? minPrice, decimal? maxPrice,
                                          int page = 1,
                                          CancellationToken ct = default)
@@ -186,8 +186,8 @@ namespace ECommerceBatteryShop.Controllers
                 ? new HashSet<int>()
                 : new HashSet<int>(list.Items.Select(i => i.ProductId));
         }
-        [HttpGet("/Urun/Detaylar/{slug?}")] // attribute route only; avoid mixing with conventional
-        public async Task<IActionResult> Detaylar(string slug, CancellationToken ct = default)
+        [HttpGet("/{slug}")] // attribute route only; avoid mixing with conventional
+        public async Task<IActionResult> Detaylar(string categorySlug,string slug, CancellationToken ct = default)
         {
             var decoded = Uri.UnescapeDataString(slug);
             var product = await _repo.GetProductBySlugAsync(decoded, ct);

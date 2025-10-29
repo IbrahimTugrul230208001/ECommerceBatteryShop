@@ -6,7 +6,8 @@ namespace ECommerceBatteryShop.Models;
 public class CartItemViewModel
 {
     public int ProductId { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
+    public string? Slug { get; set; }
     public string? ImageUrl { get; set; }
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }
