@@ -149,15 +149,24 @@ else
                                     <!-- Qty -->
                                     <label class="sr-only" :for="'qty-'+item.id">Adet</label>
                                     <div class="inline-flex h-10 items-center rounded-xl border border-slate-300 bg-white shadow-xs">
-                                            <button hx-post="/Sepet/SetQuantity"
-                                                    :hx-vals="JSON.stringify({ productId: item.id , quantity: -1})"
-                                                    hx-swap="none"
-                                            @@click="dec(item)" class="px-3 hover:bg-gray-200 cursor-pointer h-full text-slate-700 rounded-l-xl hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Azalt">−</button>
+                                        <button
+                                            :hx-post="item.qty > 1 ? '/Sepet/SetQuantity' : null"
+                                            :hx-vals="JSON.stringify({ productId: item.id , quantity: -1})"
+                                            hx-swap="none"
+                                            :disabled="item.qty <= 1"
+                                            :aria-disabled="item.qty <= 1"
+                                            @@click="dec(item)"
+                                            class="px-3 hover:bg-gray-200 cursor-pointer h-full text-slate-700 rounded-l-xl hover:text-slate-900"
+                                            :class="item.qty <= 1 ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-slate-700' : ''"
+                                            :aria-controls="'qty-'+item.id"
+                                            aria-label="Azalt">−</button>
+
                                         <input :id="'qty-'+item.id" type="number" min="1" inputmode="numeric" x-model.number="item.qty" class="w-16 bg-transparent text-center text-slate-900 outline-none" @@change="sanitize(item)" aria-live="polite" aria-label="Adet">
-                                            <button hx-post="/Sepet/SetQuantity"
-                                                    :hx-vals="JSON.stringify({ productId: item.id , quantity: +1})"
-                                                    hx-swap="none"
-                                                    @@click="inc(item)" class="px-3 hover:bg-gray-200 cursor-pointer  h-full text-slate-700 rounded-r-xl hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
+
+                                        <button hx-post="/Sepet/SetQuantity"
+                                                :hx-vals="JSON.stringify({ productId: item.id , quantity: +1})"
+                                                hx-swap="none"
+                                                @@click="inc(item)" class="px-3 hover:bg-gray-200 cursor-pointer  h-full text-slate-700 rounded-r-xl hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
                                     </div>
 
                                     <!-- Unit price / line total -->
