@@ -30,7 +30,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             CancellationToken ct = default)
         {
             if (page <= 0) page = 1;
-            if (pageSize <= 0) pageSize = 30;
+            if (pageSize <= 0) pageSize = 28;
 
             try
             {

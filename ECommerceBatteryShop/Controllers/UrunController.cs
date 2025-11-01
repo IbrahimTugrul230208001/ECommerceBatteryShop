@@ -35,11 +35,17 @@ namespace ECommerceBatteryShop.Controllers
                                          CancellationToken ct = default)
         {
             string categoryName = string.Empty;
+            int? categoryId = null;
+            
             // Resolve category by slug if provided
             if (!string.IsNullOrWhiteSpace(categorySlug))
             {
                 var cat = await _categories.GetBySlugAsync(Uri.UnescapeDataString(categorySlug), ct);
-                categoryName = cat?.Name ?? string.Empty;
+                if (cat != null)
+                {
+                    categoryName = cat.Name;
+                    categoryId = cat.Id;
+                }
             }
     
             var term = search ?? q ?? null;
@@ -51,11 +57,17 @@ namespace ECommerceBatteryShop.Controllers
             {
                 contextTitle = $"\"{term}\" için Arama Sonuçları";
             }
+            else if (!string.IsNullOrWhiteSpace(categoryName))
+            {
+                contextTitle = $"{categoryName} Ürünleri";
+            }
 
             ViewData["Title"] = $"{contextTitle} | Dayily Enerji";
             ViewData["Description"] = !string.IsNullOrWhiteSpace(term)
                 ? $"Dayily Enerji'de \"{term}\" aramasıyla Li-ion ve LiFePO4 pil çeşitlerini, BMS çözümlerini ve enerji depolama ekipmanlarını inceleyin."
-                : "Dayily Enerji'nin Li-ion pil, LiFePO4 batarya, BMS ve enerji depolama ürünlerini filtreleyerek keşfedin.";
+                : !string.IsNullOrWhiteSpace(categoryName)
+                 ? $"Dayily Enerji'nin {categoryName} kategorisindeki Li-ion pil, LiFePO4 batarya, BMS ve enerji depolama ürünlerini keşfedin."
+                   : "Dayily Enerji'nin Li-ion pil, LiFePO4 batarya, BMS ve enerji depolama ürünlerini filtreleyerek keşfedin.";
             ViewData["Keywords"] = "lityum pil ürünleri, lifepo4 batarya, bms devresi, enerji depolama mağazası";
             ViewData["Canonical"] = Request.GetDisplayUrl();
             ViewData["OgImage"] = Url.Content("~/img/dayı_amber_banner.jpg");
@@ -75,18 +87,26 @@ namespace ECommerceBatteryShop.Controllers
             if (minUsd.HasValue && maxUsd.HasValue && minUsd > maxUsd)
                 (minUsd, maxUsd) = (maxUsd, minUsd); // normalize swapped inputs
 
-            const int PageSize = 30;
+            const int PageSize = 28;
             var currentPage = page <= 0 ? 1 : page;
 
             async Task<(IReadOnlyList<Product> Items, int TotalCount)> LoadPageAsync(int targetPage)
             {
+                // Priority 1: Search term
                 if (!string.IsNullOrWhiteSpace(term))
                 {
-                    return await _repo.ProductSearchResultAsync(term, targetPage, PageSize, minUsd, maxUsd, ct);
+                      return await _repo.ProductSearchResultAsync(term, targetPage, PageSize, minUsd, maxUsd, ct);
+                }
+                
+                // Priority 2: Category filter
+                if (categoryId.HasValue)
+                {
+                     return await _repo.BringProductsByCategoryIdAsync(categoryId.Value, targetPage, PageSize, minUsd, maxUsd, ct);
                 }
 
-                return await _repo.GetMainPageProductsAsync(targetPage, PageSize, minUsd, maxUsd, ct);
-            }
+             // Priority 3: All products
+                 return await _repo.GetMainPageProductsAsync(targetPage, PageSize, minUsd, maxUsd, ct);
+             }
 
             var result = await LoadPageAsync(currentPage);
             var products = result.Items;

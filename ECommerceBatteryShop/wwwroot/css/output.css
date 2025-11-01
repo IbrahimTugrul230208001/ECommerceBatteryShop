@@ -622,11 +622,14 @@
   .h-40 {
     height: calc(var(--spacing) * 40);
   }
+  .h-64 {
+    height: calc(var(--spacing) * 64);
+  }
   .h-72 {
     height: calc(var(--spacing) * 72);
   }
-  .h-80 {
-    height: calc(var(--spacing) * 80);
+  .h-96 {
+    height: calc(var(--spacing) * 96);
   }
   .h-\[2px\] {
     height: 2px;
@@ -753,9 +756,6 @@
   }
   .max-w-none {
     max-width: none;
-  }
-  .max-w-screen-lg {
-    max-width: var(--breakpoint-lg);
   }
   .max-w-screen-md {
     max-width: var(--breakpoint-md);
@@ -1775,6 +1775,9 @@
   .opacity-25 {
     opacity: 25%;
   }
+  .opacity-30 {
+    opacity: 30%;
+  }
   .opacity-40 {
     opacity: 40%;
   }
@@ -2679,9 +2682,9 @@
       height: calc(var(--spacing) * 24);
     }
   }
-  .sm\:h-\[24rem\] {
+  .sm\:h-\[26rem\] {
     @media (width >= 40rem) {
-      height: 24rem;
+      height: 26rem;
     }
   }
   .sm\:w-24 {
@@ -2785,11 +2788,6 @@
       flex-basis: calc((100% - 2 * var(--g)) / 3);
     }
   }
-  .md\:basis-\[calc\(\(100\%-2\*var\(--g\)\)\/4\)\] {
-    @media (width >= 48rem) {
-      flex-basis: calc((100% - 2 * var(--g)) / 4);
-    }
-  }
   .md\:grid-cols-2 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2881,19 +2879,9 @@
       display: none;
     }
   }
-  .lg\:h-\[32rem\] {
-    @media (width >= 64rem) {
-      height: 32rem;
-    }
-  }
   .lg\:basis-\[calc\(\(100\%-3\*var\(--g\)\)\/4\)\] {
     @media (width >= 64rem) {
       flex-basis: calc((100% - 3 * var(--g)) / 4);
-    }
-  }
-  .lg\:basis-\[calc\(\(100\%-3\*var\(--g\)\)\/5\)\] {
-    @media (width >= 64rem) {
-      flex-basis: calc((100% - 3 * var(--g)) / 5);
     }
   }
   .lg\:grid-cols-2 {
@@ -2904,6 +2892,11 @@
   .lg\:grid-cols-3 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .lg\:grid-cols-4 {
+    @media (width >= 64rem) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
   .lg\:grid-cols-5 {
@@ -2941,9 +2934,9 @@
       padding-inline: calc(var(--spacing) * 8);
     }
   }
-  .lg\:px-10 {
+  .lg\:px-14 {
     @media (width >= 64rem) {
-      padding-inline: calc(var(--spacing) * 10);
+      padding-inline: calc(var(--spacing) * 14);
     }
   }
   .xl\:grid-cols-\[minmax\(0\,1fr\)_360px\] {
