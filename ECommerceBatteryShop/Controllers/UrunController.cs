@@ -29,22 +29,20 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet("/Urun/{categorySlug}")]
-        public async Task<IActionResult> Index(string categorySlug, string? search, string? q, int? categoryId,
+        public async Task<IActionResult> Index(string categorySlug, string? search, string? q, 
                                          decimal? minPrice, decimal? maxPrice,
                                          int page = 1,
                                          CancellationToken ct = default)
         {
+            string categoryName = string.Empty;
             // Resolve category by slug if provided
-            if (!string.IsNullOrWhiteSpace(categorySlug) && (!categoryId.HasValue || categoryId <= 0))
+            if (!string.IsNullOrWhiteSpace(categorySlug))
             {
                 var cat = await _categories.GetBySlugAsync(Uri.UnescapeDataString(categorySlug), ct);
-                if (cat != null)
-                {
-                    categoryId = cat.Id;
-                }
+                categoryName = cat?.Name ?? string.Empty;
             }
-
-            var term = search ?? q;
+    
+            var term = search ?? q ?? null;
             const decimal KdvRate = 0.20m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
@@ -52,10 +50,6 @@ namespace ECommerceBatteryShop.Controllers
             if (!string.IsNullOrWhiteSpace(term))
             {
                 contextTitle = $"\"{term}\" için Arama Sonuçları";
-            }
-            else if (categoryId.HasValue && categoryId > 0)
-            {
-                contextTitle = "Kategori Ürünleri";
             }
 
             ViewData["Title"] = $"{contextTitle} | Dayily Enerji";
@@ -89,11 +83,6 @@ namespace ECommerceBatteryShop.Controllers
                 if (!string.IsNullOrWhiteSpace(term))
                 {
                     return await _repo.ProductSearchResultAsync(term, targetPage, PageSize, minUsd, maxUsd, ct);
-                }
-
-                if (categoryId.HasValue && categoryId > 0)
-                {
-                    return await _repo.BringProductsByCategoryIdAsync(categoryId.Value, targetPage, PageSize, minUsd, maxUsd, ct);
                 }
 
                 return await _repo.GetMainPageProductsAsync(targetPage, PageSize, minUsd, maxUsd, ct);
@@ -133,10 +122,8 @@ namespace ECommerceBatteryShop.Controllers
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
             ViewBag.HasFilter = !string.IsNullOrWhiteSpace(term)
-                                || (categoryId.HasValue && categoryId > 0)
                                 || minPrice.HasValue || maxPrice.HasValue;
             ViewBag.SearchTerm = term;
-            ViewBag.CategoryId = categoryId;
             ViewBag.CurrentPage = currentPage;
             
             var vm = new ProductIndexViewModel
@@ -145,7 +132,9 @@ namespace ECommerceBatteryShop.Controllers
                 CurrentPage = currentPage,
                 TotalPages = totalPages,
                 PageSize = PageSize,
-                TotalCount = totalCount
+                TotalCount = totalCount,
+                CategoryFilter = categoryName,
+                SearchQuery = term
             };
 
             return View(vm);

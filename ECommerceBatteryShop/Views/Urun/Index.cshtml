@@ -92,9 +92,22 @@
 }
 else
 {
-    <h1 class="text-2xl font-bold mb-4">Ürünler</h1>
 
-    <div class="mx-auto max-w-screen-lg px-4 sm:px-2 md:px-4">
+    <div class="flex justify-between mx-auto px-4 sm:px-2 md:px-4 py-10">
+        <h1 class="text-3xl font-bold mb-4">
+            @if (!string.IsNullOrWhiteSpace(Model.SearchQuery))
+            {
+                @:"@Model.SearchQuery" için arama sonuçları
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.CategoryFilter))
+            {
+                @Model.CategoryFilter
+            }
+            else
+            {
+                @:Tüm Ürünler
+            }
+        </h1>
 
         <form method="get" class="mb-6 flex flex-wrap items-center gap-x-3 gap-y-3">
             @if (hasSearch)

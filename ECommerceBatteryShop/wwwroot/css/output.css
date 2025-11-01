@@ -28,7 +28,6 @@
     --color-green-50: oklch(98.2% 0.018 155.826);
     --color-green-200: oklch(92.5% 0.084 155.995);
     --color-green-500: oklch(72.3% 0.219 149.579);
-    --color-green-600: oklch(62.7% 0.194 149.214);
     --color-green-800: oklch(44.8% 0.119 151.328);
     --color-emerald-50: oklch(97.9% 0.021 166.113);
     --color-emerald-100: oklch(95% 0.052 163.051);
@@ -775,9 +774,6 @@
   }
   .min-w-\[8rem\] {
     min-width: 8rem;
-  }
-  .min-w-\[140px\] {
-    min-width: 140px;
   }
   .min-w-full {
     min-width: 100%;
@@ -2698,11 +2694,6 @@
       width: auto;
     }
   }
-  .sm\:min-w-\[200px\] {
-    @media (width >= 40rem) {
-      min-width: 200px;
-    }
-  }
   .sm\:grid-cols-2 {
     @media (width >= 40rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2913,11 +2904,6 @@
   .lg\:grid-cols-3 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  .lg\:grid-cols-4 {
-    @media (width >= 64rem) {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
   .lg\:grid-cols-5 {

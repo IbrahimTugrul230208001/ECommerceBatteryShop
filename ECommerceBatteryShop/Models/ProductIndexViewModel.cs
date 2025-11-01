@@ -6,7 +6,8 @@ namespace ECommerceBatteryShop.Models
     public class ProductIndexViewModel
     {
         public IReadOnlyList<ProductViewModel> Products { get; init; } = Array.Empty<ProductViewModel>();
-
+        public string? SearchQuery { get; init; }
+        public string? CategoryFilter { get; init; }
         public int CurrentPage { get; init; }
 
         public int TotalPages { get; init; }
