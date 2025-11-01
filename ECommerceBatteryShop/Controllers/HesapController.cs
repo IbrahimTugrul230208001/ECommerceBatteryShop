@@ -373,7 +373,7 @@ public class HesapController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GoogleCallback(string? returnUrl = null, string? remoteError = null)
+    public async Task<IActionResult> GoogleCallback(string? returnUrl = null, string? remoteError = null, CancellationToken ct = default)
     {
         returnUrl ??= Url.Content("~/");
 
@@ -411,6 +411,25 @@ public class HesapController : Controller
             }
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+        }
+
+        // ✅ CART MERGE: Transfer guest cart to user after successful Google login
+        var anonId = Request.Cookies["ANON_ID"];
+        var userIdClaim = authenticateResult.Principal?.FindFirst("sub") ?? authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        
+        if (!string.IsNullOrWhiteSpace(anonId) && userIdClaim is not null && int.TryParse(userIdClaim.Value, out var userId))
+      {
+         try
+    {
+                await _cartService.MergeGuestIntoUserAsync(anonId, userId, ct);
+            Response.Cookies.Delete("ANON_ID");
+           _logger.LogInformation("Cart merged successfully for user {UserId} from anonymous ID {AnonId}", userId, anonId);
+            }
+     catch (Exception ex)
+            {
+     _logger.LogError(ex, "Failed to merge cart for user {UserId} from anonymous ID {AnonId}", userId, anonId);
+        // Don't fail the login, just log the error
+            }
         }
 
         return LocalRedirect(returnUrl);

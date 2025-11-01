@@ -102,45 +102,64 @@ builder.Services.AddAuthentication(o =>
     o.Events.OnCreatingTicket = async ctx =>
     {
         var services = ctx.HttpContext.RequestServices;
-        var db = services.GetRequiredService<BatteryShopContext>();
+     var db = services.GetRequiredService<BatteryShopContext>();
+     var cartService = services.GetRequiredService<ICartService>();
+    var logger = services.GetRequiredService<ILogger<Program>>();
         var cancellationToken = ctx.HttpContext.RequestAborted;
 
         var email = ctx.Identity?.FindFirst(ClaimTypes.Email)?.Value;
         if (string.IsNullOrWhiteSpace(email))
         {
-            return;
+      return;
         }
 
-        var user = await db.Users.SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
+     var user = await db.Users.SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
         var displayName = ctx.Identity?.FindFirst(ClaimTypes.Name)?.Value;
 
-        if (user is null)
+  if (user is null)
         {
-            user = new User
-            {
-                Email = email,
+        user = new User
+       {
+       Email = email,
                 UserName = string.IsNullOrWhiteSpace(displayName) ? email : displayName,
-                PasswordHash = string.Empty,
-                CreatedAt = DateTime.UtcNow
+        PasswordHash = string.Empty,
+       CreatedAt = DateTime.UtcNow
             };
 
-            db.Users.Add(user);
-            await db.SaveChangesAsync(cancellationToken);
+    db.Users.Add(user);
+        await db.SaveChangesAsync(cancellationToken);
         }
-        else if (!string.IsNullOrWhiteSpace(displayName) && string.IsNullOrWhiteSpace(user.UserName))
+      else if (!string.IsNullOrWhiteSpace(displayName) && string.IsNullOrWhiteSpace(user.UserName))
         {
-            user.UserName = displayName;
-            await db.SaveChangesAsync(cancellationToken);
+         user.UserName = displayName;
+   await db.SaveChangesAsync(cancellationToken);
         }
 
         if (ctx.Identity is ClaimsIdentity identity)
         {
             foreach (var existing in identity.FindAll("sub").ToList())
-            {
-                identity.RemoveClaim(existing);
-            }
+       {
+  identity.RemoveClaim(existing);
+          }
 
-            identity.AddClaim(new Claim("sub", user.Id.ToString(CultureInfo.InvariantCulture)));
+        identity.AddClaim(new Claim("sub", user.Id.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        // ✅ CART MERGE: Transfer guest cart to user during Google authentication
+     var anonId = ctx.HttpContext.Request.Cookies["ANON_ID"];
+        if (!string.IsNullOrWhiteSpace(anonId) && user is not null)
+        {
+     try
+  {
+       await cartService.MergeGuestIntoUserAsync(anonId, user.Id, cancellationToken);
+         ctx.HttpContext.Response.Cookies.Delete("ANON_ID");
+        logger.LogInformation("Cart merged during Google auth for user {UserId} from anonymous ID {AnonId}", user.Id, anonId);
+       }
+  catch (Exception ex)
+            {
+    logger.LogError(ex, "Failed to merge cart during Google auth for user {UserId} from anonymous ID {AnonId}", user.Id, anonId);
+              // Don't fail the authentication, just log the error
+         }
         }
     };
     o.Backchannel = new HttpClient(new HttpLogHandler(new HttpClientHandler()));
