@@ -6,7 +6,7 @@
          x-init="init($el)"
          @@keydown.window.arrow-left.prevent="prev()"
          @@keydown.window.arrow-right.prevent="next()">
-    <div class="relative rounded-xl overflow-hidden bg-gray-900 text-white h-96 sm:h-[26rem]">
+    <div class="relative rounded-xl overflow-hidden bg-gray-900 text-white lg:h-[400px] h-64 ">
         <!-- Slides -->
         <template x-for="(slide, i) in slides" :key="i">
             <div class="absolute inset-0 transition-opacity duration-700"
