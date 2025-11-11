@@ -34,7 +34,6 @@ public class AdresController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Upsert(AddressInputModel model, CancellationToken ct)
     {
         var userId = GetUserId();

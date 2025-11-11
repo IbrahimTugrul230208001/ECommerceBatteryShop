@@ -12,4 +12,7 @@ public class CheckoutPageViewModel
 
     // Brief cart summary to show on checkout
     public IReadOnlyList<CartItemViewModel> CartItems { get; set; } = Array.Empty<CartItemViewModel>();
+    
+    // Contract data for the modal
+    public ContractViewModel? Contract { get; set; }
 }
