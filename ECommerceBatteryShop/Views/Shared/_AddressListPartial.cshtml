@@ -38,7 +38,7 @@
                     <p class="text-sm font-semibold text-gray-900">@address.Title</p>
 
                     <form method="post"
-                          hx-post='@Url.Action("Delete","Address")'
+                          hx-post='@Url.Action("Delete","Adres")'
                           hx-target="#address-list"
                           hx-swap="outerHTML"
                           @@click="remove(@address.Id)"
@@ -73,7 +73,7 @@
                     @if (!address.IsDefault)
                     {
                         <form method="post"
-                              hx-post="@Url.Action("SetDefault", "Addres")"
+                              hx-post="@Url.Action("SetDefault", "Adres")"
                               hx-target="#address-list"
                               hx-swap="outerHTML"
                               class="contents">

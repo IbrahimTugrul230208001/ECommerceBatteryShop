@@ -122,11 +122,19 @@
                 <section x-data="payUi(@(User?.Identity?.IsAuthenticated == true ? "true" : "false"))" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-slate-900">Ödeme Yöntemi</h2>
-                        <div class="flex items-center space-x-5">
-                            <span class="text-xs text-slate-600">Güvenli ödeme</span>
+                        <div x-show="method==='card'" class="flex items-center space-x-5">
+                            <img src="/img/3dsecure.jpeg"
+                                 alt="Pay with iyzico"
+                                 class="h-10 w-auto"
+                                 loading="lazy" />
+                            <img src="/img/go.png"
+                                 alt="Pay with iyzico"
+                                 class="h-6 w-auto"
+                                 loading="lazy" />
+
                             <img src="/img/paywithiyzico.png"
                                  alt="Pay with iyzico"
-                                 class="h-12 w-auto"
+                                 class="h-10 w-auto"
                                  loading="lazy" />
                         </div>
                
@@ -190,7 +198,7 @@
                         <p class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2">IBAN ile ödeme seçtiğinizde toplam tutara %3 indirim uygulanır.</p>
                     </div>
 
-                    <div class="mt-6 flex items-center gap-2">
+                    <div x-show="method==='card'" class="mt-6 flex items-center gap-2">
                         <input type="checkbox" x-model="newCard.threeD" class="rounded border-slate-300">
                         <label class="text-xs text-slate-600">
                             3D Secure ile öde
@@ -200,14 +208,13 @@
                         <input id="sozlesme" type="checkbox" class="rounded border-slate-300">
                         <label for="sozlesme" class="text-xs text-slate-600">
                             Ön bilgilendirme formu ve
-                            <a href="@contractUrl"
-                               target="_blank"
-                               rel="noopener"
-                               class="text-amber-600 hover:text-amber-700 underline font-medium">
-                                Mesafeli satış sözleşmesini okudum, onaylıyorum
-                            </a>.
-                        </label>
-                    </div>
+         <button
+   @@click.prevent="$store.contract.openModal()"
+          class="text-amber-600 hover:text-amber-700 underline font-medium cursor-pointer">
+               Mesafeli satış sözleşmesini okudum, onaylıyorum
+        </button>.
+                </label>
+    </div>
 
                     <template x-if="notice">
                         <div class="mt-4 rounded-lg border p-3" :class="notice.success ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'">
@@ -267,54 +274,72 @@
         </div>
     </div>
 </main>
-
+@await Html.PartialAsync("_MesafeliSatisPartial", Model.Contract)
 @if (User?.Identity?.IsAuthenticated == true)
 {
     @await Html.PartialAsync("_AddressModalPartial")
 }
 
 <script>
-            function checkout(subTotal, vat, threshold){
+    // Extend the Alpine store to pass dynamic shipping data
+    document.addEventListener('alpine:init', () => {
+   const originalOpenModal = Alpine.store('contract')?.openModal;
+        if (originalOpenModal) {
+      Alpine.store('contract').openModal = function() {
+   // Get current shipping price from checkout state
+                const state = window.checkoutState || null;
+  const currentShipping = state ? state.shipping : 0;
+    
+   // Store the current shipping for the contract modal to use
+     this.currentShipping = currentShipping;
+    
+       // Call the original openModal
+ originalOpenModal.call(this);
+       };
+        }
+    });
+    
+  function checkout(subTotal, vat, threshold){
       return {
         // inputs
         subTotal: Number(subTotal || 0),
         vat: Number(vat || 0.20),
         freeShipThreshold: Number(threshold || 2500),
 
-        // shipping catalog
+      // shipping catalog
         shippingOptions: [
           { id:'aras',     name:'Aras Kargo',    price:159.90 },
-          { id:'hepsijet', name:'HepsiJET',      price:129.90 },
-          { id:'yurtici',  name:'Yurtiçi Kargo', price:199.61 }
-        ],
+      { id:'hepsijet', name:'HepsiJET',      price:129.90 },
+        { id:'yurtici',  name:'Yurtiçi Kargo', price:199.61 }
+     ],
         selectedShippingId: 'hepsijet',
     
         // lifecycle
         init(){
           try { window.checkoutState = this; } catch {}
-        },
+   },
 
         // derived
         get isFree(){ return this.subTotal >= this.freeShipThreshold; },
-        get selectedShipping(){ return this.shippingOptions.find(o => o.id === this.selectedShippingId) || null; },
-        get shipping(){ return this.isFree ? 0 : (this.selectedShipping ? this.selectedShipping.price : 0); },
+      get selectedShipping(){ return this.shippingOptions.find(o => o.id === this.selectedShippingId) || null; },
+     get shipping(){ return this.isFree ? 0 : (this.selectedShipping ? this.selectedShipping.price : 0); },
         get vatAmount(){ return this.round((this.subTotal + this.shipping) * this.vat); },
-        get grand(){ return this.round(this.subTotal + this.shipping); },
+     get grand(){ return this.round(this.subTotal + this.shipping); },
 
         // helpers
         format(n){ return new Intl.NumberFormat('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}).format(Number(n||0)); },
-        round(n){ return Math.round(Number(n||0) * 100) / 100; },
+      round(n){ return Math.round(Number(n||0) * 100) / 100; },
 
         // keep contract param accurate
         contractWithShipping(href){
           try{
-            const u = new URL(href, window.location.origin);
-            u.searchParams.set('shipping', this.shipping.toFixed(2));
-            return u.toString();
+          const u = new URL(href, window.location.origin);
+       u.searchParams.set('shipping', this.shipping.toFixed(2));
+        return u.toString();
           }catch{ return href; }
         }
       }
-    }
+ }
 
     // IBAN copy
     (function () {

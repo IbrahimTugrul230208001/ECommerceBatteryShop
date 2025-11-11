@@ -5,7 +5,7 @@
     var products = Model?.Products ?? Array.Empty<ECommerceBatteryShop.Models.ProductViewModel>();
 
     var hasResults = products.Any();
-    // When there are no results, reduce extra footer mobile padding (gap below footer)
+
     if (!hasResults)
     {
         ViewData["NoFooterMobileSpace"] = true;
@@ -93,8 +93,8 @@
 else
 {
 
-    <div class="flex justify-between mx-auto py-10">
-        <h1 class="text-3xl font-bold mb-4">
+    <div class="mx-auto py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <h1 class="text-3xl font-bold mb-0">
             @if (!string.IsNullOrWhiteSpace(Model.SearchQuery))
             {
                 @:"@Model.SearchQuery" için arama sonuçları
@@ -109,7 +109,7 @@ else
             }
         </h1>
 
-        <form method="get" class="mb-6 flex flex-wrap items-center gap-x-3 gap-y-3">
+        <form method="get" class="w-full md:w-auto mb-6 md:mb-0 flex flex-wrap items-center gap-x-3 gap-y-3 md:justify-end">
             @if (hasSearch)
             {
                 <input type="hidden" name="search" value="@searchTerm" />
@@ -137,7 +137,7 @@ else
             @if (hasFilter)
             {
                 <a href="@Url.Action("Index", "Urun")"
-                   class="ml-auto inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">
+                   class="md:ml-auto inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">
                     Filtreleri temizle
                 </a>
             }

@@ -1,0 +1,221 @@
+﻿@model ECommerceBatteryShop.Models.ContractViewModel
+
+@if (Model != null)
+{
+<style>
+    [x-cloak] {
+      display: none !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+   Alpine.store('contract', {
+        open: false,
+            currentShipping: @Model.ShippingFee.ToString(System.Globalization.CultureInfo.InvariantCulture),
+       openModal() {
+    this.open = true;
+      document.body.style.overflow = 'hidden';
+     },
+            close() {
+ this.open = false;
+   document.body.style.overflow = '';
+},
+       get displayShipping() {
+                return this.currentShipping || @Model.ShippingFee.ToString(System.Globalization.CultureInfo.InvariantCulture);
+   },
+     get itemsSubtotal() {
+           return @Model.Subtotal.ToString(System.Globalization.CultureInfo.InvariantCulture);
+  },
+            get displayTotal() {
+             return this.itemsSubtotal + this.displayShipping;
+            }
+ });
+ });
+</script>
+
+<div x-data="{
+        shipping: $store.contract.displayShipping,
+     subtotal: $store.contract.itemsSubtotal
+    }"
+     x-show="$store.contract.open"
+     x-on:keydown.escape.window="$store.contract.close()"
+     x-cloak
+   class="fixed inset-0 z-[60] overflow-y-auto">
+    
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/50 transition-opacity"
+         @@click="$store.contract.close()"></div>
+    
+  <!-- Modal -->
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+    @@click.away="$store.contract.close()">
+     
+   <!-- Header -->
+    <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+      <h2 class="text-xl font-semibold text-gray-900">Mesafeli Satış Sözleşmesi</h2>
+       <button type="button"
+ @@click="$store.contract.close()"
+        class="text-gray-400 hover:text-gray-600 transition">
+  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+    </button>
+   </div>
+         
+   <!-- Content -->
+  <div class="px-6 py-6 max-h-[70vh] overflow-y-auto text-sm">
+     <div class="space-y-6">
+        <div class="text-center">
+   <h1 class="text-2xl font-bold text-gray-900">MESAFELİ SATIŞ SÖZLEŞMESİ</h1>
+ <p class="text-gray-600 mt-2">Yürürlük: 29.09.2025 • Sürüm: 1.0</p>
+       </div>
+
+      <hr class="border-gray-200" />
+
+           <section>
+       <h2 class="text-lg font-semibold text-gray-900 mb-3">1) Taraflar</h2>
+        <p class="text-gray-700">Bu sözleşme, <strong>www.dayilyenerji.com</strong> üzerinden ürün satın alan Alıcı ile aşağıdaki bilgileri yer alan Satıcı arasında elektronik ortamda düzenlenmiştir.</p>
+    
+     <div class="grid md:grid-cols-2 gap-6 mt-4">
+  <div class="bg-gray-50 rounded-lg p-4">
+      <h4 class="font-semibold text-gray-900 mb-2">Satıcı</h4>
+  <dl class="space-y-1 text-sm">
+           <dt class="font-medium text-gray-700">Firma Unvanı:</dt>
+       <dd class="text-gray-600">Dayily Enerji (Şahıs Firması)</dd>
+         <dt class="font-medium text-gray-700 mt-2">Vergi Dairesi / No:</dt>
+        <dd class="text-gray-600">Sincan / 2721031588</dd>
+     <dt class="font-medium text-gray-700 mt-2">Adres:</dt>
+       <dd class="text-gray-600">Törekent Mah. 337.sk 9/11 Sincan/Ankara</dd>
+ <dt class="font-medium text-gray-700 mt-2">Telefon:</dt>
+      <dd class="text-gray-600">+90 501 317 66 53</dd>
+  <dt class="font-medium text-gray-700 mt-2">E-posta:</dt>
+      <dd class="text-gray-600">yigitdayi4502@@gmail.com</dd>
+         <dt class="font-medium text-gray-700 mt-2">Site:</dt>
+         <dd class="text-gray-600">www.dayilyenerji.com</dd>
+      </dl>
+       </div>
+    
+            <div class="bg-gray-50 rounded-lg p-4">
+     <h4 class="font-semibold text-gray-900 mb-2">Alıcı</h4>
+        <dl class="space-y-1 text-sm">
+   <dt class="font-medium text-gray-700">Ad-Soyad/Unvan:</dt>
+       <dd class="text-gray-600">@Model.BuyerName</dd>
+            <dt class="font-medium text-gray-700 mt-2">Adres:</dt>
+     <dd class="text-gray-600">@Model.BuyerAddress</dd>
+       <dt class="font-medium text-gray-700 mt-2">Telefon:</dt>
+      <dd class="text-gray-600">@Model.BuyerPhone</dd>
+         <dt class="font-medium text-gray-700 mt-2">E-posta:</dt>
+               <dd class="text-gray-600">@Model.BuyerEmail</dd>
+      </dl>
+         </div>
+  </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4 text-sm text-gray-700">
+      ALICI, siparişi onaylayarak bedeli ve varsa kargo/vergi dâhil ek masrafları ödemeyi peşinen kabul eder.
+    </div>
+     </section>
+
+     <section>
+  <h2 class="text-lg font-semibold text-gray-900 mb-3">2) Konu</h2>
+       <p class="text-gray-700">Alıcı'nın Satıcı'dan <strong>www.dayilyenerji.com</strong> aracılığıyla satın aldığı <em>enerji depolama sistemleri, pil, batarya ve ilgili bileşenler</em>in satışı, teslimi, iadesi ve diğer hususları düzenler.</p>
+     </section>
+
+     <section>
+     <h2 class="text-lg font-semibold text-gray-900 mb-3">7) Ürün/Ürünler Bilgileri</h2>
+   <p class="text-gray-700 mb-4"><strong>Temel Özellikler:</strong> Ürünlerin türü/miktarı/marka-modeli/adedi sitede belirtildiği gibidir.</p>
+    
+  <div class="overflow-x-auto">
+   <table class="w-full text-sm border border-gray-200">
+<thead class="bg-gray-50">
+   <tr>
+          <th class="px-4 py-2 text-left font-semibold text-gray-900 border-b">Ürün Açıklaması</th>
+ <th class="px-4 py-2 text-right font-semibold text-gray-900 border-b">Adet</th>
+        <th class="px-4 py-2 text-right font-semibold text-gray-900 border-b">Birim (KDV d.)</th>
+       <th class="px-4 py-2 text-right font-semibold text-gray-900 border-b">Ara Toplam</th>
+     </tr>
+         </thead>
+     <tbody>
+  @foreach (var item in Model.Items)
+       {
+   <tr class="border-b">
+      <td class="px-4 py-2">Ürün</td>
+          <td class="px-4 py-2 text-right">₺@item.Quantity</td>
+          <td class="px-4 py-2 text-right">₺@item.UnitPrice</td>
+          <td class="px-4 py-2 text-right">₺@((item.UnitPrice * item.Quantity).ToString("N2"))</td>
+          </tr>
+   }
+     <template x-if="$store.contract.displayShipping > 0">
+ <tr class="border-b">
+<td colspan="3" class="px-4 py-2 font-semibold">Kargo Tutarı</td>
+         <td class="px-4 py-2 text-right" x-text="'₺' + $store.contract.displayShipping.toFixed(2)"></td>
+    </tr>
+         </template>
+      <tr class="bg-gray-50 font-semibold">
+         <td colspan="3" class="px-4 py-2 text-right">Genel Toplam</td>
+         <td class="px-4 py-2 text-right" x-text="'₺' + $store.contract.displayTotal.toFixed(2)"></td>
+        </tr>
+  </tbody>
+   </table>
+          </div>
+  </section>
+
+      <section>
+       <h2 class="text-lg font-semibold text-gray-900 mb-3">8) Fatura Bilgileri</h2>
+        <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+      <p><strong>Unvan/Ad-Soyad:</strong> @Model.InvoiceTitle</p>
+   <p><strong>VD/VKN-TCKN:</strong> @Model.InvoiceTax</p>
+    <p><strong>Adres:</strong> @Model.InvoiceAddress</p>
+        <p><strong>Tel:</strong> @Model.InvoicePhone</p>
+   <p><strong>E-posta:</strong> @Model.InvoiceEmail</p>
+       </div>
+  <p class="text-gray-600 text-sm mt-2">Fatura, e-fatura/e-arşiv olarak ve/veya fiziken teslim edilir.</p>
+         </section>
+
+   <section>
+ <h2 class="text-lg font-semibold text-gray-900 mb-3">10) Cayma Hakkı</h2>
+    <p class="text-gray-700">
+    Alıcı, mal tesliminden itibaren <strong>14 gün</strong> içinde gerekçesiz cayabilir. 
+   Cayma bildirimi <strong>yigitdayi4502@@gmail.com</strong> adresine veya sitedeki iade kanalı 
+    <strong>@Model.ReturnPath</strong> üzerinden yapılır. Cayma halinde ürün, 14 gün içinde 
+     faturası ve tüm aksesuarlarıyla, Satıcı'nın bildirdiği kargo kanalıyla iade edilir.
+  </p>
+      </section>
+
+      <section>
+  <h2 class="text-lg font-semibold text-gray-900 mb-3">11) Cayma Hakkı Kapsamı Dışı</h2>
+    <p class="text-gray-700">
+        Kişiye özel üretilen; ambalajı açılmış hijyen ürünleri; tek kullanımlık/çabuk bozulan ürünler vb. 
+     Yönetmelikte sayılan istisnalar cayma hakkı kapsamı dışındadır.
+               </p>
+         </section>
+
+    <section>
+    <h2 class="text-lg font-semibold text-gray-900 mb-3">13) Uyuşmazlıkların Çözümü</h2>
+     <p class="text-gray-700">
+       Alıcı'nın yerleşim yeri veya işlemin yapıldığı yerdeki Tüketici Hakem Heyeti/Tüketici Mahkemeleri yetkilidir.
+       </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-gray-900 mb-3">14) Yürürlük</h2>
+       <p class="text-gray-700">
+    Alıcı, site üzerinden ödeme yapıp siparişi onayladığında bu sözleşme hükümlerini kabul etmiş sayılır.
+        </p>
+           </section>
+  </div>
+        </div>
+
+    <!-- Footer -->
+  <div class="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+    <button type="button"
+ @@click="$store.contract.close()"
+    class="px-5 py-2.5 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+        Kapat
+     </button>
+     </div>
+        </div>
+    </div>
+</div>
+}

@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+
   <ItemGroup>
     <PackageReference Include="Iyzipay" Version="2.1.67" />
     <PackageReference Include="MailKit" Version="4.13.0" />

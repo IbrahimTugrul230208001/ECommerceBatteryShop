@@ -154,11 +154,14 @@ namespace ECommerceBatteryShop.Controllers
             var subTotal = cartTotalPrice * (rate ?? 42m); // 1.2 = KDV
 
             IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
+            int? defaultAddressId = null;
             if (isAuthenticated)
             {
                 var userId = int.Parse(User.FindFirst("sub")!.Value);
                 var addressEntities = await _addressRepository.GetByUserAsync(userId, HttpContext.RequestAborted);
                 addresses = addressEntities.Select(MapAddress).ToList();
+                defaultAddressId = addresses.FirstOrDefault(a => a.IsDefault)?.Id 
+                 ?? addresses.FirstOrDefault()?.Id;
             }
 
             // build brief cart items for the checkout page
@@ -173,21 +176,24 @@ namespace ECommerceBatteryShop.Controllers
             }).ToList() ?? new List<CartItemViewModel>();
 
             var guest = isAuthenticated ? null : ReadGuestInfo();
-
+            
+            // Generate the contract model with default values
+            var contractModel = await BuildContractViewModel(defaultAddressId, 150m, HttpContext.RequestAborted);
+    
             var model = new CheckoutPageViewModel
             {
                 SubTotal = subTotal,
                 Addresses = addresses,
                 IsGuest = !isAuthenticated,
                 Guest = guest,
-                CartItems = cartItems
+                CartItems = cartItems,
+                Contract = contractModel
             };
 
             return View(model);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> MesafeliSatis(int? addressId, decimal? shipping, CancellationToken ct)
+        private async Task<ContractViewModel> BuildContractViewModel(int? addressId, decimal? shipping, CancellationToken ct)
         {
             const decimal DefaultFx = 42m;
             const decimal KdvRate = 0.20m;
@@ -340,8 +346,7 @@ namespace ECommerceBatteryShop.Controllers
                 ReturnPath = Url.Action("Iade", "Ev") ?? "/Ev/Iade",
                 OrderDate = DateTime.Now
             };
-
-            return View("~/Views/Ev/MesafeliSatis.cshtml", model);
+            return model;
         }
 
         private static AddressViewModel MapAddress(Address address)
