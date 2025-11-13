@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecommerce-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ecommerce_db
+   POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-YourSecurePassword123!}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+ - postgres-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # .NET Web Application
+  web:
+    build:
+  context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-web
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+  - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=ecommerce_db;Username=postgres;Password=${DB_PASSWORD:-YourSecurePassword123!}
+    - ConnectionStrings__PostgreSQL=Host=postgres;Port=5432;Database=ecommerce_db;Username=postgres;Password=${DB_PASSWORD:-YourSecurePassword123!}
+    ports:
+    - "5000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+    volumes:
+      - ./logs:/app/logs
+      - ./wwwroot:/app/wwwroot
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local

@@ -6,7 +6,7 @@
          x-init="init($el)"
          @@keydown.window.arrow-left.prevent="prev()"
          @@keydown.window.arrow-right.prevent="next()">
-    <div class="relative rounded-xl overflow-hidden bg-gray-900 text-white lg:h-[400px] h-80">
+    <div class="relative rounded-xl overflow-hidden bg-gray-900 text-white lg:h-[400px] sm:h-80 md:h-[400px] h-80">
         <!-- Slides -->
         <template x-for="(slide, i) in slides" :key="i">
             <div class="absolute inset-0 transition-opacity duration-700"
@@ -14,8 +14,8 @@
                  role="group"
                  :aria-roledescription="'slide ' + (i+1) + ' of ' + slides.length">
 
-                <!-- Responsive images -->
-                <!-- Mobile version (shows only if mobileSrc exists) -->
+            
+         
                 <template x-if="slide.mobileSrc">
                     <img :src="slide.mobileSrc" :alt="slide.alt"
                          class="block sm:hidden w-full h-full object-cover opacity-90" loading="lazy" />
