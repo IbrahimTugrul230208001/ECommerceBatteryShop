@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # .NET Web Application (Production)
+  web:
+    build:
+      context: .
+    dockerfile: Dockerfile
+    container_name: ecommerce-web-prod
+ restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      # Use Azure PostgreSQL connection string
+      - ConnectionStrings__DefaultConnection=${AZURE_POSTGRES_CONNECTION_STRING}
+      - ConnectionStrings__PostgreSQL=${AZURE_POSTGRES_CONNECTION_STRING}
+    ports:
+      - "80:8080"
+      - "443:8081"
+    networks:
+      - ecommerce-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  ecommerce-network:
+    driver: bridge
