@@ -10,10 +10,10 @@
          role="dialog" aria-modal="true"
          @@keydown.window.escape="$store.address.close()">
         <div class="w-full max-w-lg rounded-md bg-white shadow-xl ring-1 ring-black/10"
-             @@click.outside="$store.address.close()">
+             x-on:click.outside="$store.address.close()">
             <div class="flex items-center justify-between p-4 border-b border-slate-300">
                 <h3 class="text-base font-semibold text-slate-600" x-text="$store.address.form.id ? 'Adres Düzenle' : 'Adres Ekle'"></h3>
-                <button class="p-2 rounded text-slate-500 hover:bg-slate-100" @@click="$store.address.close()">✕</button>
+                <button class="p-2 rounded text-slate-500 hover:bg-slate-100" x-on:click="$store.address.close()">✕</button>
             </div>
             <form class="p-4 space-y-4"
                   hx-post="@Url.Action("Upsert", "Adres")"
@@ -87,7 +87,7 @@
 
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button"
-                            @@click="$store.address.close(); $store.address.reset()"
+                            x-on:click="$store.address.close(); $store.address.reset()"
                             class="rounded-lg border border-slate-400 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
                         Vazgeç
                     </button>

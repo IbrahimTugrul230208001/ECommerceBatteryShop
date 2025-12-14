@@ -2699,11 +2699,6 @@
       height: calc(var(--spacing) * 80);
     }
   }
-  .sm\:h-\[26rem\] {
-    @media (width >= 40rem) {
-      height: 26rem;
-    }
-  }
   .sm\:w-24 {
     @media (width >= 40rem) {
       width: calc(var(--spacing) * 24);
@@ -2805,9 +2800,9 @@
       display: inline-flex;
     }
   }
-  .md\:h-80 {
+  .md\:h-\[400px\] {
     @media (width >= 48rem) {
-      height: calc(var(--spacing) * 80);
+      height: 400px;
     }
   }
   .md\:w-auto {

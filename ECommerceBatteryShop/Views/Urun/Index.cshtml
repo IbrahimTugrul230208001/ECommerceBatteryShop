@@ -234,7 +234,7 @@ else
 
                     <button type="button"
                             x-data="{ fav: @(product.IsFavorite ? "true" : "false"), busy: false }"
-                            @@click="if (busy) return; busy=true; fav=!fav; setTimeout(()=> busy=false, 300);"
+                            x-on:click="if (busy) return; busy=true; fav=!fav; setTimeout(()=> busy=false, 300);"
                             hx-post="/Favori/Toggle"
                             :hx-vals="JSON.stringify({ productId: @product.Id})"
                             hx-swap="none"

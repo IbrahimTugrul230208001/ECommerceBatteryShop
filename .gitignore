@@ -363,3 +363,14 @@ MigrationBackup/
 FodyWeavers.xsd
 /ECommerceBatteryShop/appsettings.json
 /ECommerceBatteryShop/appsettings.json
+
+# Dotenv: ignore secrets, keep example tracked
+.env
+.env.*
+!.env.example
+
+# Local-only compose overrides
+docker-compose.override.yml
+docker-compose.local.yml
+docker-compose.*.local.yml
+docker-compose.*.secrets.yml

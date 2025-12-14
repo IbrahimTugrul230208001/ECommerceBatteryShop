@@ -1,25 +1,22 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: ecommerce-postgres
-    restart: unless-stopped
+    restart: always
     environment:
-      POSTGRES_DB: ecommerce_db
-   POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-YourSecurePassword123!}
-      PGDATA: /var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=ibrahim06
+      - POSTGRES_DB=ecommercebatteryshop_tr
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
- - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommercebatteryshop_tr"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,30 +24,31 @@ services:
   # .NET Web Application
   web:
     build:
-  context: .
+      context: .
       dockerfile: Dockerfile
     container_name: ecommerce-web
-    restart: unless-stopped
+    restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-  - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=ecommerce_db;Username=postgres;Password=${DB_PASSWORD:-YourSecurePassword123!}
-    - ConnectionStrings__PostgreSQL=Host=postgres;Port=5432;Database=ecommerce_db;Username=postgres;Password=${DB_PASSWORD:-YourSecurePassword123!}
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=${ASPNETCORE_FORWARDEDHEADERS_ENABLED:-true}
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=ecommercebatteryshop_tr;Username=postgres;Password=ibrahim06;
     ports:
-    - "5000:8080"
+      - "${WEB_PORT:-5000}:8080"
     depends_on:
       postgres:
         condition: service_healthy
+    # When using Azure DB, web doesn't need to depend on local postgres
     networks:
       - ecommerce-network
     volumes:
       - ./logs:/app/logs
-      - ./wwwroot:/app/wwwroot
+      # Do NOT bind-mount wwwroot in container; it hides built static assets
+      # - ./ECommerceBatteryShop/wwwroot:/app/wwwroot
 
 networks:
   ecommerce-network:
     driver: bridge
 
 volumes:
-  postgres-data:
-    driver: local
+  postgres_data:
