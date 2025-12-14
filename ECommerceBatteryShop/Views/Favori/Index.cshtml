@@ -154,7 +154,7 @@ else
                                             :hx-vals="JSON.stringify({ productId: @id})"
                                             hx-target="#fav-@id"
                                             hx-swap="outerHTML"
-                                            @@htmx:before-request="removing = true"
+                                            x-on:htmx:before-request="removing = true"
                                             class="text-slate-600 hover:text-slate-900 cursor-pointer border border-slate-300 hover:border-slate-600 p-1 rounded-md transition duration-200"
                                             aria-label="Kaldır" title="Kaldır">
                                         <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none">

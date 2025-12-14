@@ -41,7 +41,7 @@
                           hx-post='@Url.Action("Delete","Adres")'
                           hx-target="#address-list"
                           hx-swap="outerHTML"
-                          @@click="remove(@address.Id)"
+                          x-on:click="remove(@address.Id)"
                           hx-confirm="Bu adresi silmek istiyor musunuz?"
                           class="contents">
                         @Html.AntiForgeryToken()
@@ -67,7 +67,7 @@
                 <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
                     <button type="button"
                             class="rounded-full border border-gray-200 px-3 py-1 text-gray-600 transition hover:border-amber-300 hover:text-amber-600"
-                            @@click='$store.address.edit(@Html.Raw(payload))'>
+                            x-on:click='$store.address.edit(@Html.Raw(payload))'>
                         Düzenle
                     </button>
                     @if (!address.IsDefault)

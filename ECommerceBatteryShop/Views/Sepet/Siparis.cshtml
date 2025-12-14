@@ -54,7 +54,7 @@
                             </div>
 
                             <button type="button"
-                                    @@click="$store.address.openNew()"
+                                    x-on:click="$store.address.openNew()"
                                     class="inline-flex items-center gap-2 rounded-full border border-amber-400 px-4 py-2 text-sm font-semibold text-amber-600 hover:border-amber-700 hover:text-amber-700">
                                 Yeni adres ekle
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -157,7 +157,7 @@
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
                                   <p class="text-sm text-slate-700">Kayıtlı Kartlar</p>
-                                  <button type="button" @@click="refreshSaved" class="text-xs underline text-slate-600">Yenile</button>
+                                  <button type="button" x-on:click="refreshSaved" class="text-xs underline text-slate-600">Yenile</button>
                                 </div>
                                 <template x-for="c in saved" :key="c.id">
                                     <label class="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50">
@@ -209,7 +209,7 @@
                         <label for="sozlesme" class="text-xs text-slate-600">
                             Ön bilgilendirme formu ve
          <button
-   @@click.prevent="$store.contract.openModal()"
+  x-on:click.prevent="$store.contract.openModal()"
           class="text-amber-600 hover:text-amber-700 underline font-medium cursor-pointer">
                Mesafeli satış sözleşmesini okudum, onaylıyorum
         </button>.
@@ -223,7 +223,7 @@
                     </template>
 
                     <button type="button"
-                            @@click="placeOrder"
+                            x-on:click="placeOrder"
                             :disabled="loading"
                             class="mt-4 w-full h-12 rounded-xl bg-amber-300 font-semibold text-gray-900 hover:bg-amber-400 disabled:opacity-60 flex items-center justify-center gap-2">
                         <svg x-show="loading" class="animate-spin w-6 h-6 text-yellow-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

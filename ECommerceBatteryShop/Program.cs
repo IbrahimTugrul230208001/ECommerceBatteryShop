@@ -173,6 +173,21 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+else
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BatteryShopContext>();
+    try
+    {
+        // Ensure schema exists in local/dev DB to avoid 42P01 errors
+        db.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Failed to ensure database is created");
+    }
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

@@ -68,7 +68,7 @@
                     class="absolute right-3 top-[58%] -translate-y-1/2 text-gray-500 hover:text-gray-800 focus:outline-none"
                     :aria-pressed="show"
                     :aria-label="show ? 'Şifreyi gizle' : 'Şifreyi göster'"
-                    @@click="toggle"
+                    x-on:click="toggle"
                     @@mousedown="hold" @@mouseup="release" @@mouseleave="release"
                     @@touchstart.prevent="hold" @@touchend="release">
                 <!-- eye open -->

@@ -239,7 +239,7 @@
              class="fixed inset-0 z-40 bg-black/70 transition-opacity duration-200
               opacity-0 pointer-events-none"
              :class="(overlay || mobileCategories) ? 'opacity-100 pointer-events-auto' : ''"
-             @@click="overlay=false; mobileCategories=false"></div>
+             x-on:click="overlay=false; mobileCategories=false"></div>
       
         <!-- DESKTOP NAVBAR -->
         <nav x-data="{ scrolled:false }"
@@ -554,7 +554,7 @@
                 <p x-text="message"></p>
                 <p class="text-xs text-gray-500">Sepet ve favoriler gibi özellikleri kaydedebilmek için çerezleri kullanıyoruz.</p>
             </div>
-            <button type="button" aria-label="Kapat" class="text-gray-400 transition hover:text-gray-600" @@click="close()">
+            <button type="button" aria-label="Kapat" class="text-gray-400 transition hover:text-gray-600" x-on:click="close()">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="6" y1="6" x2="18" y2="18" />
                     <line x1="6" y1="18" x2="18" y2="6" />
@@ -564,12 +564,12 @@
         <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
             <button type="button"
                     class="inline-flex h-10 items-center justify-center rounded-md bg-amber-300 px-5 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/60"
-                    @@click="accept()">
+                    x-on:click="accept()">
                 Çerezleri kabul et
             </button>
             <button type="button"
                     class="inline-flex h-10 items-center justify-center rounded-md border border-gray-200 px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
-                    @@click="reject()">
+                    x-on:click="reject()">
                 Çerezleri reddet
             </button>
         </div>

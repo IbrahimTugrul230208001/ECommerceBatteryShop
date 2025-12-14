@@ -35,7 +35,7 @@
         </template>
 
         <!-- Prev/Next (raise above slide) -->
-        <button type="button" @@click="prev()"
+        <button type="button" x-on:click="prev()"
                 class="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2
                    hover:bg-black/60 focus:outline-none z-30 cursor-pointer">
             <span class="sr-only">Önceki</span>
@@ -43,7 +43,7 @@
                 <path d="M15 19l-7-7 7-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
         </button>
-        <button type="button" @@click="next()"
+        <button type="button" x-on:click="next()"
                 class="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2
                    hover:bg-black/60 focus:outline-none z-30 cursor-pointer">
             <span class="sr-only">Sonraki</span>
@@ -55,7 +55,7 @@
         <!-- Dots (raise above slide) -->
         <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-30">
             <template x-for="(s, i) in slides" :key="'dot-'+i">
-                <button type="button" @@click="go(i)"
+                <button type="button" x-on:click="go(i)"
                         class="h-2.5 w-2.5 rounded-full transition"
                         :class="current===i ? 'bg-white' : 'bg-white/40 hover:bg-white/70'">
                     <span class="sr-only" x-text="'Slayt ' + (i+1)"></span>
@@ -135,7 +135,7 @@
              class="relative">
 
                             <!-- Controls -->
-                <button type="button" @@click="prev" :class="{'opacity-40 pointer-events-none': atStart}"
+                <button type="button" x-on:click="prev" :class="{'opacity-40 pointer-events-none': atStart}"
                                         class="absolute left-2 top-1/2 hover:bg-amber-400 hover:text-white cursor-pointer -translate-y-1/2 z-10 h-10 w-10 grid place-items-center border border-slate-300 rounded-full bg-white shadow-xl"
                         aria-label="Önceki">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(180)">
@@ -143,7 +143,7 @@
                     </svg>
                 </button>
 
-                <button type="button" @@click="next" :class="{'opacity-40 pointer-events-none': atEnd}"
+                <button type="button" x-on:click="next" :class="{'opacity-40 pointer-events-none': atEnd}"
                                 class="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 hover:text-white grid place-items-center text-xl rounded-full bg-white shadow-xl border border-slate-300 hover:bg-amber-400 cursor-pointer"
                         aria-label="Sonraki">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -258,7 +258,7 @@
                          <button
                           type="button"
                           x-data="{ fav: @(product.IsFavorite ? "true" : "false"), busy: false }"
-                          @@click="
+                          x-on:click="
                             if (busy) return;
                             busy = true;
                             fav = !fav;

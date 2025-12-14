@@ -59,7 +59,7 @@
                     <label class="sr-only" for="qty">Adet</label>
                     <div class="inline-flex h-11 items-center rounded-xl border border-slate-300 bg-white shadow-xs">
                         <button type="button"
-                                @@click="dec()"
+                                x-on:click="dec()"
                                 class="px-3 h-full text-slate-700 rounded-l-xl hover:bg-slate-200 hover:text-slate-900"
                                 aria-controls="qty" aria-label="Azalt">
                             −
@@ -72,7 +72,7 @@
                                aria-live="polite" aria-label="Adet">
 
                         <button type="button"
-                                @@click="inc()"
+                                x-on:click="inc()"
                                 class="px-3 h-full text-slate-700 rounded-r-xl hover:bg-slate-200 hover:text-slate-900"
                                 aria-controls="qty" aria-label="Arttır">
                             +
@@ -117,7 +117,7 @@
                                     :hx-vals="JSON.stringify({ productId: @Model.product.Id, quantity: qty })"
                                     hx-swap="none"
                                     x-data="{ added: false }"
-                                    @@click="if (added) return; added = true; setTimeout(() => added = false, 1600);"
+                                    x-on:click="if (added) return; added = true; setTimeout(() => added = false, 1600);"
                                     :class="added
                                             ? 'bg-green-500 text-white'
                                             : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
@@ -161,7 +161,7 @@
 
                     <button type="button"
                             x-data="{ fav: @(Model.product.IsFavorite ? "true" : "false"), busy: false }"
-                            @@click="if (busy) return; busy=true; fav=!fav; setTimeout(()=> busy=false, 300);"
+                            x-on:click="if (busy) return; busy=true; fav=!fav; setTimeout(()=> busy=false, 300);"
                             hx-post="/Favori/Toggle"
                             :hx-vals="JSON.stringify({ productId: @Model.product.Id})"
                             hx-swap="none"
@@ -239,13 +239,13 @@
 
         <!-- Tabs -->
         <div role="tablist" aria-label="Ürün sekmeleri" class="mb-4 flex gap-2">
-            <button role="tab" @@click ="set('desc')" :aria-selected="tab==='desc'"
+            <button role="tab" x-on:click ="set('desc')" :aria-selected="tab==='desc'"
                     :class="tab==='desc' ? 'bg-white shadow-sm border-slate-300' : 'hover:bg-slate-50 border-slate-200'"
                     class="cursor-pointer rounded-xl border px-3 py-2 text-sm font-medium text-slate-700">
                 Ürün Açıklaması
             </button>
 
-            <button role="tab" @@click ="set('files')" :aria-selected="tab==='files'"
+            <button role="tab" x-on:click ="set('files')" :aria-selected="tab==='files'"
                     :class="tab==='files' ? 'bg-white shadow-sm border-slate-300' : 'hover:bg-slate-50 border-slate-200'"
                     class="cursor-pointer rounded-xl border px-3 py-2 text-sm font-medium text-slate-700">
                 Dosya Eki
@@ -335,7 +335,7 @@
              class="relative">
 
             <!-- Controls -->
-            <button type="button" @@click="prev" :class="{'opacity-40 pointer-events-none': atStart}"
+            <button type="button" x-on:click="prev" :class="{'opacity-40 pointer-events-none': atStart}"
                                     class="absolute left-2 top-1/2 hover:bg-amber-400 hover:text-white cursor-pointer -translate-y-1/2 z-10 h-10 w-10 grid place-items-center border border-slate-300 rounded-full bg-white shadow-xl"
                     aria-label="Önceki">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(180)">
@@ -343,7 +343,7 @@
                 </svg>
             </button>
 
-            <button type="button" @@click="next" :class="{'opacity-40 pointer-events-none': atEnd}"
+            <button type="button" x-on:click="next" :class="{'opacity-40 pointer-events-none': atEnd}"
                             class="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 hover:text-white grid place-items-center text-xl rounded-full bg-white shadow-xl border border-slate-300 hover:bg-amber-400 cursor-pointer"
                     aria-label="Sonraki">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -417,7 +417,7 @@
                                                         hx-vals='{"productId": @product.Id, "quantity": 1}'
                                                         hx-swap="none"
                                                         x-data="{ added: false }"
-                                                        @@click="if (added) return; added = true; setTimeout(() => added = false, 1600);"
+                                                        x-on:click="if (added) return; added = true; setTimeout(() => added = false, 1600);"
                                                         :class="added ? 'bg-green-500 text-white' : 'bg-amber-300 text-gray-900 hover:bg-amber-400'"
                                                         class="h-9 w-full rounded-md text-sm font-semibold shadow transition-colors duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 cursor-pointer">
                                                         <span x-show="!added"
@@ -460,7 +460,7 @@
             <button
               type="button"
               x-data="{ fav: @(product.IsFavorite ? "true" : "false"), busy: false }"
-              @@click="
+              x-on:click="
                 if (busy) return;
                 busy = true;
                 fav = !fav;

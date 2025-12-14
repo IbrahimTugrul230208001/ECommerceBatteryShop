@@ -76,7 +76,7 @@ else
                 <button hx-post="/Sepet/DeleteAll"
                         :hx-vals="JSON.stringify({ productId: item.id })"
                         hx-swap="none"
-                        @@click ="clearCart"
+                        x-on:click ="clearCart"
                         x-show="items.length"
                         class="group flex items-center gap-2 h-10 rounded-lg cursor-pointer px-4 text-sm font-medium
            text-slate-900 border border-transparent
@@ -129,7 +129,7 @@ else
                                     <button hx-post="/Sepet/Delete"
                                             :hx-vals="JSON.stringify({ productId: item.id })"
                                             hx-swap="none"
-                                            @@click="remove(item.id)"
+                                            x-on:click="remove(item.id)"
                                             class="text-slate-400 hover:text-slate-700"
                                             aria-label="Kaldır"
                                             title="Kaldır">
@@ -155,7 +155,7 @@ else
                                             hx-swap="none"
                                             :disabled="item.qty <= 1"
                                             :aria-disabled="item.qty <= 1"
-                                            @@click="dec(item)"
+                                            x-on:click="dec(item)"
                                             class="px-2 hover:bg-gray-200 cursor-pointer h-full text-slate-700 rounded-l-xl hover:text-slate-900"
                                             :class="item.qty <= 1 ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-slate-700' : ''"
                                             :aria-controls="'qty-'+item.id"
@@ -166,7 +166,7 @@ else
                                         <button hx-post="/Sepet/SetQuantity"
                                                 :hx-vals="JSON.stringify({ productId: item.id , quantity: +1})"
                                                 hx-swap="none"
-                                                @@click="inc(item)" class="px-2 hover:bg-gray-200 cursor-pointer  h-full text-slate-700 rounded-r-xl hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
+                                                x-on:click="inc(item)" class="px-2 hover:bg-gray-200 cursor-pointer  h-full text-slate-700 rounded-r-xl hover:text-slate-900" :aria-controls="'qty-'+item.id" aria-label="Arttır">+</button>
                                     </div>
 
                                     <!-- Unit price / line total -->
@@ -209,7 +209,7 @@ else
                         <dd class="text-slate-900" x-text="formatCents(subtotalCents)" aria-live="polite"></dd>
                     </div>
                     <div class="flex justify-between" x-show="activeCoupon">
-                        <dt class="text-slate-600">İndirim <button @@click="removeCoupon" class="ml-2 text-xs underline">(kaldır)</button></dt>
+                        <dt class="text-slate-600">İndirim <button x-on:click="removeCoupon" class="ml-2 text-xs underline">(kaldır)</button></dt>
                         <dd class="text-slate-900" x-text="discountCents>0 ? '-'+formatCents(discountCents) : formatCents(0)"></dd>
                     </div>
                     <div class="flex justify-between">
