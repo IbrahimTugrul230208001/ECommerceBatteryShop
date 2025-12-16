@@ -21,4 +21,4 @@ jobs:
       - name: Deploy
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-          "cd ~/apps/ecommerce && docker compose up -d"
+          "cd ~/apps/ECommerceBatteryShop && docker compose up -d"
