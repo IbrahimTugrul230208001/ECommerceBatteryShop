@@ -50,7 +50,6 @@ public class BatteryShopContext : DbContext
 
         base.OnModelCreating(modelBuilder);
     }
-
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
