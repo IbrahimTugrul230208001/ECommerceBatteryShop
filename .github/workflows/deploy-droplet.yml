@@ -25,8 +25,8 @@ jobs:
         run: |
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
-      # 3. Deploy
-      - name: Deploy
+    # 3. Deploy (MODIFIED WITH -vvv)
+      - name: Debug Deployment
         run: |
-          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+          ssh -vvv ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
           "cd ~/apps/ECommerceBatteryShop && docker compose up -d"
