@@ -15,7 +15,7 @@ jobs:
       # This action sets up the ssh-agent and loads your key securely, 
       # using the PASSPHRASE for decryption.
       - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.DEPLOY_SSH_PASSPHRASE }} # <--- NEW Secret required
