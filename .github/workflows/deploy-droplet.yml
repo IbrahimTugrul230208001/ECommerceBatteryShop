@@ -2,7 +2,7 @@ name: Deploy to Droplet
 
 on:
   push:
-    branches: [ "master" ]  # or master
+    branches: [ "master" ] # or master
 
 jobs:
   deploy:
@@ -11,14 +11,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup SSH
+      # 1. Setup the SSH Agent and load the password-less key
+      # Note: We use the most common action for this task.
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+          # The passphrase input is completely removed.
+
+      # 2. Add Host to known_hosts
+      - name: Add Deploy Host to known_hosts
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
+      # 3. Deploy
       - name: Deploy
         run: |
-          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+          # The SSH command will now use the key from the agent automatically
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
           "cd ~/apps/ECommerceBatteryShop && docker compose up -d"
