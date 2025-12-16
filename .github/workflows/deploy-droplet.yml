@@ -30,4 +30,4 @@ jobs:
         run: |
           # The SSH command will now use the key from the agent automatically
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-          "cd ~/apps/ECommerceBatteryShop && docker compose up -d"
+          "cd ~/apps/ECommerceBatteryShop && git pull origin master && docker compose up -d"
