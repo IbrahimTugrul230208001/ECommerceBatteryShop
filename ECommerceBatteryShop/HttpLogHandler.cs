@@ -24,3 +24,4 @@ sealed class HttpLogHandler : DelegatingHandler
         return resp;
     }
 }
+// CI CD Pipeline test.
