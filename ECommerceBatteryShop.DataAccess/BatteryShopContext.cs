@@ -69,5 +69,3 @@ public class BatteryShopContext : DbContext
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 }
 
-
-
