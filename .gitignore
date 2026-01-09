@@ -375,3 +375,9 @@ docker-compose.*.secrets.yml
 
 #Terraform environment variables file
 *.tfvars
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+crash.log
+.tf
