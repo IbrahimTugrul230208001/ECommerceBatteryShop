@@ -6,7 +6,7 @@
          x-init="init($el)"
          @@keydown.window.arrow-left.prevent="prev()"
          @@keydown.window.arrow-right.prevent="next()">
-    <div class="relative rounded-xl overflow-hidden bg-gray-900 text-white lg:h-[400px] sm:h-80 md:h-[400px] h-80">
+    <div class="relative rounded-xl overflow-hidden bg-gray-900 text-white h-[45vh] sm:h-[35vh] md:h-[55vh] lg:h-[65vh]">
         <!-- Slides -->
         <template x-for="(slide, i) in slides" :key="i">
             <div class="absolute inset-0 transition-opacity duration-700"
@@ -30,6 +30,15 @@
                 <img :src="slide.src" :alt="slide.alt"
                      class="hidden sm:block w-full h-full object-cover opacity-90" loading="lazy" />
 
+                <!-- Button overlay -->
+                <template x-if="slide.btnText">
+                    <a :href="slide.btnLink || '/Urun/alkaline-pil-sarj-olmayan'"
+                       class="absolute bottom-75 left-180 -translate-x-1/2 px-6 py-3 bg-slate-700 hover:bg-slate-700 text-white font-bold rounded-full shadow-lg transition-all duration-300 flex items-center gap-3 animate-pulse hover:animate-none">
+                       <!-- Hand click SVG -->
+                      <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="" stroke=""><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill="#ffffff" d="M704 288h131.072a32 32 0 0 1 31.808 28.8L886.4 512h-64.384l-16-160H704v96a32 32 0 1 1-64 0v-96H384v96a32 32 0 0 1-64 0v-96H217.92l-51.2 512H512v64H131.328a32 32 0 0 1-31.808-35.2l57.6-576a32 32 0 0 1 31.808-28.8H320v-22.336C320 154.688 405.504 64 512 64s192 90.688 192 201.664v22.4zm-64 0v-22.336C640 189.248 582.272 128 512 128c-70.272 0-128 61.248-128 137.664v22.4h256zm201.408 483.84L768 698.496V928a32 32 0 1 1-64 0V698.496l-73.344 73.344a32 32 0 1 1-45.248-45.248l128-128a32 32 0 0 1 45.248 0l128 128a32 32 0 1 1-45.248 45.248z"></path></g></svg>
+                      <span x-text="slide.btnText"></span>
+                    </a>
+                </template>
 
             </div>
         </template>
@@ -164,14 +173,14 @@
                         var href = $"/{product.Slug}";
 
 
-                                <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
-                                    <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                                <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-4*var(--g))/6)] md:basis-[calc((100%-2*var(--g))/4)] basis-[calc((100%-1*var(--g))/2)] snap-start">
+                                    <article class="group h-80 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                                 <!-- Image -->
                                 <a href="@href" class="block p-3 pb-0">
-                                          <div class="h-32 grid place-items-center overflow-hidden">
+                                          <div class="h-40 grid place-items-center overflow-hidden">
             <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
                  alt="@(string.IsNullOrWhiteSpace(product.Name) ? "Görsel yok" : product.Name)"
-                 class="h-28 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]" />
+                 class="h-40 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]" />
         </div>
 
                                 </a>
@@ -327,7 +336,7 @@
     function heroCarousel() {
         return {
                slides: [
-      { src: '/img/dayı_aspilsan_banner.jpg', mobileSrc: '/img/dayı_aspilsan_banner_mobile.jpg'},
+      { src: '/img/dayı_aspilsan_banner.jpg', mobileSrc: '/img/dayı_aspilsan_banner_mobile.jpg', btnText: "Alışverişe başla" },
       {src: '/img/teklifalimg.jpg', mobileSrc: '/img/teklifalimg-mobile.jpg'},
       {src: '/img/dayı_amber_banner.jpg' }
     ],

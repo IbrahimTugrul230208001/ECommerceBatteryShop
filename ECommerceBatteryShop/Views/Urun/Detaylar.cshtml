@@ -7,8 +7,8 @@
     var productStockClass = productInStock ? "text-emerald-600" : "text-rose-600";
 }
 
-<main class="bg-white min-h-screen pt-28 pb-24">
-    <div class="mx-auto max-w-7xl px-4">
+<main class="bg-white min-h-screen pt-28 pb-24 max-w-9xl px-10">
+    <div class="mx-auto">
 
         <!-- Grid: image left, info right -->
         <div x-data="{ qty:1, added:false, inc(){ this.qty++; }, dec(){ if(this.qty>1) this.qty--; }, sanitize(){ this.qty=parseInt(this.qty||1,10); if(this.qty<1) this.qty=1; } }" class="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -50,7 +50,6 @@
                     @Model.product.Price.ToString("C", new System.Globalization.CultureInfo("tr-TR"))
                 </div>
 
-                <p class="mt-2 text-sm font-medium @productStockClass">@productStockText</p>
                 <p class="mt-2 text-xs text-gray-500">IBAN ile ödemede %3 indirim.</p>
 
                 <!-- Qty + Actions -->
@@ -235,7 +234,7 @@
         set(t){ this.tab=t; history.replaceState(null,'',`#${t}`) },
         init(){ const h=location.hash.replace('#',''); if(['desc','files'].includes(h)) this.tab=h; }
      }"
-         class="mt-10 mx-auto max-w-7xl px-4">
+         class="mt-10 mx-auto">
 
         <!-- Tabs -->
         <div role="tablist" aria-label="Ürün sekmeleri" class="mb-4 flex gap-2">
@@ -362,7 +361,7 @@
                         var stockText = inStock ? "Stokta var" : "Stokta yok";
                         var stockClass = inStock ? "text-emerald-600" : "text-rose-600"; 
                     
-                            <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-3*var(--g))/4)] md:basis-[calc((100%-2*var(--g))/3)] basis-[calc((100%-1*var(--g))/2)] snap-start">
+                            <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-4*var(--g))/6)] md:basis-[calc((100%-2*var(--g))/4)] basis-[calc((100%-1*var(--g))/2)] snap-start">
                                 <article class="group h-72 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                                     <!-- Image -->
                                     <a href="@Url.Action("Detaylar","Urun", new { slug = product.Slug })" class="block p-3 pb-0">
@@ -496,14 +495,8 @@
               </div>
             </button>
 
-
-
-
-
-
-
-                                        </div>
-                                    </div>
+           </div>
+        </div>
        </article>
                             </div>
                 }

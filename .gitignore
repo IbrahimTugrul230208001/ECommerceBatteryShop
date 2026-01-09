@@ -361,8 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/ECommerceBatteryShop/appsettings.json
-/ECommerceBatteryShop/appsettings.json
 
 # Dotenv: ignore secrets, keep example tracked
 .env
@@ -374,3 +372,6 @@ docker-compose.override.yml
 docker-compose.local.yml
 docker-compose.*.local.yml
 docker-compose.*.secrets.yml
+
+#Terraform environment variables file
+*.tfvars

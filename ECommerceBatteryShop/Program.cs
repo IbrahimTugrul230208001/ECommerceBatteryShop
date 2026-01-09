@@ -15,7 +15,12 @@ using System.Security.Claims;
 using Serilog;
 using Serilog.Events;
 
+DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
+
+// Debug: Print Google credentials
+Console.WriteLine($"DEBUG - Google ClientId: {builder.Configuration["Authentication:Google:ClientId"]}");
+Console.WriteLine($"DEBUG - Google ClientSecret: {builder.Configuration["Authentication:Google:ClientSecret"]}");
 
 // Configure Serilog to log only Error+ to a dedicated file
 var logsDir = Path.Combine(builder.Environment.ContentRootPath, "logs");
@@ -54,7 +59,7 @@ builder.Services.AddDbContext<BatteryShopContext>(opt =>
   builder.Services.AddScoped<ICategoryService, CategoryService>();
   builder.Services.AddScoped<ISavedCardRepository, SavedCardRepository>();
   builder.Services.AddScoped<IThreeDSStore, ThreeDSStore>();
-builder.Services.AddMemoryCache();
+  builder.Services.AddMemoryCache();
 
 // Options
 builder.Services.AddOptions<CurrencyOptions>()
@@ -71,8 +76,6 @@ builder.Services.AddOptions<IyzicoOptions>()
         !string.IsNullOrWhiteSpace(o.BaseUrl),
         "Iyzico configuration (ApiKey, SecretKey, BaseUrl) is required")
     .ValidateOnStart();
-
-builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 
 // Typed HttpClient for currency service
 builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
@@ -94,6 +97,9 @@ builder.Services.AddAuthentication(o =>
 {
     o.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
     o.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    Console.WriteLine($"Google ClientId: {o.ClientId}");
+    Console.WriteLine($"Google ClientSecret: {o.ClientSecret}");
+    Console.WriteLine($"Connection String: {Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")}");
     o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     o.SaveTokens = true;
     o.Scope.Add("email");
