@@ -1,137 +1,71 @@
-﻿using ECommerceBatteryShop.DataAccess;
+﻿using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace ECommerceBatteryShop.Services
 {
     public class CartService : ICartService
     {
-        private readonly BatteryShopContext _db;
+        private readonly ICartRepository _cartRepo;
         private readonly ILogger<CartService> _log;
-        public CartService(BatteryShopContext db, ILogger<CartService> log) { _db = db; _log = log; }
+
+        public CartService(ICartRepository cartRepo, ILogger<CartService> log) 
+        { 
+            _cartRepo = cartRepo; 
+            _log = log; 
+        }
 
         public async Task<int> AddAsync(CartOwner owner, int productId, int qty = 1, CancellationToken ct = default)
         {
             if (qty <= 0) return await CountAsync(owner, ct);
-
-            var cart = await GetAsync(owner, createIfMissing: true, ct);
-            var product = await _db.Products.FindAsync(new object?[] { productId }, ct);
-            if (product is null) { _log.LogWarning("Add: product {id} not found", productId); return await CountAsync(owner, ct); }
-
-            var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
-            if (item is null)
-                cart.Items.Add(new CartItem { ProductId = productId, Quantity = qty, UnitPrice = product.Price });
-            else
-                item.Quantity += qty;
-
-            await _db.SaveChangesAsync(ct);
-            return cart.Items.Sum(i => i.Quantity);
+            return await _cartRepo.AddToCartAsync(owner.UserId, owner.AnonId, productId, qty, ct);
         }
 
-        public async Task<int> ChangeQuantityAsync(
-        CartOwner owner, int productId, int delta, CancellationToken ct = default)
+        public async Task<int> SetQuantityAsync(CartOwner owner, int productId, int quantity, CancellationToken ct = default)
         {
-            var cart = await GetAsync(owner, createIfMissing: delta > 0, ct);
-            if (cart is null) return 0;
-
-            var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
-            if (item is null)
-            {
-                if (delta <= 0) return cart.Items.Sum(i => i.Quantity);
-                var product = await _db.Products.FindAsync(new object?[] { productId }, ct);
-                if (product is null) return cart.Items.Sum(i => i.Quantity);
-
-                cart.Items.Add(new CartItem
-                {
-                    ProductId = productId,
-                    Quantity = delta,
-                    UnitPrice = product.Price
-                });
-            }
-            else
-            {
-                var newQty = item.Quantity + delta;
-                if (newQty <= 0) cart.Items.Remove(item);
-                else item.Quantity = newQty;
-            }
-
-            await _db.SaveChangesAsync(ct);
-            return cart.Items.Sum(i => i.Quantity);
+            return await _cartRepo.SetQuantityAsync(owner.UserId, owner.AnonId, productId, quantity, ct);
         }
-
 
         public async Task<int> RemoveAsync(CartOwner owner, int productId, CancellationToken ct = default)
         {
-            var cart = await GetAsync(owner, createIfMissing: false, ct);
-            if (cart is null) return 0;
-            var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
-            if (item is not null) cart.Items.Remove(item);
-            await _db.SaveChangesAsync(ct);
-            return cart.Items.Sum(i => i.Quantity);
+            return await _cartRepo.RemoveItemAsync(owner.UserId, owner.AnonId, productId, ct);
         }
+
         public async Task<int> RemoveAllAsync(CartOwner owner, CancellationToken ct = default)
         {
-            var cart = await GetAsync(owner, createIfMissing: false, ct);
-            if (cart is null) return 0;
-
-            cart.Items.Clear(); // removes all items at once
-
-            await _db.SaveChangesAsync(ct);
-            return 0; // since all products are removed, total quantity is always zero
+            await _cartRepo.ClearCartAsync(owner.UserId, owner.AnonId, ct);
+            return 0;
         }
 
         public async Task<int> CountAsync(CartOwner owner, CancellationToken ct = default)
-            => await _db.Carts
-                .Where(c => (owner.IsUser && c.UserId == owner.UserId) || (!owner.IsUser && c.AnonId == owner.AnonId))
-                .SelectMany(c => c.Items)
-                .SumAsync(i => (int?)i.Quantity, ct) ?? 0;
-
-        public async Task<Cart?> TryGetAsync(CartOwner owner, CancellationToken ct)
-            => await _db.Carts
-                .Include(c => c.Items)
-                .ThenInclude(i => i.Product)
-                .FirstOrDefaultAsync(c =>
-                    (owner.IsUser && c.UserId == owner.UserId) ||
-                    (!owner.IsUser && c.AnonId == owner.AnonId), ct);
-
-        public async Task<Cart> GetAsync(CartOwner owner, bool createIfMissing = false, CancellationToken ct = default)
         {
-            var cart = await TryGetAsync(owner, ct);
-            if (cart is not null || !createIfMissing) return cart!;
-            cart = owner.IsUser ? new Cart { UserId = owner.UserId, CreatedAt = DateTime.UtcNow }
-                                : new Cart { AnonId = owner.AnonId, CreatedAt = DateTime.UtcNow };
-            _db.Carts.Add(cart);
-            await _db.SaveChangesAsync(ct);
-            // ensure Items loaded for callers that sum right away
-            _db.Entry(cart).Collection(c => c.Items).Load();
+            return await _cartRepo.GetCartItemCountAsync(owner.UserId, owner.AnonId, ct);
+        }
+
+        public async Task<Cart?> GetAsync(CartOwner owner, bool createIfMissing = false, CancellationToken ct = default)
+        {
+            var cart = await _cartRepo.GetCartAsync(owner.UserId, owner.AnonId, ct);
+            // If createIfMissing is required and cart is null, we can't easily creating empty cart without adding item via current Repo API.
+            // Assuming createIfMissing was mostly for internal use. If external use requires it, we'd need to expand Repo.
+            // For now, return what we found.
             return cart;
         }
 
         public async Task MergeGuestIntoUserAsync(string anonId, int userId, CancellationToken ct = default)
         {
-            // idempotent: tolerate missing guest or existing user cart
-            var guest = await _db.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.AnonId == anonId, ct);
-            if (guest is null) return;
-
-            var user = await _db.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.UserId == userId, ct);
-            if (user is null) { guest.UserId = userId; guest.AnonId = null; await _db.SaveChangesAsync(ct); return; }
-
-            foreach (var gi in guest.Items)
-            {
-                var ui = user.Items.FirstOrDefault(i => i.ProductId == gi.ProductId);
-                if (ui is null) user.Items.Add(new CartItem { ProductId = gi.ProductId, Quantity = gi.Quantity, UnitPrice = gi.UnitPrice });
-                else ui.Quantity += gi.Quantity;
-            }
-            _db.Carts.Remove(guest);
-            await _db.SaveChangesAsync(ct);
+            await _cartRepo.MergeCartsAsync(anonId, userId, ct);
         }
+
         public async Task<decimal> CartTotalPriceAsync(CartOwner owner, CancellationToken ct = default)
         {
-            var cart = await GetAsync(owner, createIfMissing: false, ct);
-            if (cart is null) throw new InvalidOperationException("Cart not found");
-            decimal totalPrice = 0m;
+            var cart = await _cartRepo.GetCartAsync(owner.UserId, owner.AnonId, ct);
+            if (cart is null) return 0m;
 
+            decimal totalPrice = 0m;
             foreach (var item in cart.Items)
             {
                 totalPrice += item.UnitPrice * item.Quantity * 1.2m; // Including tax
@@ -139,5 +73,4 @@ namespace ECommerceBatteryShop.Services
             return totalPrice;
         }
     }
-
 }

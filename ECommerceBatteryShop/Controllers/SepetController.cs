@@ -437,7 +437,7 @@ namespace ECommerceBatteryShop.Controllers
                 }
                 owner = CartOwner.FromAnon(anonId);
             }
-            var count = await _cartService.ChangeQuantityAsync(owner, productId, quantity, ct);
+            var count = await _cartService.SetQuantityAsync(owner, productId, quantity, ct);
 
             return PartialView("_CartCount", count);
         }
