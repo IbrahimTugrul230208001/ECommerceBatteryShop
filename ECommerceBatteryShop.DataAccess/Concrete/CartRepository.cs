@@ -67,6 +67,7 @@ public class CartRepository : ICartRepository
 
     public async Task<int> SetQuantityAsync(int? userId, string? anonId, int productId, int quantity, CancellationToken ct = default)
     {
+        Console.WriteLine("SetQuantityAsync called with quantity: " + quantity);
         var cart = await GetCartQuery(userId, anonId).FirstOrDefaultAsync(ct);
         if (cart == null)
         {

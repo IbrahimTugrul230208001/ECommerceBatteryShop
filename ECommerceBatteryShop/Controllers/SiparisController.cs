@@ -12,6 +12,7 @@ using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerceBatteryShop.Controllers;
 
@@ -81,6 +82,7 @@ public class SiparisController : Controller
 
     [HttpPost]
     [AllowAnonymous]
+    [EnableRateLimiting("payment")]
     public async Task<IActionResult> PlaceOrder([FromForm] PlaceOrderInputModel input, CancellationToken cancellationToken)
     {
         var fxRate = await _currencyService.GetCachedUsdTryAsync(cancellationToken);

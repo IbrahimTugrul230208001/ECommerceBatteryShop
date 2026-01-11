@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -96,6 +97,7 @@ public class HesapController : Controller
 
 
     [HttpPost]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> RegisterUser(UserViewModel userViewModel)
     {
         try
@@ -150,6 +152,7 @@ public class HesapController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> LogIn(LoginViewModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
@@ -238,6 +241,7 @@ public class HesapController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> SifreUnuttum(ForgotPasswordViewModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
@@ -300,6 +304,7 @@ public class HesapController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> SifreYenile(ResetPasswordViewModel model, CancellationToken ct)
     {
         var resetToken = await _accountRepository.GetPasswordResetTokenAsync(model.Token, ct);
