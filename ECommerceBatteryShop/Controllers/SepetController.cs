@@ -23,9 +23,14 @@ namespace ECommerceBatteryShop.Controllers
         public readonly ILogger<SepetController> _logger;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
-        private const string CartConsentMessage = "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
+
+        private const string CartConsentMessage =
+            "Çerezleri reddettiniz. Sepet özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
+
         private const string GuestInfoCookie = "GUEST_INFO";
-        public SepetController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService, IAddressRepository addressRepository, ILogger<SepetController> logger)
+
+        public SepetController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService,
+            IAddressRepository addressRepository, ILogger<SepetController> logger)
         {
             _repo = repo;
             _cartService = cartService;
@@ -69,6 +74,7 @@ namespace ECommerceBatteryShop.Controllers
             {
                 _logger.LogInformation("Misafir bilgisi bulunmadı.");
             }
+
             return null;
         }
 
@@ -96,8 +102,10 @@ namespace ECommerceBatteryShop.Controllers
                 {
                     return View(new CartViewModel());
                 }
+
                 owner = CartOwner.FromAnon(anonId);
             }
+
             var rate = await _currencyService.GetCachedUsdTryAsync();
             decimal fx = rate ?? 42m;
             var cart = await _cartService.GetAsync(owner, createIfMissing: false, ct);
@@ -109,7 +117,7 @@ namespace ECommerceBatteryShop.Controllers
                     ProductId = i.ProductId,
                     Name = i.Product?.Name ?? string.Empty,
                     ImageUrl = i.Product?.ImageUrl,
-                    UnitPrice = i.UnitPrice*1.2m*fx,
+                    UnitPrice = ((i.UnitPrice * fx) + i.Product.ExtraAmount) * 1.2m,
                     Slug = i.Product?.Slug,
                     Quantity = i.Quantity
                 }).ToList();
@@ -147,11 +155,12 @@ namespace ECommerceBatteryShop.Controllers
                         Expires = DateTimeOffset.UtcNow.AddMonths(3)
                     });
                 }
+
                 owner = CartOwner.FromAnon(anonId);
             }
+
             var rate = await _currencyService.GetCachedUsdTryAsync();
-            decimal cartTotalPrice = await _cartService.CartTotalPriceAsync(owner);
-            var subTotal = cartTotalPrice * (rate ?? 42m); // 1.2 = KDV
+            decimal fx = rate ?? 42m;
 
             IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
             int? defaultAddressId = null;
@@ -160,8 +169,8 @@ namespace ECommerceBatteryShop.Controllers
                 var userId = int.Parse(User.FindFirst("sub")!.Value);
                 var addressEntities = await _addressRepository.GetByUserAsync(userId, HttpContext.RequestAborted);
                 addresses = addressEntities.Select(MapAddress).ToList();
-                defaultAddressId = addresses.FirstOrDefault(a => a.IsDefault)?.Id 
-                 ?? addresses.FirstOrDefault()?.Id;
+                defaultAddressId = addresses.FirstOrDefault(a => a.IsDefault)?.Id
+                                   ?? addresses.FirstOrDefault()?.Id;
             }
 
             // build brief cart items for the checkout page
@@ -175,11 +184,22 @@ namespace ECommerceBatteryShop.Controllers
                 Quantity = i.Quantity
             }).ToList() ?? new List<CartItemViewModel>();
 
+            // Calculate subtotal with ExtraAmount included (matching Index page formula)
+            decimal subTotal = 0m;
+            if (cart is not null)
+            {
+                foreach (var item in cart.Items)
+                {
+                    var extra = item.Product?.ExtraAmount ?? 0m;
+                    subTotal += ((item.UnitPrice * fx) + extra) * 1.2m * item.Quantity;
+                }
+            }
+
             var guest = isAuthenticated ? null : ReadGuestInfo();
-            
+
             // Generate the contract model with default values
             var contractModel = await BuildContractViewModel(defaultAddressId, 150m, HttpContext.RequestAborted);
-    
+
             var model = new CheckoutPageViewModel
             {
                 SubTotal = subTotal,
@@ -193,7 +213,8 @@ namespace ECommerceBatteryShop.Controllers
             return View(model);
         }
 
-        private async Task<ContractViewModel> BuildContractViewModel(int? addressId, decimal? shipping, CancellationToken ct)
+        private async Task<ContractViewModel> BuildContractViewModel(int? addressId, decimal? shipping,
+            CancellationToken ct)
         {
             const decimal DefaultFx = 42m;
             const decimal KdvRate = 0.20m;
@@ -233,7 +254,9 @@ namespace ECommerceBatteryShop.Controllers
                 foreach (var item in cart.Items)
                 {
                     var description = item.Product?.Name ?? $"Ürün #{item.ProductId}";
-                    var unitPriceTry = decimal.Round(item.UnitPrice * (1 + KdvRate) * rate, 2, MidpointRounding.AwayFromZero);
+                    var extraAmount = item.Product?.ExtraAmount ?? 0m;
+                    var unitPriceTry = decimal.Round(((item.UnitPrice * rate) + extraAmount) * (1 + KdvRate), 2,
+                        MidpointRounding.AwayFromZero);
 
                     orderItems.Add(new OrderItem
                     {
@@ -290,7 +313,8 @@ namespace ECommerceBatteryShop.Controllers
                 {
                     selectedAddress.FullAddress,
                     selectedAddress.Neighbourhood,
-                    string.Join('/', new[] { selectedAddress.State, selectedAddress.City }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                    string.Join('/',
+                        new[] { selectedAddress.State, selectedAddress.City }.Where(s => !string.IsNullOrWhiteSpace(s)))
                 };
                 buyerAddress = string.Join(" ", addressParts.Where(part => !string.IsNullOrWhiteSpace(part)));
             }
@@ -397,6 +421,7 @@ namespace ECommerceBatteryShop.Controllers
                         Expires = DateTimeOffset.UtcNow.AddMonths(3)
                     });
                 }
+
                 owner = CartOwner.FromAnon(anonId);
             }
 
@@ -435,8 +460,10 @@ namespace ECommerceBatteryShop.Controllers
                         Expires = DateTimeOffset.UtcNow.AddMonths(3)
                     });
                 }
+
                 owner = CartOwner.FromAnon(anonId);
             }
+
             var count = await _cartService.SetQuantityAsync(owner, productId, quantity, ct);
 
             return PartialView("_CartCount", count);
@@ -464,6 +491,7 @@ namespace ECommerceBatteryShop.Controllers
                 {
                     return PartialView("_CartCount", 0);
                 }
+
                 owner = CartOwner.FromAnon(anonId);
             }
 
@@ -471,6 +499,7 @@ namespace ECommerceBatteryShop.Controllers
 
             return PartialView("_CartCount", count);
         }
+
         [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<IActionResult> DeleteAll(CancellationToken ct = default)
@@ -493,6 +522,7 @@ namespace ECommerceBatteryShop.Controllers
                 {
                     return PartialView("_CartCount", 0);
                 }
+
                 owner = CartOwner.FromAnon(anonId);
             }
 

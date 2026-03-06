@@ -79,7 +79,7 @@ namespace ECommerceBatteryShop.Controllers
             {
                 Id = p.Id,
                 Name = p.Name,
-                Price = _currency.ConvertUsdToTry(p.Price, fx) * (1 + KdvRate),
+                Price = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate),
                 Rating = p.Rating,
                 ImageUrl = p.ImageUrl ?? string.Empty,
                 ExtraAmount = p.ExtraAmount,

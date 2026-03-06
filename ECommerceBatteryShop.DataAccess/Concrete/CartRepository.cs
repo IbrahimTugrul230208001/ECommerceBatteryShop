@@ -29,7 +29,8 @@ public class CartRepository : ICartRepository
             return query.Where(c => c.AnonId == anonId);
     }
 
-    public async Task<int> AddToCartAsync(int? userId, string? anonId, int productId, int quantity = 1, CancellationToken ct = default)
+    public async Task<int> AddToCartAsync(int? userId, string? anonId, int productId, int quantity = 1,
+        CancellationToken ct = default)
     {
         var cart = await GetCartQuery(userId, anonId).FirstOrDefaultAsync(ct);
 
@@ -65,7 +66,8 @@ public class CartRepository : ICartRepository
         return cart.Items.Sum(i => i.Quantity);
     }
 
-    public async Task<int> SetQuantityAsync(int? userId, string? anonId, int productId, int quantity, CancellationToken ct = default)
+    public async Task<int> SetQuantityAsync(int? userId, string? anonId, int productId, int quantity,
+        CancellationToken ct = default)
     {
         Console.WriteLine("SetQuantityAsync called with quantity: " + quantity);
         var cart = await GetCartQuery(userId, anonId).FirstOrDefaultAsync(ct);
@@ -85,6 +87,7 @@ public class CartRepository : ICartRepository
                 cart.Items.Remove(item);
                 await _ctx.SaveChangesAsync(ct);
             }
+
             return cart.Items.Sum(i => i.Quantity);
         }
 
@@ -121,6 +124,7 @@ public class CartRepository : ICartRepository
             cart.Items.Remove(item);
             await _ctx.SaveChangesAsync(ct);
         }
+
         return cart.Items.Sum(i => i.Quantity);
     }
 
@@ -168,13 +172,15 @@ public class CartRepository : ICartRepository
             var ui = user.Items.FirstOrDefault(i => i.ProductId == gi.ProductId);
             if (ui == null)
             {
-                user.Items.Add(new CartItem { ProductId = gi.ProductId, Quantity = gi.Quantity, UnitPrice = gi.UnitPrice });
+                user.Items.Add(new CartItem
+                    { ProductId = gi.ProductId, Quantity = gi.Quantity, UnitPrice = gi.UnitPrice });
             }
             else
             {
                 ui.Quantity += gi.Quantity;
             }
         }
+
         _ctx.Carts.Remove(guest);
         await _ctx.SaveChangesAsync(ct);
     }
