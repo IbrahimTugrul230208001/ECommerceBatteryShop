@@ -270,7 +270,7 @@ namespace ECommerceBatteryShop.Controllers
         {
             var productData = await _repo.ProductSearchPairsAsync(q ?? string.Empty, ct);
             var vm = productData
-                .Select(p => new ProductPredictionDto(p.Id, p.Name))
+                .Select(p => new ProductPredictionDto(p.Id, p.Name,p.Slug))
                 .ToList();
 
             return PartialView("_ProductPredictions", vm);

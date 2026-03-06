@@ -35,10 +35,10 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             try
             {
                 IQueryable<Product> query = _ctx.Products
-      .AsNoTracking()
-      .Include(p => p.Inventory)
-      .OrderBy(p => p.Id)
-      .ThenBy(p => p.Name);
+                    .AsNoTracking()
+                    .Include(p => p.Inventory)
+                    .OrderBy(p => p.Id)
+                    .ThenBy(p => p.Name);
                 // tie-breaker to keep stable plans
 
                 if (minUsd.HasValue)
@@ -150,7 +150,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             }
         }
 
-        public async Task<List<(int Id, string Name)>> ProductSearchPairsAsync(
+        public async Task<List<(int Id, string Name, string Slug)>> ProductSearchPairsAsync(
             string searchTerm,
             CancellationToken ct = default)
         {
@@ -164,21 +164,26 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
 
             var raw = await q
                 .GroupBy(p => p.Name)
-                .Select(g => new { Id = g.Min(p => p.Id), Name = g.Key })
+                .Select(g => new
+                {
+                    Id = g.Min(p => p.Id),
+                    Name = g.Key,
+                    Slug = g.OrderBy(p => p.Id).Select(p => p.Slug).FirstOrDefault() ?? ""
+                })
                 .OrderBy(x => x.Name)
                 .Take(10)
                 .ToListAsync(ct);
 
-            return raw.Select(x => (x.Id, x.Name)).ToList();
+            return raw.Select(x => (x.Id, x.Name, x.Slug)).ToList();
         }
 
         public async Task<(IReadOnlyList<Product> Items, int TotalCount)> BringProductsByCategoryIdAsync(
-          int categoryId,
-          int page = 1,
-          int pageSize = 24,
-          decimal? minUsd = null,
-          decimal? maxUsd = null,
-          CancellationToken ct = default)
+            int categoryId,
+            int page = 1,
+            int pageSize = 24,
+            decimal? minUsd = null,
+            decimal? maxUsd = null,
+            CancellationToken ct = default)
         {
             if (categoryId <= 0)
                 return (Array.Empty<Product>(), 0);

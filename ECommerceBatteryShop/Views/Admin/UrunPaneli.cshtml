@@ -13,82 +13,82 @@
         : Url.Content($"~/doc/{Model.ExistingDocumentUrl}");
 }
 <main class="mx-auto max-w-7xl px-6 py-10">
-    <div class="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <aside class="space-y-6">
-            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/40">
-                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Hızlı Erişim</h2>
-                <nav class="mt-4 space-y-2 text-sm font-medium text-slate-700">
-                    <a class="flex items-center justify-between rounded-xl bg-slate-900 px-4 py-3 text-white shadow-lg shadow-slate-900/20" href="#urun-girisi">
-                        <span>@(Model.IsEditing ? "Ürünü Düzenle" : "Yeni Ürün Girişi")</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-4 w-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                    </a>
-                    <div class="flex flex-col gap-2 rounded-xl bg-slate-100/70 px-4 py-3">
-                        <a class="text-left text-slate-600 transition hover:text-slate-900" href="@Url.Action("Index", "Admin")">Yeni ürün oluştur</a>
-                        @if (Model.ProductId.HasValue)
-                        {
-                            <span class="text-xs font-medium uppercase tracking-wide text-emerald-600">Aktif düzenleme: #@Model.ProductId</span>
-                        }
-                    </div>
-                </nav>
+<div class="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
+<aside class="space-y-6">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/40">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Hızlı Erişim</h2>
+        <nav class="mt-4 space-y-2 text-sm font-medium text-slate-700">
+            <a class="flex items-center justify-between rounded-xl bg-slate-900 px-4 py-3 text-white shadow-lg shadow-slate-900/20" href="#urun-girisi">
+                <span>@(Model.IsEditing ? "Ürünü Düzenle" : "Yeni Ürün Girişi")</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-4 w-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+            <div class="flex flex-col gap-2 rounded-xl bg-slate-100/70 px-4 py-3">
+                <a class="text-left text-slate-600 transition hover:text-slate-900" href="@Url.Action("Index", "Admin")">Yeni ürün oluştur</a>
+                @if (Model.ProductId.HasValue)
+                {
+                    <span class="text-xs font-medium uppercase tracking-wide text-emerald-600">Aktif düzenleme: #@Model.ProductId</span>
+                }
             </div>
-            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/30">
-                <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Ürün Bul</h3>
-                <form asp-action="UrunPaneli" method="get" class="mt-4 space-y-3">
-                    <input type="text" name="search" value="@Model.SearchTerm" class="w-full rounded-2xl border border-slate-200 bg-white/80 p-3 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200" placeholder="İsim veya ID ile ara" />
-                    <div class="flex gap-2">
-                        <button type="submit" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" />
-                            </svg>
-                            Ara
-                        </button>
-                        <a href="@Url.Action("UrunPaneli", "Admin")" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900">Temizle</a>
-                    </div>
-                </form>
-                <div class="mt-5 space-y-2">
-                    @if (Model.SearchResults?.Count > 0)
+        </nav>
+    </div>
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/30">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Ürün Bul</h3>
+        <form asp-action="UrunPaneli" method="get" class="mt-4 space-y-3">
+            <input type="text" name="search" value="@Model.SearchTerm" class="w-full rounded-2xl border border-slate-200 bg-white/80 p-3 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200" placeholder="İsim veya ID ile ara"/>
+            <div class="flex gap-2">
+                <button type="submit" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"/>
+                    </svg>
+                    Ara
+                </button>
+                <a href="@Url.Action("UrunPaneli", "Admin")" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900">Temizle</a>
+            </div>
+        </form>
+        <div class="mt-5 space-y-2">
+            @if (Model.SearchResults?.Count > 0)
+            {
+                <ul class="space-y-2 text-sm text-slate-700">
+                    @foreach (var item in Model.SearchResults)
                     {
-                        <ul class="space-y-2 text-sm text-slate-700">
-                            @foreach (var item in Model.SearchResults)
-                            {
-                                var imagePath = string.IsNullOrWhiteSpace(item.ImageUrl)
-                                    ? Url.Content("~/img/placeholder-image.svg")
-                                    : Url.Content($"~/img/{item.ImageUrl}");
-                                <li >
-                                    <a class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition hover:border-slate-300 hover:bg-slate-100" href="@Url.Action("UrunPaneli", "Admin", new { productId = item.Id, search = Model.SearchTerm })">
-                                        <span class="flex items-center gap-3">
-                                            <span class="h-9 w-9 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                                                <img src="@imagePath" alt="@item.Name" class="h-full w-full object-cover" />
-                                            </span>
-                                            <span>
-                                                <span class="block font-semibold">@item.Name</span>
-                                                <span class="text-xs text-slate-500">$@item.Price</span>
-                                            </span>
-                                        </span>
-                                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Düzenle</span>
-                                    
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-3 py-4 text-center text-xs text-slate-500">Arama kriterlerine uygun ürün bulunamadı.</p>
-                    }
-                </div>
-            </div>
-            <div class="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-inner">
-                <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-700">İpucu</h3>
-                <p class="mt-3 text-sm leading-6 text-amber-900">
-                    Ürün görseli yüksek çözünürlüklü olmalı (en az 1200px) ve sade bir arka plan içermelidir.
-                </p>
-            </div>
-        </aside>
+                        var imagePath = string.IsNullOrWhiteSpace(item.ImageUrl)
+                            ? Url.Content("~/img/placeholder-image.svg")
+                            : Url.Content($"~/img/{item.ImageUrl}");
+                        <li >
+                            <a class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition hover:border-slate-300 hover:bg-slate-100" href="@Url.Action("UrunPaneli", "Admin", new { productId = item.Id, search = Model.SearchTerm })">
+                                <span class="flex items-center gap-3">
+                                    <span class="h-9 w-9 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                                        <img src="@imagePath" alt="@item.Name" class="h-full w-full object-cover"/>
+                                    </span>
+                                    <span>
+                                        <span class="block font-semibold">@item.Name</span>
+                                        <span class="text-xs text-slate-500">$@item.Price</span>
+                                    </span>
+                                </span>
+                                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Düzenle</span>
 
-        <section id="urun-girisi" class="space-y-6">
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-3 py-4 text-center text-xs text-slate-500">Arama kriterlerine uygun ürün bulunamadı.</p>
+            }
+        </div>
+    </div>
+    <div class="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-inner">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-amber-700">İpucu</h3>
+        <p class="mt-3 text-sm leading-6 text-amber-900">
+            Ürün görseli yüksek çözünürlüklü olmalı (en az 1200px) ve sade bir arka plan içermelidir.
+        </p>
+    </div>
+</aside>
+
+<section id="urun-girisi" class="space-y-6">
     <header class="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white/90 px-8 py-6 shadow-xl shadow-slate-200/60">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -116,7 +116,7 @@
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-900 shadow-sm">
             <div class="flex items-start gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mt-0.5 h-5 w-5 text-emerald-500">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
                 </svg>
                 <p>@successMessage</p>
             </div>
@@ -126,19 +126,19 @@
     <form asp-action="CreateProduct" method="post" enctype="multipart/form-data" class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
         @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="space-y-1 text-sm text-red-600" role="alert"></div>
-        <input asp-for="ProductId" type="hidden" />
-        <input asp-for="ExistingImageUrl" type="hidden" />
-        <input asp-for="SearchTerm" type="hidden" />
+        <input asp-for="ProductId" type="hidden"/>
+        <input asp-for="ExistingImageUrl" type="hidden"/>
+        <input asp-for="SearchTerm" type="hidden"/>
         <div class="space-y-8">
             <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50">
                 <h2 class="text-lg font-semibold text-slate-900">Ürün Görseli</h2>
                 <p class="mt-1 text-sm text-slate-500">Yüklenen görsel ürün listeleme sayfası ve detay sayfasında kullanılacaktır.</p>
-              
+
                 <div class="mt-5">
                     <label asp-for="Image" class="block text-sm font-medium text-slate-700"></label>
                     <div class="mt-2 flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/80 p-8 text-center transition hover:border-slate-300">
                         <div class="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-inner">
-                            <img id="imagePreview" src="@existingImagePath" alt="Ürün önizleme" class="h-full w-full object-cover" />
+                            <img id="imagePreview" src="@existingImagePath" alt="Ürün önizleme" class="h-full w-full object-cover"/>
                         </div>
                         <div class="space-y-2 text-sm text-slate-500">
                             <p class="font-medium text-slate-700">Görselinizi sürükleyip bırakın veya tıklayarak seçin</p>
@@ -147,23 +147,23 @@
                         <div>
                             <label class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800">
                                 Dosya Seç
-                                <input asp-for="Image" type="file" accept="image/*" class="hidden" />
+                                <input asp-for="Image" type="file" accept="image/*" class="hidden"/>
                             </label>
                         </div>
                         <span asp-validation-for="Image" class="text-xs text-red-600"></span>
                     </div>
                 </div>
             </div>
-                    <div class="space-y-8">
-                        <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50">
-                            <h2 class="text-lg font-semibold text-slate-900">Ürün Dokümanı</h2>
-                            <p class="mt-1 text-sm text-slate-500">Yüklenen doküman ürün listeleme sayfası ve detay sayfasında kullanılacaktır.</p>
+            <div class="space-y-8">
+                <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50">
+                    <h2 class="text-lg font-semibold text-slate-900">Ürün Dokümanı</h2>
+                    <p class="mt-1 text-sm text-slate-500">Yüklenen doküman ürün listeleme sayfası ve detay sayfasında kullanılacaktır.</p>
 
-                            <div class="mt-5">
+                    <div class="mt-5">
                         <label asp-for="Document" class="block text-sm font-medium text-slate-700"></label>
                         <div class="mt-2 flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/80 p-8 text-center transition hover:border-slate-300">
                             <div class="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-inner">
-                                <img id="docPreview" src="@existingDocumentPath" alt="Ürün önizleme" class="h-full w-full object-cover" />
+                                <img id="docPreview" src="@existingDocumentPath" alt="Ürün önizleme" class="h-full w-full object-cover"/>
                             </div>
                             <div class="space-y-2 text-sm text-slate-500">
                                 <p class="font-medium text-slate-700">Dokümanınızı sürükleyip bırakın veya tıklayarak seçin</p>
@@ -172,14 +172,14 @@
                             <div>
                                 <label class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800">
                                     Dosya Seç
-                                    <input asp-for="Document" type="file" accept="doc/*" class="hidden" />
+                                    <input asp-for="Document" type="file" accept="doc/*" class="hidden"/>
                                 </label>
                             </div>
                             <span asp-validation-for="Document" class="text-xs text-red-600"></span>
                         </div>
                     </div>
-                  </div>
-                  </div>
+                </div>
+            </div>
             <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50">
                 <h2 class="text-lg font-semibold text-slate-900">Ürün Bilgileri</h2>
                 <p class="mt-1 text-sm text-slate-500">İsim, fiyat ve açıklama müşterilerinizin göreceği şekilde yayınlanacaktır.</p>
@@ -187,7 +187,7 @@
                 <div class="mt-6 grid gap-6">
                     <div>
                         <label asp-for="Name" class="block text-sm font-medium text-slate-700"></label>
-                        <input asp-for="Name" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/70 p-4 text-slate-900 shadow-inner focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200" placeholder="Örn. Uzun Ömürlü Lityum Pil" />
+                        <input asp-for="Name" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/70 p-4 text-slate-900 shadow-inner focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200" placeholder="Örn. Uzun Ömürlü Lityum Pil"/>
                         <span asp-validation-for="Name" class="text-xs text-red-600"></span>
                     </div>
 
@@ -195,7 +195,7 @@
                         <label asp-for="Price" class="block text-sm font-medium text-slate-700"></label>
                         <div class="mt-2 flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white/70 shadow-inner focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200">
                             <span class="px-4 text-sm font-semibold text-slate-500">$</span>
-                            <input asp-for="Price" class="w-full border-0 bg-transparent p-4 text-slate-900 focus:outline-none" placeholder="0,00" inputmode="decimal" />
+                            <input asp-for="Price" class="w-full border-0 bg-transparent p-4 text-slate-900 focus:outline-none" placeholder="0,00" inputmode="decimal"/>
                         </div>
                         <span asp-validation-for="Price" class="text-xs text-red-600"></span>
                     </div>
@@ -207,18 +207,19 @@
                             <span asp-validation-for="Description" class="text-xs text-red-600"></span>
                             <span id="descriptionCounter">0 / 3000</span>
                         </div>
-                    
+
 
                     </div>
-                            <div>
-                                <label asp-for="CategoryId" class="block text-sm font-medium text-slate-700"></label>
-                                <select asp-for="CategoryId" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/70 p-4 text-slate-900 shadow-inner focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200" placeholder="Ürün özelliklerini, kullanım alanlarını ve öne çıkan avantajlarını anlatın.">
-                                    @foreach(CategorySelectionViewModel category in Model.Categories)
-                                    {
-                                        <option value="@category.CategoryId">@category.CategoryName</option>
-                                    }    
-                                </select>
-                            </div>
+                    <div>
+                        <label asp-for="CategoryId" class="block text-sm font-medium text-slate-700"></label>
+                        <select asp-for="CategoryId" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/70 p-4 text-slate-900 shadow-inner focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200" placeholder="Ürün özelliklerini, kullanım alanlarını ve öne çıkan avantajlarını anlatın.">
+                            @foreach (CategorySelectionViewModel category in Model.Categories)
+                            {
+                                <option value="@category.CategoryId">@category.CategoryName</option>
+                            }
+                        </select>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -248,7 +249,7 @@
                 <div class="mt-4 space-y-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
                     <div class="flex items-start gap-3">
                         <div class="h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-inner">
-                            <img id="cardPreviewImage" src="@existingImagePath" alt="Kart önizleme" class="h-full w-full object-cover" />
+                            <img id="cardPreviewImage" src="@existingImagePath" alt="Kart önizleme" class="h-full w-full object-cover"/>
                         </div>
                         <div class="flex-1">
                             <p class="text-sm font-semibold text-slate-800" id="cardPreviewName">@(string.IsNullOrWhiteSpace(Model.Name) ? "Ürün adı buraya gelecek" : Model.Name)</p>
@@ -261,32 +262,33 @@
 
             <button type="submit" class="inline-flex items-center justify-center gap-3 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-slate-900/25 transition hover:bg-slate-800">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 5v14m-7-7h14" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 5v14m-7-7h14"/>
                 </svg>
                 @(Model.IsEditing ? "Değişiklikleri Kaydet" : "Kaydet ve Devam Et")
             </button>
-                   
+
         </div>
     </form>
-            @if (Model.IsEditing && Model.ProductId.HasValue)
-            {
-                <form asp-action="DeleteProduct" asp-controller="Admin" method="post" class="mt-3">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.ProductId" />
-                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition hover:bg-red-700"
-                            onclick="return confirm('Bu ürünü silmek istediğinize emin misiniz?');">
-                        <!-- trash icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                  d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                        </svg>
-                        Ürünü Sil
-                    </button>
-                </form>
-            }
+    @if (Model.IsEditing && Model.ProductId.HasValue)
+    {
+        <form asp-action="DeleteProduct" asp-controller="Admin" method="post" class="mt-3">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.ProductId"/>
+            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition hover:bg-red-700"
+                    onclick="return confirm('Bu ürünü silmek istediğinize emin misiniz?');">
+                <!-- trash icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+                </svg>
+                Ürünü Sil
+            </button>
+        </form>
+    }
 </section>
 </div>
 </main>
+
 @section Scripts {
     <script>
         const imageInput = document.querySelector('input[name="Image"]');

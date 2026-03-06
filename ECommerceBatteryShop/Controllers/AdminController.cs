@@ -21,11 +21,14 @@ namespace ECommerceBatteryShop.Controllers
     {
         private readonly BatteryShopContext _context;
         private readonly IWebHostEnvironment _environment;
-        private readonly ICategoryRepository _categoryRepository;  
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly ICurrencyService _currencyService;
         private readonly IProductRepository _productRepository;
-        public AdminController(BatteryShopContext context, IWebHostEnvironment environment, ICategoryRepository categoryRepository, IOrderRepository orderRepository, ICurrencyService currencyService, IProductRepository productRepository)
+
+        public AdminController(BatteryShopContext context, IWebHostEnvironment environment,
+            ICategoryRepository categoryRepository, IOrderRepository orderRepository, ICurrencyService currencyService,
+            IProductRepository productRepository)
         {
             _context = context;
             _environment = environment;
@@ -42,13 +45,13 @@ namespace ECommerceBatteryShop.Controllers
             {
                 ViewBag.ProductEntrySuccess = TempData["ProductEntrySuccess"];
             }
+
             var model = new AdminProductEntryViewModel
             {
                 SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
                 Categories = await LoadCategoryItemsAsync(null)
             };
-           
-            
+
 
             await PopulateEntryViewModelAsync(model, productId, cancellationToken);
             if (productId.HasValue)
@@ -56,12 +59,14 @@ namespace ECommerceBatteryShop.Controllers
                 var selectedProduct = _context.ProductCategories.Where(c => c.ProductId == productId).FirstOrDefault();
                 model.CategoryId = selectedProduct.CategoryId;
             }
+
             return View(model);
         }
 
         // NEW: Product sales analytics with search + paging
         [HttpGet]
-        public async Task<IActionResult> AnalitikPaneli(string? q, int page = 1, int pageSize = 30, CancellationToken ct = default)
+        public async Task<IActionResult> AnalitikPaneli(string? q, int page = 1, int pageSize = 30,
+            CancellationToken ct = default)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0 || pageSize > 50) pageSize = 30;
@@ -86,6 +91,7 @@ namespace ECommerceBatteryShop.Controllers
 
             return View(vm);
         }
+
         [HttpGet]
         public async Task<IActionResult> SiparisPaneli()
         {
@@ -97,24 +103,28 @@ namespace ECommerceBatteryShop.Controllers
             {
                 Orders = orders,
                 Payments = orders.SelectMany(o => o.Payments).ToList(),
-                Rate= fx
+                Rate = fx
             };
             return View(vm);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken = default)
         {
-            var product = await _context.Products.Include(p => p.Inventory).FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
-            var productCategory = await _context.ProductCategories.Where(pc => pc.ProductId == id).FirstOrDefaultAsync();
+            var product = await _context.Products.Include(p => p.Inventory)
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+            var productCategory =
+                await _context.ProductCategories.Where(pc => pc.ProductId == id).FirstOrDefaultAsync();
             if (product.Inventory != null)
             {
                 _context.Inventories.Remove(product.Inventory);
             }
+
             _context.ProductCategories.Remove(productCategory);
             _context.Products.Remove(product);
             await _context.SaveChangesAsync(cancellationToken);
-         
+
             if (!string.IsNullOrWhiteSpace(product.ImageUrl))
             {
                 var imagesFolder = Path.Combine(_environment.WebRootPath ?? string.Empty, "img");
@@ -124,11 +134,14 @@ namespace ECommerceBatteryShop.Controllers
                     System.IO.File.Delete(imagePath);
                 }
             }
+
             TempData["ProductEntrySuccess"] = "Ürün başarıyla silindi.";
             return RedirectToAction(nameof(Index));
         }
+
         [HttpPost]
-        public async Task<IActionResult> UpdateStatus(int orderId, string newStatus, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateStatus(int orderId, string newStatus,
+            CancellationToken cancellationToken)
         {
             if (orderId == 0 || newStatus == null)
             {
@@ -138,11 +151,11 @@ namespace ECommerceBatteryShop.Controllers
             {
                 await _orderRepository.UpdateOrderStatusAsync(orderId, newStatus);
                 TempData["OrderStatusSuccess"] = "Sipariş durumu başarıyla güncellendi.";
-                Response.Headers["HX-Refresh"] = "true";  // veya HX-Redirect
+                Response.Headers["HX-Refresh"] = "true"; // veya HX-Redirect
                 return RedirectToAction("SiparisPaneli", "Admin");
-
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> DeleteCategory(int categoryId, CancellationToken cancellationToken)
         {
@@ -152,17 +165,21 @@ namespace ECommerceBatteryShop.Controllers
                 TempData["CategoryError"] = "Silinecek kategori bulunamadı veya zaten silinmiş olabilir.";
                 return RedirectToAction(nameof(Index));
             }
-            var hasProducts = await _context.ProductCategories.AnyAsync(pc => pc.CategoryId == categoryId, cancellationToken);
+
+            var hasProducts =
+                await _context.ProductCategories.AnyAsync(pc => pc.CategoryId == categoryId, cancellationToken);
             if (hasProducts)
             {
                 TempData["CategoryError"] = "Bu kategoriye bağlı ürünler olduğu için silinemez.";
                 return RedirectToAction(nameof(Index));
             }
+
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync(cancellationToken);
             TempData["CategorySuccess"] = "Kategori başarıyla silindi.";
             return RedirectToAction(nameof(Index));
         }
+
         [HttpGet]
         public async Task<IActionResult> StokPaneli(string? search, CancellationToken cancellationToken)
         {
@@ -195,6 +212,7 @@ namespace ECommerceBatteryShop.Controllers
                 {
                     model.Items = await LoadStockItemsAsync(model.SearchTerm, cancellationToken);
                 }
+
                 return View(model);
             }
 
@@ -249,9 +267,11 @@ namespace ECommerceBatteryShop.Controllers
 
             return Json(new { items });
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateProduct(AdminProductEntryViewModel model, CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateProduct(AdminProductEntryViewModel model,
+            CancellationToken cancellationToken)
         {
             model.SearchTerm = string.IsNullOrWhiteSpace(model.SearchTerm) ? null : model.SearchTerm.Trim();
             model.SearchResults = await LoadProductSelectionItemsAsync(model.SearchTerm, cancellationToken);
@@ -269,7 +289,8 @@ namespace ECommerceBatteryShop.Controllers
 
             if (model.Image is not null)
             {
-                if (string.IsNullOrWhiteSpace(model.Image.ContentType) || !model.Image.ContentType.StartsWith("image/", System.StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(model.Image.ContentType) ||
+                    !model.Image.ContentType.StartsWith("image/", System.StringComparison.OrdinalIgnoreCase))
                 {
                     ModelState.AddModelError(nameof(model.Image), "Lütfen geçerli bir görsel dosyası yükleyin.");
                 }
@@ -278,7 +299,9 @@ namespace ECommerceBatteryShop.Controllers
             if (model.Document is not null)
             {
                 var ext = Path.GetExtension(model.Document.FileName);
-                var isPdf = string.Equals(ext, ".pdf", System.StringComparison.OrdinalIgnoreCase) || string.Equals(model.Document.ContentType, "application/pdf", System.StringComparison.OrdinalIgnoreCase);
+                var isPdf = string.Equals(ext, ".pdf", System.StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(model.Document.ContentType, "application/pdf",
+                                System.StringComparison.OrdinalIgnoreCase);
                 if (!isPdf)
                 {
                     ModelState.AddModelError(nameof(model.Document), "Lütfen PDF belge yükleyin (.pdf).");
@@ -305,11 +328,13 @@ namespace ECommerceBatteryShop.Controllers
             {
                 product = await _context.Products.FirstAsync(p => p.Id == model.ProductId!.Value, cancellationToken);
             }
-            
+
             product.Name = model.Name.Trim();
             product.Price = model.Price!.Value;
             product.Description = model.Description.Trim();
-
+            product.Slug = model.Name.Trim().ToLower().Replace(" ", "-").Replace("ı", "i").Replace("ğ", "g")
+                .Replace("ş", "s").Replace("ç", "c").Replace("ö", "o").Replace("ü", "u").Replace("İ", "i")
+                .Replace("Ğ", "g").Replace("Ş", "s").Replace("Ç", "c").Replace("Ö", "o").Replace("Ü", "u");
             var imagesFolder = Path.Combine(_environment.WebRootPath ?? string.Empty, "img");
             var documentsFolder = Path.Combine(_environment.WebRootPath ?? string.Empty, "doc");
             Directory.CreateDirectory(imagesFolder);
@@ -325,6 +350,7 @@ namespace ECommerceBatteryShop.Controllers
                 {
                     extension = ".pdf";
                 }
+
                 var newDocFileName = CreateDocumentFileName(product.Name, extension);
                 var docPath = Path.Combine(documentsFolder, newDocFileName);
                 await using (var stream = System.IO.File.Create(docPath))
@@ -332,7 +358,8 @@ namespace ECommerceBatteryShop.Controllers
                     await model.Document.CopyToAsync(stream);
                 }
 
-                if (!string.IsNullOrWhiteSpace(savedDocumentFileName) && !string.Equals(savedDocumentFileName, newDocFileName, System.StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(savedDocumentFileName) && !string.Equals(savedDocumentFileName,
+                        newDocFileName, System.StringComparison.OrdinalIgnoreCase))
                 {
                     var previousDocPath = Path.Combine(documentsFolder, savedDocumentFileName);
                     if (System.IO.File.Exists(previousDocPath))
@@ -366,7 +393,8 @@ namespace ECommerceBatteryShop.Controllers
                     await model.Image.CopyToAsync(stream);
                 }
 
-                if (!string.IsNullOrWhiteSpace(savedFileName) && !string.Equals(savedFileName, newFileName, System.StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(savedFileName) && !string.Equals(savedFileName, newFileName,
+                        System.StringComparison.OrdinalIgnoreCase))
                 {
                     var previousPath = Path.Combine(imagesFolder, savedFileName);
                     if (System.IO.File.Exists(previousPath))
@@ -382,6 +410,7 @@ namespace ECommerceBatteryShop.Controllers
             {
                 product.ImageUrl = savedFileName;
             }
+
             if (!string.IsNullOrWhiteSpace(savedDocumentFileName))
             {
                 product.DocumentUrl = savedDocumentFileName;
@@ -395,10 +424,12 @@ namespace ECommerceBatteryShop.Controllers
 
             return RedirectToAction(nameof(UrunPaneli), new { productId = product.Id, search = model.SearchTerm });
         }
+
         private async Task AssignCategoryAsync(int productId, int? categoryId, CancellationToken ct = default)
         {
             // Treat null/zero/invalid as remove all links
-            if (!categoryId.HasValue || categoryId.Value <= 0 || !await _context.Categories.AnyAsync(c => c.Id == categoryId.Value, ct))
+            if (!categoryId.HasValue || categoryId.Value <= 0 ||
+                !await _context.Categories.AnyAsync(c => c.Id == categoryId.Value, ct))
             {
                 var toRemoveAll = _context.ProductCategories.Where(pc => pc.ProductId == productId);
                 if (await toRemoveAll.AnyAsync(ct))
@@ -406,6 +437,7 @@ namespace ECommerceBatteryShop.Controllers
                     _context.ProductCategories.RemoveRange(toRemoveAll);
                     await _context.SaveChangesAsync(ct);
                 }
+
                 return;
             }
 
@@ -422,6 +454,7 @@ namespace ECommerceBatteryShop.Controllers
                     _context.ProductCategories.RemoveRange(extras);
                     await _context.SaveChangesAsync(ct);
                 }
+
                 return;
             }
 
@@ -430,10 +463,14 @@ namespace ECommerceBatteryShop.Controllers
             {
                 _context.ProductCategories.RemoveRange(links);
             }
-            _context.ProductCategories.Add(new ProductCategory { ProductId = productId, CategoryId = categoryId.Value });
+
+            _context.ProductCategories.Add(new ProductCategory
+                { ProductId = productId, CategoryId = categoryId.Value });
             await _context.SaveChangesAsync(ct);
         }
-        private async Task<IList<AdminStockItemViewModel>> LoadStockItemsAsync(string? searchTerm, CancellationToken cancellationToken)
+
+        private async Task<IList<AdminStockItemViewModel>> LoadStockItemsAsync(string? searchTerm,
+            CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -466,7 +503,8 @@ namespace ECommerceBatteryShop.Controllers
                 .ToListAsync(cancellationToken);
         }
 
-        private async Task PopulateEntryViewModelAsync(AdminProductEntryViewModel model, int? productId, CancellationToken cancellationToken)
+        private async Task PopulateEntryViewModelAsync(AdminProductEntryViewModel model, int? productId,
+            CancellationToken cancellationToken)
         {
             model.SearchResults = await LoadProductSelectionItemsAsync(model.SearchTerm, cancellationToken);
 
@@ -475,7 +513,8 @@ namespace ECommerceBatteryShop.Controllers
                 return;
             }
 
-            var product = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId.Value, cancellationToken);
+            var product = await _context.Products.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == productId.Value, cancellationToken);
             if (product is null)
             {
                 ModelState.AddModelError(string.Empty, "Seçili ürün bulunamadı veya silinmiş olabilir.");
@@ -500,7 +539,8 @@ namespace ECommerceBatteryShop.Controllers
             }
         }
 
-        private async Task<IList<AdminProductSelectionItemViewModel>> LoadProductSelectionItemsAsync(string? searchTerm, CancellationToken cancellationToken)
+        private async Task<IList<AdminProductSelectionItemViewModel>> LoadProductSelectionItemsAsync(string? searchTerm,
+            CancellationToken cancellationToken)
         {
             var query = _context.Products.AsNoTracking();
 
@@ -539,7 +579,8 @@ namespace ECommerceBatteryShop.Controllers
                 : extension.ToLowerInvariant();
 
             var invalidChars = Path.GetInvalidFileNameChars();
-            var sanitized = new string(productName.Where(c => !char.IsWhiteSpace(c) && !invalidChars.Contains(c)).ToArray());
+            var sanitized =
+                new string(productName.Where(c => !char.IsWhiteSpace(c) && !invalidChars.Contains(c)).ToArray());
 
             if (string.IsNullOrWhiteSpace(sanitized))
             {
@@ -548,19 +589,23 @@ namespace ECommerceBatteryShop.Controllers
 
             return sanitized + extension;
         }
+
         public static string CreateDocumentFileName(string productName, string extension)
         {
             extension = string.IsNullOrWhiteSpace(extension) || !extension.StartsWith('.')
                 ? ".pdf"
                 : extension.ToLowerInvariant();
             var invalidChars = Path.GetInvalidFileNameChars();
-            var sanitized = new string(productName.Where(c => !char.IsWhiteSpace(c) && !invalidChars.Contains(c)).ToArray());
+            var sanitized =
+                new string(productName.Where(c => !char.IsWhiteSpace(c) && !invalidChars.Contains(c)).ToArray());
             if (string.IsNullOrWhiteSpace(sanitized))
             {
                 sanitized = "urun";
             }
+
             return sanitized + extension;
         }
+
         private async Task<List<CategorySelectionViewModel>> LoadCategoryItemsAsync(int? selectedId = null)
         {
             // Root-based: we don't use ParentCategoryId. Exclude depth 0 (top-level roots) like the previous logic did,
@@ -578,6 +623,5 @@ namespace ECommerceBatteryShop.Controllers
 
             return items;
         }
-
     }
 }

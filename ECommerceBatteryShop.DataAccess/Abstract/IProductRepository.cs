@@ -13,9 +13,11 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
             decimal? minUsd = null,
             decimal? maxUsd = null,
             CancellationToken ct = default);
+
         Task<Product?> GetProductAsync(int id, CancellationToken ct);
         Task<Product?> GetProductByNameAsync(string name, CancellationToken ct);
         Task<Product?> GetProductBySlugAsync(string slug, CancellationToken ct);
+
         Task<(IReadOnlyList<Product> Items, int TotalCount)> ProductSearchResultAsync(
             string searchTerm,
             int page,
@@ -23,7 +25,10 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
             decimal? minUsd = null,
             decimal? maxUsd = null,
             CancellationToken ct = default);
-        Task<List<(int Id, string Name)>> ProductSearchPairsAsync(string searchTerm, CancellationToken ct = default);
+
+        Task<List<(int Id, string Name, string Slug)>> ProductSearchPairsAsync(string searchTerm,
+            CancellationToken ct = default);
+
         Task<(IReadOnlyList<Product> Items, int TotalCount)> BringProductsByCategoryIdAsync(
             int categoryId,
             int page = 1,
@@ -31,6 +36,7 @@ namespace ECommerceBatteryShop.DataAccess.Abstract
             decimal? minUsd = null,
             decimal? maxUsd = null,
             CancellationToken ct = default);
+
         Task<List<Product>> GetLatestProductsAsync();
 
         // NEW: product sales aggregation for admin analytics

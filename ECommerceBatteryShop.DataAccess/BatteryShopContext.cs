@@ -5,7 +5,9 @@ namespace ECommerceBatteryShop.DataAccess;
 
 public class BatteryShopContext : DbContext
 {
-    public BatteryShopContext(DbContextOptions<BatteryShopContext> options) : base(options) { }
+    public BatteryShopContext(DbContextOptions<BatteryShopContext> options) : base(options)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,15 +20,15 @@ public class BatteryShopContext : DbContext
 
         modelBuilder.Entity<Cart>(b =>
         {
-            b.HasIndex(c => c.UserId).IsUnique().HasFilter("[UserId] IS NOT NULL");
-            b.HasIndex(c => c.AnonId).IsUnique().HasFilter("[AnonId] IS NOT NULL");
+            b.HasIndex(c => c.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
+            b.HasIndex(c => c.AnonId).IsUnique().HasFilter("\"AnonId\" IS NOT NULL");
         });
 
         // NEW API (EF Core 9+): put check constraint on the table builder
         modelBuilder.Entity<Cart>()
             .ToTable(tb => tb.HasCheckConstraint(
                 "CK_Cart_Owner",
-                "([UserId] IS NOT NULL AND [AnonId] IS NULL) OR ([UserId] IS NULL AND [AnonId] IS NOT NULL)"
+                "(\"UserId\" IS NOT NULL AND \"AnonId\" IS NULL) OR (\"UserId\" IS NULL AND \"AnonId\" IS NOT NULL)"
             ));
 
         // Ensure SavedCard PK is value-generated and add a uniqueness guard to avoid duplicates
@@ -50,6 +52,7 @@ public class BatteryShopContext : DbContext
 
         base.OnModelCreating(modelBuilder);
     }
+
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();

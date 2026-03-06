@@ -1,4 +1,4 @@
 ﻿namespace ECommerceBatteryShop.Models
 {
-    public record ProductPredictionDto(int Id, string Name);
+    public record ProductPredictionDto(int Id, string Name, string Slug);
 }

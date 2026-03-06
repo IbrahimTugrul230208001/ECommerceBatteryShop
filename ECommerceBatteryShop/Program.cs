@@ -40,7 +40,8 @@ builder.Host.UseSerilog((ctx, services, lc) => lc
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 14,
         shared: true,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+        outputTemplate:
+        "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
 );
 
 // MVC + EF
@@ -48,26 +49,26 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<BatteryShopContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-  builder.Services.AddScoped<IProductRepository, ProductRepository>();
-  builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-  builder.Services.AddScoped<ICartRepository, CartRepository>();
-  builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-  builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-  builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-  builder.Services.AddScoped<IUserService, UserService>();
-  builder.Services.AddScoped<ICartService, CartService>();
-  builder.Services.AddScoped<IFavoritesService, FavoritesService>();
-  builder.Services.AddScoped<IIyzicoPaymentService, IyzicoPaymentService>();
-  builder.Services.AddScoped<ICategoryService, CategoryService>();
-  builder.Services.AddScoped<ISavedCardRepository, SavedCardRepository>();
-  builder.Services.AddScoped<IThreeDSStore, ThreeDSStore>();
-  builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IFavoritesService, FavoritesService>();
+builder.Services.AddScoped<IIyzicoPaymentService, IyzicoPaymentService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ISavedCardRepository, SavedCardRepository>();
+builder.Services.AddScoped<IThreeDSStore, ThreeDSStore>();
+builder.Services.AddMemoryCache();
 
 // Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    
+
     // Global fixed window limiter: 100 requests per minute per IP
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
         RateLimitPartition.GetFixedWindowLimiter(
@@ -79,7 +80,7 @@ builder.Services.AddRateLimiter(options =>
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
             }));
-    
+
     // Strict policy for auth endpoints (login, register, password reset)
     options.AddPolicy("auth", ctx =>
         RateLimitPartition.GetFixedWindowLimiter(
@@ -91,7 +92,7 @@ builder.Services.AddRateLimiter(options =>
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
             }));
-    
+
     // Strict policy for payment endpoints
     options.AddPolicy("payment", ctx =>
         RateLimitPartition.GetFixedWindowLimiter(
@@ -107,12 +108,13 @@ builder.Services.AddRateLimiter(options =>
     options.OnRejected = async (context, cancellationToken) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        
+
         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
         {
-            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString(CultureInfo.InvariantCulture);
+            context.HttpContext.Response.Headers.RetryAfter =
+                retryAfter.TotalSeconds.ToString(CultureInfo.InvariantCulture);
         }
-        
+
         await context.HttpContext.Response.WriteAsync(
             "Çok fazla istek gönderdiniz. Lütfen biraz bekleyin.", cancellationToken);
     };
@@ -122,15 +124,15 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddOptions<CurrencyOptions>()
     .Bind(builder.Configuration.GetSection("Currency"))
     .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl) && !string.IsNullOrWhiteSpace(o.ApiKey),
-              "Currency:BaseUrl and Currency:ApiKey are required")
+        "Currency:BaseUrl and Currency:ApiKey are required")
     .ValidateOnStart();
 
 builder.Services.AddOptions<IyzicoOptions>()
     .Bind(builder.Configuration.GetSection("Iyzico"))
     .Validate(o =>
-        !string.IsNullOrWhiteSpace(o.ApiKey) &&
-        !string.IsNullOrWhiteSpace(o.SecretKey) &&
-        !string.IsNullOrWhiteSpace(o.BaseUrl),
+            !string.IsNullOrWhiteSpace(o.ApiKey) &&
+            !string.IsNullOrWhiteSpace(o.SecretKey) &&
+            !string.IsNullOrWhiteSpace(o.BaseUrl),
         "Iyzico configuration (ApiKey, SecretKey, BaseUrl) is required")
     .ValidateOnStart();
 
@@ -141,93 +143,96 @@ builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 builder.Services.AddHostedService<FxThreeTimesDailyRefresher>();
 // ⬇️ AUTH: Cookie + Google
 builder.Services.AddAuthentication(o =>
-{
-    o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    o.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-})
-.AddCookie(o =>
-{
-    o.LoginPath = "/login";
-    o.LogoutPath = "/logout";
-})
-.AddGoogle(o =>
-{
-    o.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-    o.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
-    Console.WriteLine($"Google ClientId: {o.ClientId}");
-    Console.WriteLine($"Google ClientSecret: {o.ClientSecret}");
-    Console.WriteLine($"Connection String: {Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")}");
-    o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    o.SaveTokens = true;
-    o.Scope.Add("email");
-    o.Scope.Add("profile");
-    o.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
-    o.Events.OnCreatingTicket = async ctx =>
     {
-        var services = ctx.HttpContext.RequestServices;
-     var db = services.GetRequiredService<BatteryShopContext>();
-     var cartService = services.GetRequiredService<ICartService>();
-    var logger = services.GetRequiredService<ILogger<Program>>();
-        var cancellationToken = ctx.HttpContext.RequestAborted;
-
-        var email = ctx.Identity?.FindFirst(ClaimTypes.Email)?.Value;
-        if (string.IsNullOrWhiteSpace(email))
+        o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        o.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+    })
+    .AddCookie(o =>
+    {
+        o.LoginPath = "/login";
+        o.LogoutPath = "/logout";
+    })
+    .AddGoogle(o =>
+    {
+        o.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+        o.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+        Console.WriteLine($"Google ClientId: {o.ClientId}");
+        Console.WriteLine($"Google ClientSecret: {o.ClientSecret}");
+        Console.WriteLine(
+            $"Connection String: {Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")}");
+        o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        o.SaveTokens = true;
+        o.Scope.Add("email");
+        o.Scope.Add("profile");
+        o.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
+        o.Events.OnCreatingTicket = async ctx =>
         {
-      return;
-        }
+            var services = ctx.HttpContext.RequestServices;
+            var db = services.GetRequiredService<BatteryShopContext>();
+            var cartService = services.GetRequiredService<ICartService>();
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            var cancellationToken = ctx.HttpContext.RequestAborted;
 
-     var user = await db.Users.SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
-        var displayName = ctx.Identity?.FindFirst(ClaimTypes.Name)?.Value;
-
-  if (user is null)
-        {
-        user = new User
-       {
-       Email = email,
-                UserName = string.IsNullOrWhiteSpace(displayName) ? email : displayName,
-        PasswordHash = string.Empty,
-       CreatedAt = DateTime.UtcNow
-            };
-
-    db.Users.Add(user);
-        await db.SaveChangesAsync(cancellationToken);
-        }
-      else if (!string.IsNullOrWhiteSpace(displayName) && string.IsNullOrWhiteSpace(user.UserName))
-        {
-         user.UserName = displayName;
-   await db.SaveChangesAsync(cancellationToken);
-        }
-
-        if (ctx.Identity is ClaimsIdentity identity)
-        {
-            foreach (var existing in identity.FindAll("sub").ToList())
-       {
-  identity.RemoveClaim(existing);
-          }
-
-        identity.AddClaim(new Claim("sub", user.Id.ToString(CultureInfo.InvariantCulture)));
-        }
-
-        // ✅ CART MERGE: Transfer guest cart to user during Google authentication
-     var anonId = ctx.HttpContext.Request.Cookies["ANON_ID"];
-        if (!string.IsNullOrWhiteSpace(anonId) && user is not null)
-        {
-     try
-  {
-       await cartService.MergeGuestIntoUserAsync(anonId, user.Id, cancellationToken);
-         ctx.HttpContext.Response.Cookies.Delete("ANON_ID");
-        logger.LogInformation("Cart merged during Google auth for user {UserId} from anonymous ID {AnonId}", user.Id, anonId);
-       }
-  catch (Exception ex)
+            var email = ctx.Identity?.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrWhiteSpace(email))
             {
-    logger.LogError(ex, "Failed to merge cart during Google auth for user {UserId} from anonymous ID {AnonId}", user.Id, anonId);
-              // Don't fail the authentication, just log the error
-         }
-        }
-    };
-    o.Backchannel = new HttpClient(new HttpLogHandler(new HttpClientHandler()));
+                return;
+            }
 
-});
+            var user = await db.Users.SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
+            var displayName = ctx.Identity?.FindFirst(ClaimTypes.Name)?.Value;
+
+            if (user is null)
+            {
+                user = new User
+                {
+                    Email = email,
+                    UserName = string.IsNullOrWhiteSpace(displayName) ? email : displayName,
+                    PasswordHash = string.Empty,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                db.Users.Add(user);
+                await db.SaveChangesAsync(cancellationToken);
+            }
+            else if (!string.IsNullOrWhiteSpace(displayName) && string.IsNullOrWhiteSpace(user.UserName))
+            {
+                user.UserName = displayName;
+                await db.SaveChangesAsync(cancellationToken);
+            }
+
+            if (ctx.Identity is ClaimsIdentity identity)
+            {
+                foreach (var existing in identity.FindAll("sub").ToList())
+                {
+                    identity.RemoveClaim(existing);
+                }
+
+                identity.AddClaim(new Claim("sub", user.Id.ToString(CultureInfo.InvariantCulture)));
+            }
+
+            // ✅ CART MERGE: Transfer guest cart to user during Google authentication
+            var anonId = ctx.HttpContext.Request.Cookies["ANON_ID"];
+            if (!string.IsNullOrWhiteSpace(anonId) && user is not null)
+            {
+                try
+                {
+                    await cartService.MergeGuestIntoUserAsync(anonId, user.Id, cancellationToken);
+                    ctx.HttpContext.Response.Cookies.Delete("ANON_ID");
+                    logger.LogInformation("Cart merged during Google auth for user {UserId} from anonymous ID {AnonId}",
+                        user.Id, anonId);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex,
+                        "Failed to merge cart during Google auth for user {UserId} from anonymous ID {AnonId}", user.Id,
+                        anonId);
+                    // Don't fail the authentication, just log the error
+                }
+            }
+        };
+        o.Backchannel = new HttpClient(new HttpLogHandler(new HttpClientHandler()));
+    });
 
 var app = builder.Build();
 
@@ -236,13 +241,13 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-else
+
+// Ensure schema exists (needed after volume reset or first deploy)
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<BatteryShopContext>();
     try
     {
-        // Ensure schema exists in local/dev DB to avoid 42P01 errors
         db.Database.EnsureCreated();
     }
     catch (Exception ex)
@@ -271,6 +276,7 @@ app.Use(async (ctx, next) =>
             Cookie, Guid.NewGuid().ToString(),
             new CookieOptions { HttpOnly = true, IsEssential = true, Expires = DateTimeOffset.UtcNow.AddMonths(3) });
     }
+
     await next();
 });
 

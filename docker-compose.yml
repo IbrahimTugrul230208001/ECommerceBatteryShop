@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -7,11 +5,11 @@ services:
     container_name: ecommerce-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: appdb
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: ${Postgres__Database}
+      POSTGRES_USER: ${Postgres__Username}
+      POSTGRES_PASSWORD: ${Postgres__Password}
     volumes:
-     - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
 
   # .NET Web Application
   web:
@@ -19,12 +17,13 @@ services:
     container_name: ecommerce-web
     restart: unless-stopped
     ports:
-    - "5000:8080"
+      - "5000:8080"
     depends_on:
-    - postgres
+      - postgres
     env_file:
-    - .env
-
+      - .env
+    volumes:
+      - ./my-images:/app/wwwroot/img
 
 volumes:
   pgdata:

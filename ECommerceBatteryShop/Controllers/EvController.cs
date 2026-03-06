@@ -15,9 +15,9 @@ namespace ECommerceBatteryShop.Controllers
         private readonly IFavoritesService _favorites;
 
         public EvController(IProductRepository repo,
-                              ICurrencyService currency,
-                              IFavoritesService favorites,
-                              ILogger<EvController> log)
+            ICurrencyService currency,
+            IFavoritesService favorites,
+            ILogger<EvController> log)
         {
             _repo = repo;
             _currency = currency;
@@ -31,19 +31,21 @@ namespace ECommerceBatteryShop.Controllers
             const int perSection = 16;
 
             ViewData["Title"] = "Dayily Enerji | Lityum Pil ve Enerji Depolama Mağazası";
-            ViewData["Description"] = "Dayily Enerji'de Li-ion ve LiFePO4 pil paketleri, BMS koruma devreleri ve enerji depolama sistemleriyle ihtiyaçlarınıza uygun çözümleri keşfedin.";
+            ViewData["Description"] =
+                "Dayily Enerji'de Li-ion ve LiFePO4 pil paketleri, BMS koruma devreleri ve enerji depolama sistemleriyle ihtiyaçlarınıza uygun çözümleri keşfedin.";
             ViewData["Keywords"] = "dayily enerji, lityum pil, lifepo4 batarya, bms, enerji depolama";
             ViewData["OgImage"] = Url.Content("~/img/dayı_amber_banner.jpg");
             ViewData["Canonical"] = Request.GetDisplayUrl();
 
             // category ids from your DB
             const int LiIonId = 20;
+            const int LiPolymerId = 21;
             const int BmsId = 50;
             const int LfpId = 22;
             const int socketsId = 51;
             const int puntaCihazıId = 53;
             const int siliconCablesId = 54;
-            const int bandsId= 55;
+            const int bandsId = 55;
             const int batteryPackages12vId = 59;
             const int batteryPackages24vId = 60;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
@@ -51,18 +53,26 @@ namespace ECommerceBatteryShop.Controllers
 
             // Ensure this includes ProductCategories (CategoryId is enough; Category.Include not required)
             var plan = new[]
-  {
-    new { Title = "Punta Cihazları", CatId = puntaCihazıId, CatSlug = "punta-cihazi" },
-    new { Title = "Lithium-ion Pil",          CatId = LiIonId, CatSlug = "lithium-ion-pil" },
-    new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId, CatSlug = "bms-pil-koruma-devresi"  },
-    new { Title = "LiFePO4 Pil", CatId = LfpId, CatSlug = "lifepo4-pil"  },
-    new { Title = "LifePO4 12V Batarya Paketleri", CatId = batteryPackages12vId, CatSlug = "lifepo4-batarya-paketleri-12v" },
-    new { Title = "LifePO4 24V Batarya Paketleri", CatId = batteryPackages24vId,  CatSlug = "lifepo4-batarya-paketleri-24v"},
-    new { Title = "Soketler", CatId = socketsId, CatSlug = "soketler" },
-    new { Title = "Silikon Kablolar" , CatId  = siliconCablesId, CatSlug = "silikon-kablolar" },
-    new { Title = "Bantlar" , CatId = bandsId, CatSlug = "bantlar" }
-
-};
+            {
+                new { Title = "Lithium Polymer Pil", CatId = LiPolymerId, CatSlug = "lithium-polymer-pil" },
+                new { Title = "Punta Cihazları", CatId = puntaCihazıId, CatSlug = "punta-cihazi" },
+                new { Title = "Lithium-ion Pil", CatId = LiIonId, CatSlug = "lithium-ion-pil" },
+                new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId, CatSlug = "bms-pil-koruma-devresi" },
+                new { Title = "LiFePO4 Pil", CatId = LfpId, CatSlug = "lifepo4-pil" },
+                new
+                {
+                    Title = "LifePO4 12V Batarya Paketleri", CatId = batteryPackages12vId,
+                    CatSlug = "lifepo4-batarya-paketleri-12v"
+                },
+                new
+                {
+                    Title = "LifePO4 24V Batarya Paketleri", CatId = batteryPackages24vId,
+                    CatSlug = "lifepo4-batarya-paketleri-24v"
+                },
+                new { Title = "Soketler", CatId = socketsId, CatSlug = "soketler" },
+                new { Title = "Silikon Kablolar", CatId = siliconCablesId, CatSlug = "silikon-kablolar" },
+                new { Title = "Bantlar", CatId = bandsId, CatSlug = "bantlar" }
+            };
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
             ProductViewModel Map(Product p) => new()
@@ -78,7 +88,7 @@ namespace ECommerceBatteryShop.Controllers
                 Slug = p.Slug,
                 StockQuantity = p.Inventory?.Quantity ?? 0
             };
-  
+
 
             var sections = new List<ProductSectionViewModel>();
             var used = new HashSet<int>();
@@ -88,7 +98,7 @@ namespace ECommerceBatteryShop.Controllers
                 var raw = await _repo.BringProductsByCategoryIdAsync(def.CatId, 1, perSection * 2);
                 var ps = raw.Items.Where(p => !used.Contains(p.Id)).Take(perSection).ToList();
                 foreach (var p in ps) used.Add(p.Id);
-                
+
                 if (ps.Count > 0)
                     sections.Add(new ProductSectionViewModel
                     {
@@ -97,6 +107,7 @@ namespace ECommerceBatteryShop.Controllers
                         Products = ps.Select(Map).ToList()
                     });
             }
+
             return View(sections);
 
             async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
@@ -131,27 +142,26 @@ namespace ECommerceBatteryShop.Controllers
                     ? new HashSet<int>()
                     : new HashSet<int>(list.Items.Select(i => i.ProductId));
             }
-
         }
+
         public IActionResult Gizlilik()
         {
             return View();
         }
+
         public IActionResult Iade()
         {
             return View();
         }
+
         public IActionResult Cerezler()
         {
             return View();
         }
+
         public IActionResult Hakkimizda()
         {
             return View();
-        }
-        public IActionResult MesafeliSatis()
-        {
-            return RedirectToAction("MesafeliSatis", "Sepet");
         }
     }
 }
