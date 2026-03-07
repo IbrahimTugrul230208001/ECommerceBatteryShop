@@ -12,7 +12,11 @@ public class BatteryShopContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         const string trCollation = "tr_icu_det";
-        modelBuilder.Entity<Product>(e => e.Property(p => p.Name).UseCollation(trCollation));
+        modelBuilder.Entity<Product>(e =>
+        {
+            e.Property(p => p.Name).UseCollation(trCollation);
+            e.HasIndex(p => p.Slug).IsUnique(); // Index for Slug lookup in product detail pages
+        });
 
         // IMPORTANT: Our categories do NOT use a parent FK. Prevent EF from generating a shadow FK (CategoryId)
         // and querying a non-existent column by ignoring the self-referencing collection.
@@ -23,6 +27,15 @@ public class BatteryShopContext : DbContext
             b.HasIndex(c => c.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
             b.HasIndex(c => c.AnonId).IsUnique().HasFilter("\"AnonId\" IS NOT NULL");
         });
+
+        // Index for faster cart items lookup and uniqueness guarantee
+        modelBuilder.Entity<CartItem>(b => { b.HasIndex(ci => new { ci.CartId, ci.ProductId }).IsUnique(); });
+
+        // Index for faster category browsing
+        modelBuilder.Entity<ProductCategory>(b => { b.HasIndex(pc => pc.CategoryId); });
+
+        // Index for faster user order history lookup
+        modelBuilder.Entity<Order>(b => { b.HasIndex(o => o.UserId); });
 
         // NEW API (EF Core 9+): put check constraint on the table builder
         modelBuilder.Entity<Cart>()

@@ -196,9 +196,15 @@ namespace ECommerceBatteryShop.Controllers
             }
 
             var guest = isAuthenticated ? null : ReadGuestInfo();
+            AddressViewModel? selectedAddressViewModel = addresses.FirstOrDefault(a => a.Id == defaultAddressId);
 
             // Generate the contract model with default values
-            var contractModel = await BuildContractViewModel(defaultAddressId, 150m, HttpContext.RequestAborted);
+            var contractModel = BuildContractViewModel(
+                cart,
+                selectedAddressViewModel,
+                guest,
+                fx,
+                150m);
 
             var model = new CheckoutPageViewModel
             {
@@ -213,47 +219,22 @@ namespace ECommerceBatteryShop.Controllers
             return View(model);
         }
 
-        private async Task<ContractViewModel> BuildContractViewModel(int? addressId, decimal? shipping,
-            CancellationToken ct)
+        private ContractViewModel BuildContractViewModel(
+            Cart? cart,
+            AddressViewModel? selectedAddress,
+            GuestCheckoutViewModel? guest,
+            decimal rate,
+            decimal? shipping)
         {
-            const decimal DefaultFx = 42m;
             const decimal KdvRate = 0.20m;
             const decimal DefaultShippingFee = 150m;
 
             var orderItems = new List<OrderItem>();
 
-            CartOwner? owner = null;
-            Cart? cart = null;
-
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                var userClaim = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userClaim != null && int.TryParse(userClaim.Value, out var userId))
-                {
-                    owner = CartOwner.FromUser(userId);
-                }
-            }
-            else if (!IsCookieConsentRejected())
-            {
-                var anonId = Request.Cookies["ANON_ID"];
-                if (!string.IsNullOrWhiteSpace(anonId))
-                {
-                    owner = CartOwner.FromAnon(anonId);
-                }
-            }
-
-            if (owner is CartOwner resolvedOwner)
-            {
-                cart = await _cartService.GetAsync(resolvedOwner, createIfMissing: true, ct);
-            }
-
-            var rate = await _currencyService.GetCachedUsdTryAsync(ct) ?? DefaultFx;
-
             if (cart is not null)
             {
                 foreach (var item in cart.Items)
                 {
-                    var description = item.Product?.Name ?? $"Ürün #{item.ProductId}";
                     var extraAmount = item.Product?.ExtraAmount ?? 0m;
                     var unitPriceTry = decimal.Round(((item.UnitPrice * rate) + extraAmount) * (1 + KdvRate), 2,
                         MidpointRounding.AwayFromZero);
@@ -275,31 +256,7 @@ namespace ECommerceBatteryShop.Controllers
                 });
             }
 
-            Address? selectedAddress = null;
-            var buyerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-
-            GuestCheckoutViewModel? guest = null;
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                var userClaim = User.FindFirst("sub") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userClaim != null && int.TryParse(userClaim.Value, out var userId))
-                {
-                    if (addressId.HasValue)
-                    {
-                        selectedAddress = await _addressRepository.GetByIdAsync(userId, addressId.Value, ct);
-                    }
-
-                    if (selectedAddress is null)
-                    {
-                        var addresses = await _addressRepository.GetByUserAsync(userId, ct);
-                        selectedAddress = addresses.FirstOrDefault(a => a.IsDefault) ?? addresses.FirstOrDefault();
-                    }
-                }
-            }
-            else
-            {
-                guest = ReadGuestInfo();
-            }
+            var buyerEmail = User.Identity?.IsAuthenticated == true ? User.FindFirst(ClaimTypes.Email)?.Value : null;
 
             string buyerName;
             string buyerPhone;

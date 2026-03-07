@@ -25,10 +25,11 @@ namespace ECommerceBatteryShop.Controllers
         private readonly IOrderRepository _orderRepository;
         private readonly ICurrencyService _currencyService;
         private readonly IProductRepository _productRepository;
+        private readonly ICategoryService _categoryService;
 
         public AdminController(BatteryShopContext context, IWebHostEnvironment environment,
             ICategoryRepository categoryRepository, IOrderRepository orderRepository, ICurrencyService currencyService,
-            IProductRepository productRepository)
+            IProductRepository productRepository, ICategoryService categoryService)
         {
             _context = context;
             _environment = environment;
@@ -36,6 +37,7 @@ namespace ECommerceBatteryShop.Controllers
             _orderRepository = orderRepository;
             _currencyService = currencyService;
             _productRepository = productRepository;
+            _categoryService = categoryService;
         }
 
         [HttpGet]
@@ -176,6 +178,7 @@ namespace ECommerceBatteryShop.Controllers
 
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync(cancellationToken);
+            _categoryService.InvalidateCache();
             TempData["CategorySuccess"] = "Kategori başarıyla silindi.";
             return RedirectToAction(nameof(Index));
         }

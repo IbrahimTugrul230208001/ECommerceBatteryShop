@@ -69,7 +69,6 @@ public class CartRepository : ICartRepository
     public async Task<int> SetQuantityAsync(int? userId, string? anonId, int productId, int quantity,
         CancellationToken ct = default)
     {
-        Console.WriteLine("SetQuantityAsync called with quantity: " + quantity);
         var cart = await GetCartQuery(userId, anonId).FirstOrDefaultAsync(ct);
         if (cart == null)
         {
@@ -140,12 +139,14 @@ public class CartRepository : ICartRepository
 
     public async Task<int> GetCartItemCountAsync(int? userId, string? anonId, CancellationToken ct = default)
     {
-        var query = _ctx.Carts.AsNoTracking().Include(c => c.Items).AsQueryable();
-        if (userId.HasValue) query = query.Where(c => c.UserId == userId.Value);
-        else query = query.Where(c => c.AnonId == anonId);
+        var query = _ctx.CartItems.AsNoTracking().AsQueryable();
 
-        var cart = await query.FirstOrDefaultAsync(ct);
-        return cart?.Items.Sum(i => i.Quantity) ?? 0;
+        if (userId.HasValue)
+            query = query.Where(i => i.Cart.UserId == userId.Value);
+        else
+            query = query.Where(i => i.Cart.AnonId == anonId);
+
+        return await query.SumAsync(i => i.Quantity, ct);
     }
 
     public async Task<Cart?> GetCartAsync(int? userId, string? anonId, CancellationToken ct = default)

@@ -1,0 +1,54 @@
+@*
+    Reusable quantity stepper component (Alpine.js).
+    Expects to be used inside an Alpine scope that has:
+      - item.id       (product id)
+      - item.qty      (current quantity)
+      - item.syncing  (bool – true while server sync is in-flight)
+      - inc(item), dec(item), sanitize(item), syncQty(item)
+*@
+
+<label class="sr-only" :for="'qty-'+item.id">Adet</label>
+<div class="inline-flex h-10 items-center rounded-xl border border-slate-300 bg-white shadow-xs relative transition-opacity duration-200"
+     :class="item.syncing ? 'opacity-60 pointer-events-none' : ''">
+    <!-- Decrement -->
+    <button
+        :disabled="item.qty <= 1 || item.syncing"
+        :aria-disabled="item.qty <= 1 || item.syncing"
+        x-on:click="dec(item)"
+        class="px-2 hover:bg-gray-200 cursor-pointer h-full text-slate-700 rounded-l-xl hover:text-slate-900 text-lg font-bold transition-opacity duration-200"
+        :class="(item.qty <= 1 || item.syncing) ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-slate-700' : ''"
+        :aria-controls="'qty-'+item.id"
+        aria-label="Azalt">
+        −
+    </button>
+
+    <!-- Quantity display wrapper -->
+    <div class="relative w-12 h-full flex items-center justify-center">
+        <!-- Spinner overlay -->
+        <div x-show="item.syncing" x-transition.opacity.duration.200ms
+             class="absolute inset-0 flex items-center justify-center bg-white/80 rounded z-10">
+            <svg class="h-4 w-4 animate-spin text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+        <!-- Input (read-only – use +/− buttons to change) -->
+        <input :id="'qty-'+item.id" type="number" min="1" inputmode="numeric" x-model.number="item.qty"
+               readonly
+               class="w-full h-full bg-transparent text-center text-slate-900 outline-none select-none cursor-default"
+               :class="item.syncing ? 'opacity-30' : ''"
+               aria-live="polite" aria-label="Adet">
+    </div>
+
+    <!-- Increment -->
+    <button
+        :disabled="item.syncing"
+        :aria-disabled="item.syncing"
+        x-on:click="inc(item)"
+        class="px-2 hover:bg-gray-200 cursor-pointer font-bold h-full text-slate-700 rounded-r-xl hover:text-slate-900 text-lg transition-opacity duration-200"
+        :class="item.syncing ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-slate-700' : ''"
+        :aria-controls="'qty-'+item.id"
+        aria-label="Arttır">
+        +
+    </button>
+</div>
