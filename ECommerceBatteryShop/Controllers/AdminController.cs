@@ -198,7 +198,7 @@ namespace ECommerceBatteryShop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Stocks(AdminStockViewModel model, CancellationToken cancellationToken)
+        public async Task<IActionResult> StokGuncelle(AdminStockViewModel model, CancellationToken cancellationToken)
         {
             if (model?.Items is null || model.Items.Count == 0)
             {
@@ -213,7 +213,7 @@ namespace ECommerceBatteryShop.Controllers
                     model.Items = await LoadStockItemsAsync(model.SearchTerm, cancellationToken);
                 }
 
-                return View(model);
+                return RedirectToAction("StokPaneli", "Admin");
             }
 
             var productIds = model.Items.Select(i => i.ProductId).ToList();
@@ -256,7 +256,7 @@ namespace ECommerceBatteryShop.Controllers
 
             TempData["StockUpdateSuccess"] = "Seçili ürünlerin stok durumları güncellendi.";
 
-            return RedirectToAction(nameof(Stocks));
+            return RedirectToAction("StokPaneli", "Admin");
         }
 
         [HttpGet]
