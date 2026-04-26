@@ -1,6 +1,6 @@
 namespace ECommerceBatteryShop.DataAccess.Abstract;
 
-using ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.DataAccess.Entities;
 using static ECommerceBatteryShop.DataAccess.Concrete.CategoryRepository;
 
 public interface ICategoryRepository

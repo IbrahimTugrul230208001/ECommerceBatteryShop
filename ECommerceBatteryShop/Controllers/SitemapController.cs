@@ -116,10 +116,10 @@ public class SitemapController : Controller
       urlset.Add(url);
     }
 
-private static List<ECommerceBatteryShop.Domain.Entities.Category> FlattenCategories(
-        List<ECommerceBatteryShop.Domain.Entities.Category> categories)
+private static List<ECommerceBatteryShop.DataAccess.Entities.Category> FlattenCategories(
+        List<ECommerceBatteryShop.DataAccess.Entities.Category> categories)
     {
-        var result = new List<ECommerceBatteryShop.Domain.Entities.Category>();
+        var result = new List<ECommerceBatteryShop.DataAccess.Entities.Category>();
         
    foreach (var category in categories)
         {

@@ -4,7 +4,7 @@ WORKDIR /src
 
 # Copy csproj files and restore dependencies
 COPY ["ECommerceBatteryShop/ECommerceBatteryShop.csproj", "ECommerceBatteryShop/"]
-COPY ["ECommerceBatteryShop.Domain/ECommerceBatteryShop.Domain.csproj", "ECommerceBatteryShop.Domain/"]
+COPY ["ECommerceBatteryShop.Business/ECommerceBatteryShop.Business.csproj", "ECommerceBatteryShop.Business/"]
 COPY ["ECommerceBatteryShop.DataAccess/ECommerceBatteryShop.DataAccess.csproj", "ECommerceBatteryShop.DataAccess/"]
 RUN dotnet restore "ECommerceBatteryShop/ECommerceBatteryShop.csproj"
 

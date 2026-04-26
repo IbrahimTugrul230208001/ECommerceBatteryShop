@@ -1,4 +1,4 @@
-namespace ECommerceBatteryShop.Domain.Entities;
+namespace ECommerceBatteryShop.DataAccess.Entities;
 
 public class PaymentTransaction
 {

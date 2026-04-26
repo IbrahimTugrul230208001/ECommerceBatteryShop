@@ -3,7 +3,7 @@ using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Concrete;
 using ECommerceBatteryShop.Options;
 using ECommerceBatteryShop.Services;
-using ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -75,7 +75,7 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 100,
+                PermitLimit = 200,
                 Window = TimeSpan.FromMinutes(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0

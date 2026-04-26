@@ -1,4 +1,4 @@
-using ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceBatteryShop.DataAccess;

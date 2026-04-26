@@ -1,4 +1,4 @@
-﻿using ECommerceBatteryShop.Domain.Entities;
+﻿using ECommerceBatteryShop.DataAccess.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.Linq; // Add this at the top with other using directives
 

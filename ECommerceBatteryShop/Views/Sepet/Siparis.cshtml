@@ -187,6 +187,44 @@
                         </details>
                     </div>
 
+                    <!-- Taksit Seçenekleri -->
+                    <div x-show="method==='card'" x-transition class="mt-4">
+                        <template x-if="installments.length > 0">
+                            <div class="rounded-lg border border-slate-200 overflow-hidden">
+                                <div class="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                                    <h3 class="text-sm font-semibold text-slate-700">Taksit Seçenekleri</h3>
+                                    <p class="text-xs text-slate-500" x-text="installmentBank"></p>
+                                </div>
+                                <div class="divide-y divide-slate-100">
+                                    <template x-for="plan in installments" :key="plan.count">
+                                        <label class="flex items-center justify-between px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors"
+                                               :class="selectedInstallment === plan.count ? 'bg-amber-50 border-l-2 border-l-amber-400' : ''">
+                                            <span class="flex items-center gap-3">
+                                                <input type="radio" name="installment"
+                                                       :value="plan.count"
+                                                       x-model.number="selectedInstallment"
+                                                       class="text-amber-500">
+                                                <span class="text-sm text-slate-800"
+                                                      x-text="plan.count === 1 ? 'Tek Çekim' : (plan.count + ' Taksit')"></span>
+                                            </span>
+                                            <span class="text-right">
+                                                <span class="text-sm font-medium text-slate-900"
+                                                      x-text="plan.count === 1 ? ('₺' + format(plan.totalPrice)) : ('₺' + format(plan.installmentPrice) + ' x ' + plan.count)"></span>
+                                                <template x-if="plan.count > 1">
+                                                    <span class="block text-xs text-slate-500"
+                                                          x-text="'Toplam: ₺' + format(plan.totalPrice)"></span>
+                                                </template>
+                                            </span>
+                                        </label>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                        <p x-show="installmentLoading" class="text-sm text-slate-500 animate-pulse">
+                            Taksit seçenekleri yükleniyor...
+                        </p>
+                    </div>
+
                     <!-- IBAN -->
                     <div x-show="method==='iban'" x-transition class="mt-5 space-y-3">
                         <p class="text-sm text-slate-700">Aşağıdaki IBAN’a transfer yapın. Açıklamaya sipariş numaranızı yazın.</p>
@@ -368,7 +406,7 @@
         notice:null,
         digits(s){ return (s||'').replace(/\D/g,''); },
         // allow up to 19 digits and group by 4
-        maskCard(){ let d=this.digits(this.newCard.number).slice(0,19); this.newCard.number=d.replace(/(\d{4})(?=\d)/g,'$1 ').trim(); },
+        maskCard(){ let d=this.digits(this.newCard.number).slice(0,19); this.newCard.number=d.replace(/(\d{4})(?=\d)/g,'$1 ').trim(); if(d.length>=6) this.fetchInstallments(); },
         maskExp(){ let d=this.digits(this.newCard.exp).slice(0,4); this.newCard.exp=(d.length>=3)? d.slice(0,2)+'/'+d.slice(2) : d; },
         luhn(num){ let d=this.digits(num), s=0, alt=false; for(let i=d.length-1;i>=0;i--){ let n=+d[i]; if(alt){ n*=2; if(n>9)n-=9; } s+=n; alt=!alt; } return d.length>=13 && d.length<=19 && s%10===0; },
         async refreshSaved(){
@@ -381,6 +419,33 @@
         init(){
           // Preload saved cards (no-op for guests)
           this.refreshSaved();
+        },
+        // Installment state
+        installments: [],
+        installmentBank: '',
+        installmentLoading: false,
+        selectedInstallment: 1,
+        lastBinQueried: '',
+        async fetchInstallments() {
+            const digits = this.digits(this.newCard.number);
+            const bin = digits.slice(0, 6);
+            if (bin.length < 6 || bin === this.lastBinQueried) return;
+            this.lastBinQueried = bin;
+            this.installmentLoading = true;
+            try {
+                const res = await fetch(`/Siparis/Installments?binNumber=${bin}`);
+                const data = await res.json();
+                if (data.success && data.details?.length > 0) {
+                    const detail = data.details[0];
+                    this.installmentBank = `${detail.bankName || ''} ${detail.cardFamily || ''}`.trim();
+                    this.installments = detail.plans || [];
+                    this.selectedInstallment = 1;
+                } else {
+                    this.installments = [];
+                    this.installmentBank = '';
+                }
+            } catch { this.installments = []; this.installmentBank = ''; }
+            finally { this.installmentLoading = false; }
         },
         async placeOrder(){
           if(this.loading) return;
@@ -397,7 +462,7 @@
           if(this.method==='card'){
             if(this.selectedId){
               // Respect 3D Secure checkbox for saved cards too
-              await this.send({ paymentMethod:'card_saved', cardId:this.selectedId, threeDSecure: this.newCard.threeD === true, ...payloadBase });
+              await this.send({ paymentMethod:'card_saved', cardId:this.selectedId, threeDSecure: this.newCard.threeD === true, installment: this.selectedInstallment, ...payloadBase });
               return;
             }
             if(!this.luhn(this.newCard.number)){
@@ -412,6 +477,7 @@
               cvc:this.newCard.cvc,
               save:this.newCard.save,
               threeDSecure:this.newCard.threeD === true,
+              installment:this.selectedInstallment,
               ...payloadBase
             });
           } else if(this.method==='iban'){

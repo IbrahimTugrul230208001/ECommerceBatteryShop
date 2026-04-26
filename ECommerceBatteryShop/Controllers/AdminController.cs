@@ -1,6 +1,6 @@
 using ECommerceBatteryShop.DataAccess;
 using ECommerceBatteryShop.DataAccess.Abstract;
-using ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.DataAccess.Entities;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Iyzipay.Model;
@@ -88,6 +88,55 @@ namespace ECommerceBatteryShop.Controllers
                     ImageUrl = x.Product.ImageUrl,
                     Price = x.Product.Price,
                     SoldUnits = x.SoldUnits
+                }).ToList()
+            };
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SepetAnalitikleri(int page = 1, int pageSize = 20,
+            CancellationToken ct = default)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0 || pageSize > 50) pageSize = 20;
+
+            var totalCount = await _context.Carts
+                .Where(c => c.Items.Any())
+                .CountAsync(ct);
+
+            var carts = await _context.Carts
+                .AsNoTracking()
+                .Include(c => c.User)
+                .Include(c => c.Items).ThenInclude(i => i.Product)
+                .Where(c => c.Items.Any())
+                .OrderByDescending(c => c.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            var vm = new AnonymousCartsViewModel
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalCartCount = totalCount,
+                Carts = carts.Select((c, idx) => new AnonymousCartSummary
+                {
+                    CartId = c.Id,
+                    Label = $"Sepet #{(page - 1) * pageSize + idx + 1}",
+                    AnonId = c.AnonId,
+                    UserEmail = c.User?.Email,
+                    CreatedAt = c.CreatedAt,
+                    TotalItems = c.Items.Sum(i => i.Quantity),
+                    TotalValue = c.Items.Sum(i => i.UnitPrice * i.Quantity),
+                    Items = c.Items.Select(i => new AnonymousCartItemViewModel
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.Product?.Name,
+                        ImageUrl = i.Product?.ImageUrl,
+                        UnitPrice = i.UnitPrice,
+                        Quantity = i.Quantity
+                    }).ToList()
                 }).ToList()
             };
 

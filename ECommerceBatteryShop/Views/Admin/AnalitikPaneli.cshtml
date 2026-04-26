@@ -1,7 +1,7 @@
 @model ECommerceBatteryShop.Models.ProductSalesAnalyticsViewModel
 @using System.Globalization
 @{
-    ViewData["Title"] = "Ürün Analitikleri";
+    ViewData["Title"] = "ï¿½rï¿½n Analitikleri";
     Layout = "_AdminLayout";
     var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize);
     if (totalPages <= 0) totalPages = 1;
@@ -11,11 +11,11 @@
   <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
     <div>
       <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Analitik</p>
-      <h1 class="text-2xl font-semibold text-slate-900">Ürün Bazlý Satýþlar</h1>
-      <p class="text-sm text-slate-500">Her ürün için toplam satýlan adet. Arama ve sayfalama ile filtreleyin.</p>
+      <h1 class="text-2xl font-semibold text-slate-900">ÃœrÃ¼n BazlÄ± SatÄ±ÅŸlar</h1>
+      <p class="text-sm text-slate-500">Her Ã¼rÃ¼n iÃ§in toplam satÄ±lan adet. Arama ve sayfalama ile filtreleyin.</p>
     </div>
     <form method="get" class="flex items-center gap-2">
-      <input type="text" name="q" value="@Model.Search" placeholder="Ürün adý ile ara" class="rounded-full border border-slate-300 px-4 py-2 text-sm" />
+      <input type="text" name="q" value="@Model.Search" placeholder="ÃœrÃ¼n adÄ± ile ara" class="rounded-full border border-slate-300 px-4 py-2 text-sm" />
       <button type="submit" class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Ara</button>
     </form>
   </header>
@@ -24,9 +24,9 @@
     <table class="min-w-full divide-y divide-slate-100 text-sm">
       <thead class="bg-slate-50/80 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
         <tr>
-          <th class="px-4 py-3">Ürün</th>
+          <th class="px-4 py-3">ÃœrÃ¼n</th>
           <th class="px-4 py-3">Fiyat (USD)</th>
-          <th class="px-4 py-3">Satýlan Adet</th>
+          <th class="px-4 py-3">SatÄ±ÅŸ Adet</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100 bg-white">
@@ -52,7 +52,7 @@
 
   <nav class="flex items-center justify-between">
     <div class="text-xs text-slate-600">
-      Toplam @Model.TotalCount kayýt · Sayfa @Model.Page / @totalPages
+      Toplam @Model.TotalCount kayÄ±t Sayfa @Model.Page / @totalPages
     </div>
     <ul class="inline-flex overflow-hidden rounded-full border border-slate-200 text-sm">
       @{
@@ -61,16 +61,16 @@
         var q = string.IsNullOrWhiteSpace(Model.Search) ? null : Model.Search;
       }
       <li>
-        <a class="block px-4 py-2 hover:bg-slate-50 @((Model.Page==1)?"pointer-events-none opacity-50":"")" href="@Url.Action("UrunAnalitikleri","Admin", new { q, page = prev })">Önceki</a>
+        <a class="block px-4 py-2 hover:bg-slate-50 @((Model.Page==1)?"pointer-events-none opacity-50":"")" href="@Url.Action("AnalitikPaneli","Admin", new { q, page = prev })">Ã–nceki</a>
       </li>
       @for (var i = 1; i <= totalPages; i++)
       {
         <li>
-          <a class="block px-4 py-2 hover:bg-slate-50 @(i==Model.Page?"bg-slate-900 text-white":"")" href="@Url.Action("UrunAnalitikleri","Admin", new { q, page = i })">@i</a>
+          <a class="block px-4 py-2 hover:bg-slate-50 @(i==Model.Page?"bg-slate-900 text-white":"")" href="@Url.Action("AnalitikPaneli","Admin", new { q, page = i })">@i</a>
         </li>
       }
       <li>
-        <a class="block px-4 py-2 hover:bg-slate-50 @((Model.Page==totalPages)?"pointer-events-none opacity-50":"")" href="@Url.Action("UrunAnalitikleri","Admin", new { q, page = next })">Sonraki</a>
+        <a class="block px-4 py-2 hover:bg-slate-50 @((Model.Page==totalPages)?"pointer-events-none opacity-50":"")" href="@Url.Action("AnalitikPaneli","Admin", new { q, page = next })">Sonraki</a>
       </li>
     </ul>
   </nav>

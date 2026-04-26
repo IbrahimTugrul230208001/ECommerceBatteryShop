@@ -1,4 +1,4 @@
-﻿using ECommerceBatteryShop.Domain.Entities;
+﻿using ECommerceBatteryShop.DataAccess.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ECommerceBatteryShop.Domain.Entities
+namespace ECommerceBatteryShop.DataAccess.Entities
 {
     public class FavoriteList
     {

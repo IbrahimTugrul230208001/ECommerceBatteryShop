@@ -17,6 +17,7 @@ public interface IIyzicoPaymentService
     Task<IyzicoPaymentResult> CreatePaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default);
     Task<IyzicoThreeDSInitializeResult> InitializeThreeDSPaymentAsync(IyzicoPaymentModel model, CancellationToken cancellationToken = default);
     Task<IyzicoPaymentResult> CompleteThreeDSPaymentAsync(IyzicoThreeDSCompleteModel model, CancellationToken cancellationToken = default);
+    Task<InstallmentInfoResult> GetInstallmentInfoAsync(string? binNumber, decimal price, CancellationToken ct = default);
 }
 
 public class IyzicoPaymentService : IIyzicoPaymentService
@@ -309,6 +310,55 @@ public async Task<IyzicoPaymentResult> CompleteThreeDSPaymentAsync(
     }
 }
 
+// ====== Installment Query ======
+
+public async Task<InstallmentInfoResult> GetInstallmentInfoAsync(
+    string? binNumber, decimal price, CancellationToken ct = default)
+{
+    ct.ThrowIfCancellationRequested();
+
+    var request = new RetrieveInstallmentInfoRequest
+    {
+        Locale = Locale.TR.ToString(),
+        ConversationId = Guid.NewGuid().ToString("N"),
+        Price = ToPrice(price),
+        BinNumber = binNumber
+    };
+
+    try
+    {
+        var info = await Task.Run(() => InstallmentInfo.Retrieve(request, _options), ct);
+        var ok = string.Equals(info.Status, "success", StringComparison.OrdinalIgnoreCase);
+        if (!ok)
+        {
+            _logger.LogWarning("Installment query failed: {Error}", info.ErrorMessage);
+            return new InstallmentInfoResult(false, info.ErrorMessage, null);
+        }
+
+        var details = info.InstallmentDetails?.Select(d => new InstallmentDetailDto
+        {
+            BankName = d.BankName,
+            CardFamily = d.CardFamilyName,
+            CardType = d.CardType,
+            Plans = d.InstallmentPrices?.Select(p => new InstallmentPlanDto
+            {
+                Count = p.InstallmentNumber ?? 1,
+                TotalPrice = decimal.TryParse(p.TotalPrice, NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out var tp) ? tp : price,
+                InstallmentPrice = decimal.TryParse(p.Price, NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out var ip) ? ip : price
+            }).ToList() ?? new()
+        }).ToList() ?? new();
+
+        return new InstallmentInfoResult(true, null, details);
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+        _logger.LogError(ex, "Installment query error");
+        return new InstallmentInfoResult(false, ex.Message, null);
+    }
+}
+
 // helper
 private static string ToPrice(decimal value) =>
     decimal.Round(value, 2, MidpointRounding.AwayFromZero).ToString("0.00", CultureInfo.InvariantCulture);
@@ -419,4 +469,26 @@ public class IyzicoBasketItem
     public string Category2 { get; init; } = "Batarya";
     public string ItemType { get; init; } = BasketItemType.PHYSICAL.ToString();
     public required decimal Price { get; init; }
+}
+
+// ====== Installment DTOs ======
+
+public record InstallmentInfoResult(
+    bool Success,
+    string? ErrorMessage,
+    List<InstallmentDetailDto>? Details);
+
+public class InstallmentDetailDto
+{
+    public string? BankName { get; set; }
+    public string? CardFamily { get; set; }
+    public string? CardType { get; set; }
+    public List<InstallmentPlanDto> Plans { get; set; } = new();
+}
+
+public class InstallmentPlanDto
+{
+    public int Count { get; set; }              // 1, 2, 3, 6, 9, 12
+    public decimal TotalPrice { get; set; }     // toplam ödenecek
+    public decimal InstallmentPrice { get; set; } // aylık taksit tutarı
 }

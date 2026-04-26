@@ -1,5 +1,5 @@
 using ECommerceBatteryShop.DataAccess.Abstract;
-using ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.DataAccess.Entities;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Http.Extensions;

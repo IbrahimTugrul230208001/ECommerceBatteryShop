@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Text.Encodings.Web;
 using ECommerceBatteryShop.DataAccess.Abstract;
-using ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.DataAccess.Entities;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -78,6 +78,29 @@ public class SiparisController : Controller
 
         var cards = await _savedCardRepository.GetByUserAsync(userId, ct);
         return Json(cards.Select(c => new { id = c.Id, brand = c.Brand, last4 = c.Last4, holder = c.Holder }));
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> Installments([FromQuery] string? binNumber, CancellationToken ct)
+    {
+        if (!TryResolveOwner(out var owner, out _))
+            return BadRequest(new { success = false, message = "Sepet bulunamadı." });
+
+        var fxRate = await _currencyService.GetCachedUsdTryAsync(ct);
+        var cart = await _cartService.GetAsync(owner, createIfMissing: false, ct);
+        if (cart is null || cart.Items.Count == 0)
+            return BadRequest(new { success = false, message = "Sepet boş." });
+
+        var (_, basketTotal) = BuildBasketItems(cart, (decimal)fxRate);
+
+        var result = await _paymentService.GetInstallmentInfoAsync(
+            binNumber?.Replace(" ", ""), basketTotal, ct);
+
+        if (!result.Success)
+            return BadRequest(new { success = false, message = result.ErrorMessage });
+
+        return Json(new { success = true, details = result.Details });
     }
 
     [HttpPost]
@@ -294,6 +317,7 @@ public class SiparisController : Controller
                 BasketId = cart.Id.ToString(CultureInfo.InvariantCulture),
                 Price = basketTotal,
                 PaidPrice = paidPrice,
+                Installment = input.Installment > 0 ? input.Installment : 1,
                 Buyer = buyerContext.Buyer,
                 BillingAddress = buyerContext.Billing,
                 ShippingAddress = buyerContext.Shipping,
@@ -535,6 +559,7 @@ public class SiparisController : Controller
                 BasketId = cart.Id.ToString(CultureInfo.InvariantCulture),
                 Price = basketTotal,
                 PaidPrice = paidPrice,
+                Installment = input.Installment > 0 ? input.Installment : 1,
                 Buyer = buyerContext.Buyer,
                 BillingAddress = buyerContext.Billing,
                 ShippingAddress = buyerContext.Shipping,
@@ -679,6 +704,7 @@ public class SiparisController : Controller
     [IgnoreAntiforgeryToken]
     [Consumes("application/x-www-form-urlencoded")]
     [Route("Siparis/ThreeDSCallback")] // conventional path we configure in settings
+    [Route("odeme/3ds-callback")]      // matches Iyzico__ThreeDSCallbackUrl in .env
     [Route("Payment/Iyzico3DSReturn")] // optional aliases if configured on Iyzi dashboard
     [Route("Odeme/Iyzico3DSReturn")] // optional Turkish alias
     public async Task<IActionResult> ThreeDSCallback([FromForm] IyzicoThreeDSCallbackModel model,

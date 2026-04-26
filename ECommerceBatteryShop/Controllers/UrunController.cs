@@ -4,7 +4,7 @@ using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.DataAccess.Entities;
 using System.Text.RegularExpressions;
 
 namespace ECommerceBatteryShop.Controllers

@@ -18,6 +18,7 @@ public class PlaceOrderInputModel
 
     public bool Save { get; set; }
     public bool ThreeDSecure { get; set; } // NEW: request 3D Secure flow
+    public int Installment { get; set; } = 1; // Taksit sayısı (1 = tek çekim)
 
     // Shipping selection
     public string? ShippingId { get; set; }

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using ECommerceBatteryShop.DataAccess.Abstract;
-using ECommerceBatteryShop.Domain.Entities;
+using ECommerceBatteryShop.DataAccess.Entities;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
