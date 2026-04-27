@@ -1,10 +1,10 @@
 @model ECommerceBatteryShop.Models.GuestCheckoutViewModel
 @{
-    ViewData["Title"] = "Misafir Giriþi";
+    ViewData["Title"] = "Misafir GiriÅŸi";
 }
 <main class="mx-auto max-w-lg px-4 py-10">
-  <h1 class="text-2xl font-semibold text-slate-900 mb-6">Misafir Giriþi</h1>
-  <p class="text-sm text-slate-600 mb-6">Hesap oluþturmadan devam etmek için gerekli bilgileri doldurun.</p>
+  <h1 class="text-2xl font-semibold text-slate-900 mb-6">Misafir GiriÅŸi</h1>
+  <p class="text-sm text-slate-600 mb-6">Hesap oluÅŸturmadan devam etmek iÃ§in gerekli bilgileri doldurun.</p>
 
   <form asp-action="Index" method="post" class="space-y-4">
     @Html.AntiForgeryToken()
@@ -30,19 +30,23 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-700">Telefon</label>
-        <input asp-for="Phone" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        <input asp-for="Phone" id="phoneInput" class="mt-1 w-full rounded-lg border border-slate-300 p-2"
+               placeholder="(555) 555 5555"
+               maxlength="14"
+               pattern="\(\d{3}\) \d{3} \d{4}"
+               inputmode="tel" />
         <span asp-validation-for="Phone" class="text-xs text-red-600"></span>
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-slate-700">Ýl</label>
+        <label class="block text-sm font-medium text-slate-700">Ä°l</label>
         <input asp-for="City" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
         <span asp-validation-for="City" class="text-xs text-red-600"></span>
       </div>
       <div>
-        <label class="block text-sm font-medium text-slate-700">Ýlçe</label>
+        <label class="block text-sm font-medium text-slate-700">Ä°lÃ§e</label>
         <input asp-for="State" class="mt-1 w-full rounded-lg border border-slate-300 p-2" />
         <span asp-validation-for="State" class="text-xs text-red-600"></span>
       </div>
@@ -66,4 +70,37 @@
 
 @section Scripts{
   <partial name="_ValidationScriptsPartial" />
+  <script>
+    (function () {
+      const input = document.getElementById('phoneInput');
+      if (!input) return;
+
+      input.addEventListener('input', function (e) {
+        // Strip everything except digits
+        let digits = this.value.replace(/\D/g, '').slice(0, 10);
+        let formatted = '';
+
+        if (digits.length === 0) {
+          formatted = '';
+        } else if (digits.length <= 3) {
+          formatted = '(' + digits;
+        } else if (digits.length <= 6) {
+          formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+        } else {
+          formatted = '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + ' ' + digits.slice(6);
+        }
+
+        this.value = formatted;
+      });
+
+      // Prevent non-numeric keypresses (allow control keys)
+      input.addEventListener('keydown', function (e) {
+        const allowed = [
+          'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'
+        ];
+        if (allowed.includes(e.key)) return;
+        if (!/^\d$/.test(e.key)) e.preventDefault();
+      });
+    })();
+  </script>
 }
