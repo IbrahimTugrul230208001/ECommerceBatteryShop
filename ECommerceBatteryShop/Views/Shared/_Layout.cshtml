@@ -386,17 +386,9 @@
 <div class="h-20 hidden lg:block"></div>
 
 <div class="bg-gray-800 text-white relative z-40 shadow-xl hidden lg:block">
-    <div class="mx-auto max-w-9xl px-20 h-16 flex justify-between items-center">
+    <div class="mx-auto max-w-9xl px-20 h-14 flex justify-between items-center">
         <ul class="flex items-center gap-8 whitespace-nowrap overflow-x-auto md:overflow-visible overflow-y-visible max-h-12">
             @await Html.PartialAsync("_MenuRecursive", new CategoryMenuModel { Items = categoriesByService, Depth = 0 })
-            <li>
-                <a href="https://api.whatsapp.com/send/?phone=905013176653"
-                   class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                              after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300
-                              hover:after:scale-x-100">
-                    İletişim
-                </a>
-            </li>
             <li>
                 <a href="/Ev/Hakkimizda"
                    class="relative font-semibold after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full

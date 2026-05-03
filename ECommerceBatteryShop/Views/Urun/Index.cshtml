@@ -160,7 +160,7 @@ else
     }
 
     <!-- PRODUCT GRID -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         @foreach (var product in products)
         {
             var inStock = product.StockQuantity > 0;
@@ -176,10 +176,10 @@ else
                     <div class="rounded-xl h-40 flex items-center justify-center overflow-hidden">
                         <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
                              alt="@(string.IsNullOrWhiteSpace(product.Name) ? "Görsel yok" : product.Name)"
-                             class="h-28 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]" />
+                             class="w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]" />
                     </div>
-
-                    <div class="mt-4 space-y-2">
+                      
+                    <div class="mt-1 space-y-2">
                         <h3 class="hover:underline text-sm font-semibold text-gray-900 line-clamp-2 min-h-[2.75rem]">@product.Name</h3>
                         <div class="flex items-baseline gap-2">
                             <span class="text-lg font-bold">@price</span>
@@ -188,7 +188,7 @@ else
                     </div>
                 </a>
 
-                <div class="mt-3 mb-3 flex items-center gap-2 px-3">
+                <div class="mb-2 flex items-center gap-2 px-3">
                     <div class="flex flex-1 flex-col gap-1">
                         @if (inStock)
                         {
