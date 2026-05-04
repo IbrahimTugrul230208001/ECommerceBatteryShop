@@ -1,12 +1,12 @@
 @using System.Globalization
 @model IEnumerable<ECommerceBatteryShop.Models.ProductSectionViewModel>
 
-<section class="mb-8 -mx-8 -mt-4"
+<section class="mb-8 -mx-2 lg:-mx-8 -mt-4"
          x-data="heroCarousel()"
          x-init="init($el)"
          @@keydown.window.arrow-left.prevent="prev()"
          @@keydown.window.arrow-right.prevent="next()">
-    <div class="relative overflow-hidden bg-gray-900 text-white h-[50vh] sm:h-[36vh] md:h-[55vh] lg:h-[86vh]">
+    <div class="relative overflow-hidden bg-gray-900 text-white h-[50vh] sm:h-[36vh] md:h-[55vh] lg:h-[86vh] w-full">
         <!-- Slides -->
         <template x-for="(slide, i) in slides" :key="i">
             <div class="absolute inset-0 transition-opacity duration-700"
@@ -45,7 +45,7 @@
                         </h1>
 
                         <!-- Description -->
-                        <p class="text-[12px] sm:text-xs md:text-sm lg:text-base text-gray-200 leading-relaxed max-w-xl">
+                        <p class="text-[10px] sm:text-xs md:text-sm lg:text-base text-gray-200 leading-relaxed max-w-xl">
                             Endüstriyel sistemlerden giyilebilir teknolojilere kadar tüm projelerinizde en yüksek güvenlik standartlarında batarya çözümleri sunuyoruz. Size özel tasarım ve teknik planlama desteği için bizimle iletişime geçin.
                         </p>
                     <div class="flex flex-row justify-start items-center gap-2 sm:gap-5">
@@ -122,7 +122,7 @@
 
             </div>
         </template>
-
+         @*
         <!-- Prev/Next (raise above slide) -->
         <button type="button" x-on:click="prev()"
                 class="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2
@@ -151,6 +151,7 @@
                 </button>
             </template>
         </div>
+        *@
     </div>
 </section>
 
