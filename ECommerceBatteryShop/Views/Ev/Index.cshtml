@@ -6,7 +6,7 @@
          x-init="init($el)"
          @@keydown.window.arrow-left.prevent="prev()"
          @@keydown.window.arrow-right.prevent="next()">
-    <div class="relative overflow-hidden bg-gray-900 text-white h-[60vh] sm:h-[36vh] md:h-[55vh] lg:h-[86vh]">
+    <div class="relative overflow-hidden bg-gray-900 text-white h-[50vh] sm:h-[36vh] md:h-[55vh] lg:h-[86vh]">
         <!-- Slides -->
         <template x-for="(slide, i) in slides" :key="i">
             <div class="absolute inset-0 transition-opacity duration-700"
@@ -36,12 +36,12 @@
                     <div class="w-[70%] sm:w-auto sm:max-w-[55%] lg:max-w-[48%]
                                 h-full
                                 bg-gradient-to-r from-gray-900/95 via-gray-900/75 to-transparent
-                                px-5 sm:px-10 lg:px-16
+                                px-10 lg:px-16
                                 flex flex-col justify-center gap-2 sm:gap-5">
 
                         <!-- Title -->
                         <h1 class="text-md sm:text-lg md:text-2xl lg:text-3xl font-extrabold leading-snug tracking-tight text-white drop-shadow-lg">
-                            UYGUN FİYATA TOPLU BATARYA PAKETLERİ İÇİN HEMEN TEKLİF ALIN
+                            UYGUN FİYATA TOPLU BATARYA PAKETLERİ İÇİN HEMEN TEKLİF ALIN ⚡
                         </h1>
 
                         <!-- Description -->
@@ -251,19 +251,19 @@
 
 
                                 <div class="flex-none min-w-0 pl-2 lg:basis-[calc((100%-4*var(--g))/6)] md:basis-[calc((100%-2*var(--g))/4)] basis-[calc((100%-1*var(--g))/2)] snap-start">
-                                    <article class="group h-80 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                                    <article class="group h-96 flex flex-col rounded-md border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                                 <!-- Image -->
                                 <a href="@href" class="block p-3 pb-0">
-                                          <div class="h-40 grid place-items-center overflow-hidden">
+                                          <div class="h-56 grid place-items-center overflow-hidden">
             <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
                  alt="@(string.IsNullOrWhiteSpace(product.Name) ? "Görsel yok" : product.Name)"
-                 class="h-40 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]" />
+                 class="h-56 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]" />
         </div>
 
                                 </a>
 
                                 <!-- Content -->
-                                <div class="px-3 pt-1 flex-1 flex flex-col">
+                                <div class="px-3 pt-3 flex-1 flex flex-col">
                                    <a class="hover:underline" href="@href"><h3 class="text-sm font-semibold text-gray-900 line-clamp-2 min-h-[2.75rem]">@product.Name</h3></a>
 
                                     <!-- Rating + Price -->
@@ -451,12 +451,12 @@
 
 @@keyframes btn-glow {
   0%   { box-shadow: 0 0 8px 2px rgba(251, 191, 36, 0.4); }
-  50%  { box-shadow: 0 0 16px 4px rgba(251, 191, 36, 0.6); }
+  50%  { box-shadow: 0 0 28px 7px rgba(251, 191, 36, 0.6); }
   100% { box-shadow: 0 0 8px 2px rgba(251, 191, 36, 0.4); }
 }
 
 .btn-shine {
-  animation: btn-glow 2s ease-in-out infinite;
+  animation: btn-glow 1.5s ease-in-out infinite;
 }
 
 /* Brand marquee infinite scroll */
