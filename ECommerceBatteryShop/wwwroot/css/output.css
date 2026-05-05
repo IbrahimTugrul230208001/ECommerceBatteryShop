@@ -452,9 +452,6 @@
   .-mx-2 {
     margin-inline: calc(var(--spacing) * -2);
   }
-  .-mx-8 {
-    margin-inline: calc(var(--spacing) * -8);
-  }
   .mx-auto {
     margin-inline: auto;
   }
@@ -535,6 +532,9 @@
   }
   .mb-16 {
     margin-bottom: calc(var(--spacing) * 16);
+  }
+  .mb-20 {
+    margin-bottom: calc(var(--spacing) * 20);
   }
   .ml-1 {
     margin-left: calc(var(--spacing) * 1);
@@ -1535,6 +1535,9 @@
   .p-10 {
     padding: calc(var(--spacing) * 10);
   }
+  .p-30 {
+    padding: calc(var(--spacing) * 30);
+  }
   .px-1 {
     padding-inline: calc(var(--spacing) * 1);
   }
@@ -1561,6 +1564,9 @@
   }
   .px-20 {
     padding-inline: calc(var(--spacing) * 20);
+  }
+  .px-40 {
+    padding-inline: calc(var(--spacing) * 40);
   }
   .py-0 {
     padding-block: calc(var(--spacing) * 0);
@@ -1600,6 +1606,9 @@
   }
   .py-16 {
     padding-block: calc(var(--spacing) * 16);
+  }
+  .py-30 {
+    padding-block: calc(var(--spacing) * 30);
   }
   .pt-2 {
     padding-top: calc(var(--spacing) * 2);
@@ -2365,6 +2374,22 @@
       }
     }
   }
+  .hover\:scale-x-105 {
+    &:hover {
+      @media (hover: hover) {
+        --tw-scale-x: 105%;
+        scale: var(--tw-scale-x) var(--tw-scale-y);
+      }
+    }
+  }
+  .hover\:scale-x-110 {
+    &:hover {
+      @media (hover: hover) {
+        --tw-scale-x: 110%;
+        scale: var(--tw-scale-x) var(--tw-scale-y);
+      }
+    }
+  }
   .hover\:scale-\[1\.03\] {
     &:hover {
       @media (hover: hover) {
@@ -2446,6 +2471,20 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-amber-500);
+      }
+    }
+  }
+  .hover\:bg-amber-600 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-amber-600);
+      }
+    }
+  }
+  .hover\:bg-amber-700 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-amber-700);
       }
     }
   }
@@ -2586,6 +2625,27 @@
         @supports (color: color-mix(in lab, red, red)) {
           background-color: color-mix(in oklab, var(--color-white) 70%, transparent);
         }
+      }
+    }
+  }
+  .hover\:px-6 {
+    &:hover {
+      @media (hover: hover) {
+        padding-inline: calc(var(--spacing) * 6);
+      }
+    }
+  }
+  .hover\:px-8 {
+    &:hover {
+      @media (hover: hover) {
+        padding-inline: calc(var(--spacing) * 8);
+      }
+    }
+  }
+  .hover\:px-10 {
+    &:hover {
+      @media (hover: hover) {
+        padding-inline: calc(var(--spacing) * 10);
       }
     }
   }
@@ -2736,6 +2796,16 @@
       }
     }
   }
+  .hover\:shadow-amber-500\/40 {
+    &:hover {
+      @media (hover: hover) {
+        --tw-shadow-color: color-mix(in srgb, oklch(76.9% 0.188 70.08) 40%, transparent);
+        @supports (color: color-mix(in lab, red, red)) {
+          --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-amber-500) 40%, transparent) var(--tw-shadow-alpha), transparent);
+        }
+      }
+    }
+  }
   .hover\:after\:scale-x-100 {
     &:hover {
       @media (hover: hover) {
@@ -2881,16 +2951,6 @@
       left: calc(var(--spacing) * 6);
     }
   }
-  .sm\:-mx-2 {
-    @media (width >= 40rem) {
-      margin-inline: calc(var(--spacing) * -2);
-    }
-  }
-  .sm\:-mx-8 {
-    @media (width >= 40rem) {
-      margin-inline: calc(var(--spacing) * -8);
-    }
-  }
   .sm\:mt-6 {
     @media (width >= 40rem) {
       margin-top: calc(var(--spacing) * 6);
@@ -3014,6 +3074,11 @@
   .sm\:px-8 {
     @media (width >= 40rem) {
       padding-inline: calc(var(--spacing) * 8);
+    }
+  }
+  .sm\:py-3 {
+    @media (width >= 40rem) {
+      padding-block: calc(var(--spacing) * 3);
     }
   }
   .sm\:py-3\.5 {
@@ -3202,6 +3267,16 @@
       height: calc(var(--spacing) * 8);
     }
   }
+  .lg\:h-10 {
+    @media (width >= 64rem) {
+      height: calc(var(--spacing) * 10);
+    }
+  }
+  .lg\:h-12 {
+    @media (width >= 64rem) {
+      height: calc(var(--spacing) * 12);
+    }
+  }
   .lg\:h-\[86vh\] {
     @media (width >= 64rem) {
       height: 86vh;
@@ -3270,6 +3345,11 @@
   .lg\:px-16 {
     @media (width >= 64rem) {
       padding-inline: calc(var(--spacing) * 16);
+    }
+  }
+  .lg\:py-4 {
+    @media (width >= 64rem) {
+      padding-block: calc(var(--spacing) * 4);
     }
   }
   .lg\:text-3xl {
