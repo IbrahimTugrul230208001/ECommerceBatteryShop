@@ -44,7 +44,7 @@
 @if (!hasResults)
 {
     <!-- EMPTY STATE -->
-    <div class="mx-auto max-w-screen-md">
+    <div class="mx-auto max-w-screen-md mb-10">
         <div class="mt-10 rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
             <div class="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full ring-1 ring-slate-200">
                 <svg class="h-8 w-8 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -71,21 +71,6 @@
                    class="inline-flex items-center gap-2 rounded-lg bg-amber-300 px-4 py-2 text-sm font-semibold text-gray-900 shadow hover:bg-amber-400">
                     Tüm ürünlere dön
                 </a>
-            </div>
-
-            <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div class="rounded-xl border border-slate-200 p-3 text-left">
-                    <div class="text-xs font-semibold text-slate-500">İpucu</div>
-                    <div class="mt-1 text-sm">Fiyat aralığını genişletin (örn. min ↓, max ↑).</div>
-                </div>
-                <div class="rounded-xl border border-slate-200 p-3 text-left">
-                    <div class="text-xs font-semibold text-slate-500">İpucu</div>
-                    <div class="mt-1 text-sm">Daha kısa veya genel bir anahtar kelime deneyin.</div>
-                </div>
-                <div class="rounded-xl border border-slate-200 p-3 text-left">
-                    <div class="text-xs font-semibold text-slate-500">İpucu</div>
-                    <div class="mt-1 text-sm">Türkçe/İngilizce varyasyonları deneyin (18650, 21700 vs.).</div>
-                </div>
             </div>
         </div>
     </div>
@@ -160,7 +145,7 @@ else
     }
 
     <!-- PRODUCT GRID -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-20">
         @foreach (var product in products)
         {
             var inStock = product.StockQuantity > 0;
@@ -171,7 +156,7 @@ else
             var fullStars = (int)Math.Floor(product.Rating);
             var hasHalf = product.Rating - fullStars >= 0.5;
 
-            <div class="group relative rounded-2xl border border-slate-200 bg-white shadow-md ring-1 ring-gray-100 hover:shadow-xl transition overflow-hidden mb-20">
+            <div class="group relative rounded-2xl border border-slate-200 bg-white shadow-md ring-1 ring-gray-100 hover:shadow-xl transition overflow-hidden">
                 <a href="@href" class="block p-4">
                     <div class="rounded-xl h-40 flex items-center justify-center overflow-hidden">
                         <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
