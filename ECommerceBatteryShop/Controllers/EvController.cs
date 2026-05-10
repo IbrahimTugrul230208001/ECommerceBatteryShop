@@ -30,11 +30,11 @@ namespace ECommerceBatteryShop.Controllers
             const decimal KdvRate = 0.20m;
             const int perSection = 16;
 
-            ViewData["Title"] = "Dayily Enerji | Lityum Pil ve Enerji Depolama Mağazası";
+            ViewData["Title"] = "PilBataryaMarketim | Lityum Pil ve Enerji Depolama Mağazası";
             ViewData["Description"] =
-                "Dayily Enerji'de Li-ion ve LiFePO4 pil paketleri, BMS koruma devreleri ve enerji depolama sistemleriyle ihtiyaçlarınıza uygun çözümleri keşfedin.";
-            ViewData["Keywords"] = "dayily enerji, lityum pil, lifepo4 batarya, bms, enerji depolama";
-            ViewData["OgImage"] = Url.Content("~/img/dayı_amber_banner.jpg");
+                "PilBataryaMarketim'de Li-ion ve LiFePO4 pil paketleri, BMS koruma devreleri ve enerji depolama sistemleriyle ihtiyaçlarınıza uygun çözümleri keşfedin.";
+            ViewData["Keywords"] = "PilBataryaMarketim, Aspilsan, lityum pil, lifepo4 batarya, bms, enerji depolama";
+            ViewData["OgImage"] = Url.Content("~/img/pilbataryamarketim.webp");
             ViewData["Canonical"] = Request.GetDisplayUrl();
 
             // category ids from your DB

@@ -1,4 +1,4 @@
-﻿@model CategoryMenuModel
+@model CategoryMenuModel
 @using System.Text.Json
 @{
     // Model.Items: IEnumerable<Category> with SubCategories and Slug
@@ -51,8 +51,8 @@
 
     .cat-body {
         padding: .25rem .25rem 1rem;
-        height: calc(100vh - 64px);
-        overflow: auto;
+        flex: 1;
+        overflow-y: auto;
     }
 
     .cat-item {
@@ -61,7 +61,7 @@
         justify-content: space-between;
         padding: .75rem .875rem;
         border-radius: .75rem;
-        font-weight: 600;
+        font-weight: 400;
     }
 
         .cat-item:hover {
@@ -81,18 +81,24 @@
 <div class="cat-root lg:hidden" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="cat-overlay" data-cat-overlay></div>
 
-    <aside class="cat-panel text-gray-900 bg-white" data-cat-panel>
-        <div class="cat-header">
-            <button type="button" class="p-2 rounded-lg ring-1 ring-black/10" data-cat-back aria-label="Geri">
+    <aside class="cat-panel text-gray-900 bg-white flex flex-col" data-cat-panel>
+        <div class="flex items-center justify-between py-4 border-b border-gray-100 shrink-0 px-5">
+                     <button type="button" class="p-2 rounded-lg ring-1 ring-black/10" data-cat-back aria-label="Geri">
                 <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 00-1.06 0L7.5 9.46l4.23 4.31a.75.75 0 101.06-1.06L9.62 9.46l3.17-3.17a.75.75 0 000-1.06z" clip-rule="evenodd" /></svg>
             </button>
-            <div class="flex-1">
-                <div class="cat-title" data-cat-title>Kategoriler</div>
-                <div class="cat-breadcrumb" data-cat-crumb>En üst</div>
-            </div>
+           <a href="/">
+                <img src="~/img/pilbataryamarketimblack.png" alt="Pil Batarya Marketim Logo" class="h-12 w-auto object-contain" />
+            </a>
             <button type="button" class="p-2 rounded-lg ring-1 ring-black/10" data-cat-close aria-label="Kapat">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M6 6l12 12M18 6l-12 12" stroke-width="2" stroke-linecap="round" /></svg>
             </button>
+        </div>
+        <div class="cat-header">
+  
+            <div class="flex-1">
+                <div class="cat-title" data-cat-title>Kategoriler</div>
+            </div>
+
         </div>
 
         <div class="cat-body">
@@ -116,7 +122,6 @@
       const titleEl= root?.querySelector('[data-cat-title]');
       const crumbEl= root?.querySelector('[data-cat-crumb]');
 
-      const openBtn= document.querySelector('[data-cat-open]');
       const closeBtn= root?.querySelector('[data-cat-close]');
       const backBtn = root?.querySelector('[data-cat-back]');
 
@@ -158,33 +163,38 @@
 
         if (!listEl) return;
         listEl.innerHTML = '';
-        lvl.items.forEach(node => {
-          const hasKids = node.subCategories && node.subCategories.length;
-          const li = document.createElement('li');
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'cat-item w-full text-left';
-          btn.setAttribute('data-has-children', hasKids ? 'true' : 'false');
+        try {
+          lvl.items.forEach(node => {
+            const hasKids = node.subCategories && node.subCategories.length;
+            const li = document.createElement('li');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'cat-item w-full text-left';
+            btn.setAttribute('data-has-children', hasKids ? 'true' : 'false');
 
-          const left = document.createElement('span');
-          left.textContent = node.name;
+            const left = document.createElement('span');
+            left.textContent = node.name || 'İsimsiz Kategori';
 
-          const right = document.createElement('span');
-          right.innerHTML = hasKids
-            ? '<svg class="w-4 h-4 opacity-60" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11 10 7.23 6.29a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.06 0z" clip-rule="evenodd"/></svg>'
-            : '';
+            const right = document.createElement('span');
+            right.innerHTML = hasKids
+              ? '<svg class="w-4 h-4 opacity-60" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11 10 7.23 6.29a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.06 0z" clip-rule="evenodd"/></svg>'
+              : '';
 
-          btn.appendChild(left);
-          btn.appendChild(right);
+            btn.appendChild(left);
+            btn.appendChild(right);
 
-          btn.addEventListener('click', () => {
-            if (hasKids) pushLevel(node.name, node.subCategories);
-            else window.location.href = catIndexUrl + "/" +  encodeURIComponent(node.slug);
+            btn.addEventListener('click', () => {
+              if (hasKids) pushLevel(node.name, node.subCategories);
+              else window.location.href = catIndexUrl + "/" +  encodeURIComponent(node.slug);
+            });
+
+            li.appendChild(btn);
+            listEl.appendChild(li);
           });
+        } catch (err) {
+          listEl.innerHTML = '<li class="p-4 text-red-500 text-sm break-all">Hata: ' + err.message + '<br>Data türü: ' + typeof lvl.items + '</li>';
+        }
 
-          li.appendChild(btn);
-          listEl.appendChild(li);
-        });
 
         // focus first item for a11y
         const first = listEl.querySelector('button');
@@ -192,7 +202,11 @@
       }
 
       // Wiring
-      openBtn?.addEventListener('click', openDrawer);
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('[data-cat-open]')) {
+          openDrawer();
+        }
+      });
       overlay?.addEventListener('click', closeDrawer);
       closeBtn?.addEventListener('click', closeDrawer);
       backBtn?.addEventListener('click', popLevel);

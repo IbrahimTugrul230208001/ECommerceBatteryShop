@@ -82,5 +82,6 @@ public class BatteryShopContext : DbContext
     public DbSet<FavoriteListItem> FavoriteListItems => Set<FavoriteListItem>();
     public DbSet<SavedCard> SavedCards => Set<SavedCard>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<ProductDiscount> ProductDiscounts => Set<ProductDiscount>();
 }
 
