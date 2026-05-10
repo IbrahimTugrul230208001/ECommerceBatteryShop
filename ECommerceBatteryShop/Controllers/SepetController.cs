@@ -1,4 +1,4 @@
-﻿using ECommerceBatteryShop.DataAccess.Abstract;
+using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Entities;
 using ECommerceBatteryShop.Services;
 using ECommerceBatteryShop.Models;
@@ -112,14 +112,32 @@ namespace ECommerceBatteryShop.Controllers
             var model = new CartViewModel();
             if (cart is not null)
             {
-                model.Items = cart.Items.Select(i => new CartItemViewModel
+                model.Items = cart.Items.Select(i =>
                 {
-                    ProductId = i.ProductId,
-                    Name = i.Product?.Name ?? string.Empty,
-                    ImageUrl = i.Product?.ImageUrl,
-                    UnitPrice = ((i.UnitPrice * fx) + i.Product.ExtraAmount) * 1.2m,
-                    Slug = i.Product?.Slug,
-                    Quantity = i.Quantity
+                    var baseUnitPrice = ((i.UnitPrice * fx) + (i.Product?.ExtraAmount ?? 0)) * 1.2m;
+
+                    // Find active discount
+                    var now = DateTime.UtcNow;
+                    var activeDiscount = i.Product?.Discounts?
+                        .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
+                        .OrderByDescending(d => d.DiscountPercentage)
+                        .FirstOrDefault();
+                    var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
+                    var finalUnitPrice = discountPct > 0
+                        ? Math.Round(baseUnitPrice * (1 - discountPct / 100m), 2)
+                        : baseUnitPrice;
+
+                    return new CartItemViewModel
+                    {
+                        ProductId = i.ProductId,
+                        Name = i.Product?.Name ?? string.Empty,
+                        ImageUrl = i.Product?.ImageUrl,
+                        UnitPrice = finalUnitPrice,
+                        OriginalUnitPrice = discountPct > 0 ? baseUnitPrice : null,
+                        DiscountPercentage = discountPct,
+                        Slug = i.Product?.Slug,
+                        Quantity = i.Quantity
+                    };
                 }).ToList();
             }
 
@@ -188,10 +206,23 @@ namespace ECommerceBatteryShop.Controllers
             decimal subTotal = 0m;
             if (cart is not null)
             {
+                var now = DateTime.UtcNow;
                 foreach (var item in cart.Items)
                 {
                     var extra = item.Product?.ExtraAmount ?? 0m;
-                    subTotal += ((item.UnitPrice * fx) + extra) * 1.2m * item.Quantity;
+                    var baseItemPrice = ((item.UnitPrice * fx) + extra) * 1.2m;
+
+                    // Apply active discount
+                    var activeDiscount = item.Product?.Discounts?
+                        .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
+                        .OrderByDescending(d => d.DiscountPercentage)
+                        .FirstOrDefault();
+                    var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
+                    var finalItemPrice = discountPct > 0
+                        ? Math.Round(baseItemPrice * (1 - discountPct / 100m), 2)
+                        : baseItemPrice;
+
+                    subTotal += finalItemPrice * item.Quantity;
                 }
             }
 
@@ -233,11 +264,22 @@ namespace ECommerceBatteryShop.Controllers
 
             if (cart is not null)
             {
+                var now = DateTime.UtcNow;
                 foreach (var item in cart.Items)
                 {
                     var extraAmount = item.Product?.ExtraAmount ?? 0m;
-                    var unitPriceTry = decimal.Round(((item.UnitPrice * rate) + extraAmount) * (1 + KdvRate), 2,
+                    var baseUnitPriceTry = decimal.Round(((item.UnitPrice * rate) + extraAmount) * (1 + KdvRate), 2,
                         MidpointRounding.AwayFromZero);
+
+                    // Apply active discount
+                    var activeDiscount = item.Product?.Discounts?
+                        .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
+                        .OrderByDescending(d => d.DiscountPercentage)
+                        .FirstOrDefault();
+                    var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
+                    var unitPriceTry = discountPct > 0
+                        ? decimal.Round(baseUnitPriceTry * (1 - discountPct / 100m), 2, MidpointRounding.AwayFromZero)
+                        : baseUnitPriceTry;
 
                     orderItems.Add(new OrderItem
                     {

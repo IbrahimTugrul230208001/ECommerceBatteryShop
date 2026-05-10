@@ -1,4 +1,4 @@
-﻿namespace ECommerceBatteryShop.Models
+namespace ECommerceBatteryShop.Models
 {
     public class FavoriteItemViewModel
     {
@@ -11,6 +11,11 @@
         public int StockQuantity { get; set; }
         public bool IsInStock => StockQuantity > 0;
         public string? Slug { get; set; }
+
+        // Discount support
+        public decimal DiscountPercentage { get; set; }
+        public decimal? OriginalPrice { get; set; }
+        public bool HasDiscount => DiscountPercentage > 0 && OriginalPrice.HasValue;
     }
 
     public class FavoriteViewModel

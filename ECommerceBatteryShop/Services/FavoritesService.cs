@@ -1,4 +1,4 @@
-﻿using ECommerceBatteryShop.DataAccess;
+using ECommerceBatteryShop.DataAccess;
 using ECommerceBatteryShop.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -19,7 +19,10 @@ namespace ECommerceBatteryShop.Services
             IQueryable<FavoriteList> query = _db.Set<FavoriteList>()
                 .Include(f => f.Items)
                 .ThenInclude(i => i.Product)
-                .ThenInclude(p => p!.Inventory);
+                .ThenInclude(p => p!.Inventory)
+                .Include(f => f.Items)
+                .ThenInclude(i => i.Product)
+                .ThenInclude(p => p!.Discounts);
 
             FavoriteList? list = owner.UserId is int uid
                 ? await query.FirstOrDefaultAsync(f => f.UserId == uid, ct)

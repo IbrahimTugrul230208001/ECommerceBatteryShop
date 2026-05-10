@@ -1,4 +1,4 @@
-﻿@using System.Globalization
+@using System.Globalization
 @model ECommerceBatteryShop.Models.FavoriteViewModel
 
 @{
@@ -92,9 +92,20 @@ else
                             </div>
 
                             <div class="flex items-center justify-between">
-                                <div class="text-lg font-semibold text-gray-900">
-                                    @unitPrice.ToString("C", culture)
-                                </div>
+                                @if (p.HasDiscount)
+                                {
+                                    <div class="price-tag price-tag--discounted">
+                                        <span class="price-tag__badge">-%@((int)p.DiscountPercentage)</span>
+                                        <span class="price-tag__current">@p.UnitPrice.ToString("C", culture)</span>
+                                        <span class="price-tag__original">@p.OriginalPrice!.Value.ToString("C", culture)</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="price-tag">
+                                        <span class="price-tag__current">@unitPrice.ToString("C", culture)</span>
+                                    </div>
+                                }
                             </div>
 
                             <div class="flex items-center gap-3">

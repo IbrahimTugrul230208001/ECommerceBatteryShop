@@ -85,10 +85,23 @@ namespace ECommerceBatteryShop.Controllers
                     priceMap.TryGetValue(i.ProductId, out decimal basePrice);   // <-- non-nullable
                     var priceWithKdvAndRate = basePrice * (1 + kdvRate) * rate;
 
+                    // Find active discount
+                    var now = DateTime.UtcNow;
+                    var activeDiscount = i.Product?.Discounts?
+                        .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
+                        .OrderByDescending(d => d.DiscountPercentage)
+                        .FirstOrDefault();
+                    var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
+                    var finalPrice = discountPct > 0
+                        ? Math.Round((decimal)priceWithKdvAndRate * (1 - discountPct / 100m), 2)
+                        : (decimal)priceWithKdvAndRate;
+
                     return new FavoriteItemViewModel
                     {
                         ProductId = i.ProductId,
-                        UnitPrice = (decimal)priceWithKdvAndRate,
+                        UnitPrice = finalPrice,
+                        OriginalPrice = discountPct > 0 ? (decimal)priceWithKdvAndRate : null,
+                        DiscountPercentage = discountPct,
                         Name = i.Product?.Name ?? string.Empty,
                         ImageUrl = i.Product?.ImageUrl,
                         Slug = i.Product?.Slug,

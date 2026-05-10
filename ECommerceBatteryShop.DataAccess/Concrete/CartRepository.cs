@@ -22,7 +22,7 @@ public class CartRepository : ICartRepository
 
     private IQueryable<Cart> GetCartQuery(int? userId, string? anonId)
     {
-        var query = _ctx.Carts.Include(c => c.Items).ThenInclude(i => i.Product).AsQueryable();
+        var query = _ctx.Carts.Include(c => c.Items).ThenInclude(i => i.Product).ThenInclude(p => p!.Discounts).AsQueryable();
         if (userId.HasValue)
             return query.Where(c => c.UserId == userId.Value);
         else

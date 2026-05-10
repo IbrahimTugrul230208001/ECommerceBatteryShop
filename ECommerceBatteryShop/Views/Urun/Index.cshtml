@@ -167,7 +167,7 @@ else
                     <div class="mt-1 space-y-2">
                         <h3 class="hover:underline text-sm font-semibold text-gray-900 line-clamp-2 min-h-[2.75rem]">@product.Name</h3>
                         <div class="flex items-baseline gap-2">
-                            <span class="text-lg font-bold">@price</span>
+                            @await Html.PartialAsync("~/Views/Components/_PriceTag.cshtml", product)
                         </div>
                         @* Rating placeholder *@
                     </div>

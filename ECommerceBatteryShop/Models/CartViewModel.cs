@@ -12,6 +12,11 @@ public class CartItemViewModel
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }
     public decimal LineTotal => UnitPrice * Quantity;
+
+    // Discount support
+    public decimal DiscountPercentage { get; set; }
+    public decimal? OriginalUnitPrice { get; set; }
+    public bool HasDiscount => DiscountPercentage > 0 && OriginalUnitPrice.HasValue;
 }
 
 public class CartViewModel

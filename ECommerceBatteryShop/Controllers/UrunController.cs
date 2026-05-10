@@ -126,17 +126,33 @@ namespace ECommerceBatteryShop.Controllers
                     : (int)Math.Ceiling(totalCount / (double)PageSize);
             }
 
-            var mapped = products.Select(p => new ProductViewModel
+            var mapped = products.Select(p =>
             {
-                Id = p.Id,
-                Name = p.Name,
-                Price = (_currency.ConvertUsdToTry(p.Price /* USD */, fx) + p.ExtraAmount)* (1 + KdvRate), // displayed in TRY or USD
-                Rating = p.Rating,
-                ImageUrl = p.ImageUrl,
-                IsFavorite = favoriteIds.Contains(p.Id),
-                Slug= p.Slug,
-                StockQuantity = p.Inventory?.Quantity ?? 0
-            }).OrderBy(p=>p.Id).ToList();
+                var basePrice = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate);
+                var now = DateTime.UtcNow;
+                var activeDiscount = p.Discounts?
+                    .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
+                    .OrderByDescending(d => d.DiscountPercentage)
+                    .FirstOrDefault();
+                var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
+                var finalPrice = discountPct > 0
+                    ? Math.Round(basePrice * (1 - discountPct / 100m), 2)
+                    : basePrice;
+
+                return new ProductViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = finalPrice,
+                    OriginalPrice = discountPct > 0 ? basePrice : null,
+                    DiscountPercentage = discountPct,
+                    Rating = p.Rating,
+                    ImageUrl = p.ImageUrl,
+                    IsFavorite = favoriteIds.Contains(p.Id),
+                    Slug = p.Slug,
+                    StockQuantity = p.Inventory?.Quantity ?? 0
+                };
+            }).OrderBy(p => p.Id).ToList();
 
             // for the view to persist current filters & "clear" button state
             ViewBag.MinPrice = minPrice;
@@ -233,13 +249,27 @@ namespace ECommerceBatteryShop.Controllers
             ViewData["OgImage"] = productImage;
             ViewData["Keywords"] = $"{product.Name}, lityum pil, enerji depolama";
 
+            // Compute discount for main product
+            var mainBasePrice = (_currency.ConvertUsdToTry(product.Price, fx) + product.ExtraAmount) * (1 + KdvRate);
+            var now = DateTime.UtcNow;
+            var mainActiveDiscount = product.Discounts?
+                .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
+                .OrderByDescending(d => d.DiscountPercentage)
+                .FirstOrDefault();
+            var mainDiscountPct = mainActiveDiscount?.DiscountPercentage ?? 0m;
+            var mainFinalPrice = mainDiscountPct > 0
+                ? Math.Round(mainBasePrice * (1 - mainDiscountPct / 100m), 2)
+                : mainBasePrice;
+
             var vm = new ProductDetailsViewModel
             {
                 product = new ProductViewModel
                 {
                     Id = product.Id,
                     Name = product.Name,
-                    Price = (_currency.ConvertUsdToTry(product.Price, fx) + product.ExtraAmount) * (1 + KdvRate),
+                    Price = mainFinalPrice,
+                    OriginalPrice = mainDiscountPct > 0 ? mainBasePrice : null,
+                    DiscountPercentage = mainDiscountPct,
                     Rating = product.Rating,
                     ImageUrl = product.ImageUrl ?? string.Empty,
                     IsFavorite = favoriteIds.Contains(product.Id),
@@ -250,16 +280,31 @@ namespace ECommerceBatteryShop.Controllers
                 RelatedProducts = relatedProducts
                     .Where(p => p.Id != product.Id)
                     .Take(16)
-                    .Select(p => new ProductViewModel
+                    .Select(p =>
                     {
-                        Id = p.Id,
-                        Name = p.Name,
-                        Price = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate),
-                        Rating = p.Rating,
-                        ImageUrl = p.ImageUrl ?? string.Empty,
-                        IsFavorite = favoriteIds.Contains(p.Id),
-                        StockQuantity = p.Inventory?.Quantity ?? 0,
-                        Slug = p.Slug
+                        var relBasePrice = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate);
+                        var relActiveDiscount = p.Discounts?
+                            .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
+                            .OrderByDescending(d => d.DiscountPercentage)
+                            .FirstOrDefault();
+                        var relDiscountPct = relActiveDiscount?.DiscountPercentage ?? 0m;
+                        var relFinalPrice = relDiscountPct > 0
+                            ? Math.Round(relBasePrice * (1 - relDiscountPct / 100m), 2)
+                            : relBasePrice;
+
+                        return new ProductViewModel
+                        {
+                            Id = p.Id,
+                            Name = p.Name,
+                            Price = relFinalPrice,
+                            OriginalPrice = relDiscountPct > 0 ? relBasePrice : null,
+                            DiscountPercentage = relDiscountPct,
+                            Rating = p.Rating,
+                            ImageUrl = p.ImageUrl ?? string.Empty,
+                            IsFavorite = favoriteIds.Contains(p.Id),
+                            StockQuantity = p.Inventory?.Quantity ?? 0,
+                            Slug = p.Slug
+                        };
                     }).ToList()
             };
 
