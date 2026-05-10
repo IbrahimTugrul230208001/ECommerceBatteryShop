@@ -78,7 +78,7 @@
     var ogImage = ViewData["OgImage"] as string;
     if (string.IsNullOrWhiteSpace(ogImage))
     {
-        ogImage = Url.Content("~/img/logo.png");
+        ogImage = Url.Content("~/img/logo.webp");
     }
     else if (!Uri.TryCreate(ogImage, UriKind.Absolute, out _))
     {
@@ -253,7 +253,7 @@
         <div>
             <a href="/"
                class="flex-none text-xl font-bold hover:text-gray-300">
-                <img src="~/img/pilbataryamarketimlogo.png" alt="Logo" class="h-16 w-auto object-contains p-1"/>
+                <img src="~/img/pilbataryamarketimlogo.webp" alt="Logo" class="h-16 w-auto object-contains p-1"/>
             </a>
 
         </div>
@@ -490,7 +490,7 @@
         <!-- Brand -->
         <div>
             <a href="/" class="inline-flex items-end gap-2 text-white text-xl font-extrabold">
-                <img src="~/img/pilbataryamarketimlogo.png" alt="Logo" class="h-16 w-auto object-contain"/>
+                <img src="~/img/pilbataryamarketimlogo.webp" alt="Logo" class="h-16 w-auto object-contain"/>
             </a>
             <p class="mt-3 text-sm text-gray-400">
                 Her cihaza doğru güç. Hızlı gönderim, güvenli alışveriş.
@@ -538,11 +538,11 @@
     </div>
     <div class="flex justify-center mb-6">
         <div class="flex items-center gap-3">
-            <img src="~/img/mastercard.png" alt="Mastercard" class="h-8 lg:h-10 w-auto object-contain"/>
-            <img src="~/img/visa.png" alt="Visa" class="h-8 lg:h-10 w-auto object-contain"/>
-            <img src="~/img/paywithiyzico.png" alt="Iyzico" class="h-8 lg:h-10 w-auto object-contain"/>
-            <img src="~/img/3dsecure.png" alt="3d secure" class="h-8 lg:h-10 w-auto object-contain"/>
-            <img src="~/img/go.png" alt="Guvenli ode" class="h-8 lg:h-10 w-auto object-contain"/>
+            <img src="~/img/mastercard.webp" alt="Mastercard" class="h-8 lg:h-10 w-auto object-contain"/>
+            <img src="~/img/visa.webp" alt="Visa" class="h-8 lg:h-10 w-auto object-contain"/>
+            <img src="~/img/paywithiyzico.webp" alt="Iyzico" class="h-8 lg:h-10 w-auto object-contain"/>
+            <img src="~/img/3dsecure.webp" alt="3d secure" class="h-8 lg:h-10 w-auto object-contain"/>
+            <img src="~/img/go.webp" alt="Guvenli ode" class="h-8 lg:h-10 w-auto object-contain"/>
         </div>
     </div>
     <a href="https://api.whatsapp.com/send/?phone=905013176653"

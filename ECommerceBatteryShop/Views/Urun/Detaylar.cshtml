@@ -26,7 +26,7 @@
                      bgH: 0,
                      lensSize: 180,
                      zoom: 2.5,
-                     imgSrc: '/img/@(string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "temsili.png" : Model.product.ImageUrl)',
+                     imgSrc: '/img/@(string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "temsili.webp" : Model.product.ImageUrl)',
                      onMove(e) {
                          const wrap = this.$refs.zoomWrap;
                          const img  = this.$refs.zoomImg;
@@ -286,7 +286,7 @@
             </div>
 
 
-            <img class="h-10 w-auto mt-6" src="~/img/paywithiyzico.png" alt="iyzico"/>
+            <img class="h-10 w-auto mt-6" src="~/img/paywithiyzico.webp" alt="iyzico"/>
 
 
         </section>
@@ -481,7 +481,7 @@
                         <!-- Image -->
                         <a href="@Url.Action("Detaylar", "Urun", new { slug = product.Slug })" class="block p-3 pb-0">
                             <div class="h-32 grid place-items-center overflow-hidden">
-                                <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.png" : product.ImageUrl)"
+                                <img src="/img/@(string.IsNullOrWhiteSpace(product.ImageUrl) ? "temsili.webp" : product.ImageUrl)"
                                      alt="@(string.IsNullOrWhiteSpace(product.Name) ? "Görsel yok" : product.Name)"
                                      class="h-28 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]"/>
                             </div>

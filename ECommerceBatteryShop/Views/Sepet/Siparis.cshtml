@@ -24,7 +24,7 @@
 @functions {
     public static string NormalizeImg(string? u)
     {
-        if (string.IsNullOrWhiteSpace(u)) return "/img/temsili.png";
+        if (string.IsNullOrWhiteSpace(u)) return "/img/temsili.webp";
         u = u.Replace("\\", "/").Trim();
         if (u.StartsWith("/img/", System.StringComparison.OrdinalIgnoreCase)) return u;
         if (u.StartsWith("img/", System.StringComparison.OrdinalIgnoreCase)) return "/" + u;
@@ -123,16 +123,16 @@
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-slate-900">Ödeme Yöntemi</h2>
                         <div x-show="method==='card'" class="flex items-center space-x-5">
-                            <img src="/img/3dsecure.jpeg"
+                            <img src="/img/3dsecure.webp"
                                  alt="Pay with iyzico"
                                  class="h-10 w-auto"
                                  loading="lazy" />
-                            <img src="/img/go.png"
+                            <img src="/img/go.webp"
                                  alt="Pay with iyzico"
                                  class="h-6 w-auto"
                                  loading="lazy" />
 
-                            <img src="/img/paywithiyzico.png"
+                            <img src="/img/paywithiyzico.webp"
                                  alt="Pay with iyzico"
                                  class="h-10 w-auto"
                                  loading="lazy" />
