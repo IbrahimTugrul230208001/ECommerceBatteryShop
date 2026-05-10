@@ -67,19 +67,38 @@ namespace ECommerceBatteryShop.Controllers
             };
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
-            ProductViewModel Map(Product p) => new()
+            ProductViewModel Map(Product p)
             {
-                Id = p.Id,
-                Name = p.Name,
-                Price = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate),
-                Rating = p.Rating,
-                ImageUrl = p.ImageUrl ?? string.Empty,
-                ExtraAmount = p.ExtraAmount,
-                Description = p.Description ?? string.Empty,
-                IsFavorite = favoriteIds.Contains(p.Id),
-                Slug = p.Slug,
-                StockQuantity = p.Inventory?.Quantity ?? 0
-            };
+                var basePrice = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate);
+
+                // Find the best active discount for this product
+                var now = DateTime.UtcNow;
+                var activeDiscount = p.Discounts?
+                    .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
+                    .OrderByDescending(d => d.DiscountPercentage)
+                    .FirstOrDefault();
+
+                var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
+                var finalPrice = discountPct > 0
+                    ? Math.Round(basePrice * (1 - discountPct / 100m), 2)
+                    : basePrice;
+
+                return new ProductViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = finalPrice,
+                    OriginalPrice = discountPct > 0 ? basePrice : null,
+                    DiscountPercentage = discountPct,
+                    Rating = p.Rating,
+                    ImageUrl = p.ImageUrl ?? string.Empty,
+                    ExtraAmount = p.ExtraAmount,
+                    Description = p.Description ?? string.Empty,
+                    IsFavorite = favoriteIds.Contains(p.Id),
+                    Slug = p.Slug,
+                    StockQuantity = p.Inventory?.Quantity ?? 0
+                };
+            }
 
 
             var sections = new List<ProductSectionViewModel>();

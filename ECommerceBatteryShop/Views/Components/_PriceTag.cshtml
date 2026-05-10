@@ -1,0 +1,21 @@
+@using System.Globalization
+@model ECommerceBatteryShop.Models.ProductViewModel
+
+@{
+    var culture = new CultureInfo("tr-TR");
+}
+
+@if (Model.HasDiscount)
+{
+    <div class="price-tag price-tag--discounted">
+        <span class="price-tag__badge">-%@((int)Model.DiscountPercentage)</span>
+        <span class="price-tag__current">@Model.Price.ToString("C", culture)</span>
+        <span class="price-tag__original">@Model.OriginalPrice!.Value.ToString("C", culture)</span>
+    </div>
+}
+else
+{
+    <div class="price-tag">
+        <span class="price-tag__current">@Model.Price.ToString("C", culture)</span>
+    </div>
+}

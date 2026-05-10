@@ -19,5 +19,10 @@ namespace ECommerceBatteryShop.Models
         public int StockQuantity { get; set; }
         public bool IsInStock => StockQuantity > 0;
 
+        // Discount support
+        public decimal DiscountPercentage { get; set; }
+        public decimal? OriginalPrice { get; set; }
+        public bool HasDiscount => DiscountPercentage > 0 && OriginalPrice.HasValue;
+
     }
 }

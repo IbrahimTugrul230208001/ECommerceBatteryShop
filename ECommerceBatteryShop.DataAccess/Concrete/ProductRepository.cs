@@ -37,6 +37,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
                 IQueryable<Product> query = _ctx.Products
                     .AsNoTracking()
                     .Include(p => p.Inventory)
+                    .Include(p => p.Discounts)
                     .OrderBy(p => p.Id)
                     .ThenBy(p => p.Name);
                 // tie-breaker to keep stable plans
@@ -76,6 +77,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
         {
             return await _ctx.Products
                 .Include(p => p.Inventory)
+                .Include(p => p.Discounts)
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
         }
 
@@ -85,6 +87,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             var normalized = name.Trim();
             return await _ctx.Products
                 .Include(p => p.Inventory)
+                .Include(p => p.Discounts)
                 .FirstOrDefaultAsync(p => p.Name == normalized, ct);
         }
 
@@ -94,6 +97,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             var normalized = slug.Trim();
             return await _ctx.Products
                 .Include(p => p.Inventory)
+                .Include(p => p.Discounts)
                 .FirstOrDefaultAsync(p => p.Slug == normalized, ct);
         }
 
@@ -112,7 +116,8 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             {
                 IQueryable<Product> query = _ctx.Products
                     .AsNoTracking()
-                    .Include(p => p.Inventory);
+                    .Include(p => p.Inventory)
+                    .Include(p => p.Discounts);
 
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
@@ -210,6 +215,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             var query = _ctx.Products
                 .AsNoTracking()
                 .Include(p => p.Inventory)
+                .Include(p => p.Discounts)
                 .Where(p => p.ProductCategories.Any(pc => categoryIds.Contains(pc.CategoryId)));
 
             if (minUsd.HasValue)
@@ -235,6 +241,7 @@ namespace ECommerceBatteryShop.DataAccess.Concrete
             return await _ctx.Products
                 .AsNoTracking()
                 .Include(p => p.Inventory)
+                .Include(p => p.Discounts)
                 .OrderByDescending(p => p.Id)
                 .Take(16)
                 .ToListAsync();
