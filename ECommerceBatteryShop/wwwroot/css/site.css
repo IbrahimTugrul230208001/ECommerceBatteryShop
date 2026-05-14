@@ -12,7 +12,11 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
@@ -32,7 +36,6 @@ html {
 .price-tag__current {
   font-size: 1rem;
   font-weight: 700;
-  color: #111827;
   line-height: 1.2;
 }
 
@@ -44,7 +47,6 @@ html {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #dc2626;
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
@@ -66,13 +68,16 @@ html {
   .price-tag__current {
     font-size: 1.125rem;
   }
+
   .price-tag--discounted .price-tag__current {
     font-size: 1.15rem;
   }
+
   .price-tag__badge {
     font-size: 0.75rem;
     padding: 0.15rem 0.4rem;
   }
+
   .price-tag__original {
     font-size: 0.85rem;
   }
