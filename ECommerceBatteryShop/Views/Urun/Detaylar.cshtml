@@ -14,7 +14,7 @@
     <div x-data="{ qty:1, added:false, inc(){ this.qty++; }, dec(){ if(this.qty>1) this.qty--; }, sanitize(){ this.qty=parseInt(this.qty||1,10); if(this.qty<1) this.qty=1; } }" class="flex flex-col lg:flex-row justify-between items-start gap-10">
 
         <!-- Left: Image / gallery -->
-        <section class="relative rounded-md border border-slate-300 bg-white p-4 sm:p-6 w-2xl"
+        <section class="relative rounded-md border border-slate-300 bg-white p-4 sm:p-6 w-full lg:w-2xl"
                  x-data="{
                      zooming: false,
                      lensW: 0, lensH: 0, lensX: 0, lensY: 0,
@@ -162,14 +162,20 @@
 
                     <!-- Favorite Button -->
                     @await Html.PartialAsync("~/Views/Components/_FavoriteButton.cshtml", Model.product, new ViewDataDictionary(ViewData) { { "ButtonClass", "relative h-12 w-12 grid place-items-center rounded-xl border cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400" }, { "ActiveClass", "text-rose-600 border-rose-300 bg-rose-50" }, { "InactiveClass", "text-gray-700 border-gray-300 hover:bg-gray-100" }, { "SvgClass", "h-6 w-6" } })
+
+                     <!-- Teklif Al Button (Mobile) -->
+                    <a href="https://api.whatsapp.com/send/?phone=905013176653" target="_blank" class="w-1xl inline-flex hover:bg-orange-500 rounded-xl border border-orange-500 items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-orange-500 hover:text-white hover:shadow-md cursor-pointer transition-all duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-yellow-400/30">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M22 10V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H14" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M19.5 7C20.8807 7 22 5.88071 22 4.5C22 3.11929 20.8807 2 19.5 2C18.1193 2 17 3.11929 17 4.5C17 5.88071 18.1193 7 19.5 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M15.9965 11H16.0054" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M11.9955 11H12.0045" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M7.99451 11H8.00349" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>                        <span>Satıcıya sor</span>
+                     </a>
+
                 </div>
 
                 <!-- CTA buttons -->
                 <div class="w-full">
                     @await Html.PartialAsync("~/Views/Components/_AddToCartButtons.cshtml", Model.product, new ViewDataDictionary(ViewData) { 
                         { "DynamicQuantity", true }, 
-                        { "ButtonClass", "h-12 w-2xl rounded-xl text-xl font-bold shadow-sm transition-all duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-400/50 cursor-pointer" }, 
-                        { "NormalClass", "bg-orange-500 text-white hover:bg-orange-6f00/90 hover:shadow-orange-600/30" },
+                        { "ButtonClass", "h-12 w-full lg:w-2xl rounded-xl text-xl font-bold shadow-sm transition-all duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-400/50 cursor-pointer" }, 
+                        { "NormalClass", "bg-orange-500 text-white hover:bg-orange-600/90 hover:shadow-orange-600/30" },
                         { "LoadingClass", "bg-orange-500 text-orange-200" },
                         { "SuccessClass", "bg-emerald-600 text-white" },
                         { "SvgColor", "text-white h-6 w-6" },

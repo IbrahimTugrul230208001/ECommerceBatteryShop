@@ -157,7 +157,7 @@ else
 
     @if (totalPages > 1)
     {
-        var prtDisabled = currentPage <= 1;
+        var prevDisabled = currentPage <= 1;
         var nextDisabled = currentPage >= totalPages;
         var maxPageButtons = 5;
         var startPage = Math.Max(1, currentPage - 2);
