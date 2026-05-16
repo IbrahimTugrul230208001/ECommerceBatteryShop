@@ -1,0 +1,44 @@
+@model ECommerceBatteryShop.Models.ProductViewModel
+@{
+    var isFavoriteStr = Model.IsFavorite ? "true" : "false";
+    
+    var buttonClass = ViewData["ButtonClass"]?.ToString() ?? "absolute top-2 right-2 z-10 h-8 w-8 grid place-items-center rounded-full cursor-pointer shadow-sm backdrop-blur-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400";
+    var activeClass = ViewData["ActiveClass"]?.ToString() ?? "text-rose-500 bg-white shadow-md";
+    var inactiveClass = ViewData["InactiveClass"]?.ToString() ?? "text-gray-600 bg-white/80 hover:bg-white hover:text-rose-400";
+    var svgClass = ViewData["SvgClass"]?.ToString() ?? "h-4 w-4";
+}
+
+<button
+  type="button"
+  x-data="{ fav: @isFavoriteStr, busy: false }"
+  x-on:click.prevent.stop="
+    if (busy) return;
+    busy = true;
+    fav = !fav;
+    setTimeout(() => busy = false, 300);
+  "
+  hx-post="/Favori/Toggle"
+  :hx-vals="JSON.stringify({ productId: @Model.Id })"
+  hx-swap="none"
+  :aria-pressed="fav.toString()"
+  :class="fav ? '@activeClass' : '@inactiveClass'"
+  class="@buttonClass">
+  <span class="sr-only" x-text="fav ? 'Favorilerden çıkar' : 'Favorilere ekle'"></span>
+  <div class="relative @svgClass">
+    <!-- Outline -->
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="absolute inset-0 @svgClass transition-all duration-200 ease-out"
+         :class="fav ? 'opacity-0 scale-90' : 'opacity-100 scale-100'"
+         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+    <!-- Filled -->
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="absolute inset-0 @svgClass transition-all duration-200 ease-out"
+         :class="fav ? 'opacity-100 scale-100' : 'opacity-0 scale-110'"
+         viewBox="0 0 24 24" fill="currentColor">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+  </div>
+</button>

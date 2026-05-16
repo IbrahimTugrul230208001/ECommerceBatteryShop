@@ -3,19 +3,30 @@
 
 @{
     var culture = new CultureInfo("tr-TR");
+    var priceClass = ViewData["PriceClass"] as string ?? "text-[1.05rem] lg:text-[1.15rem]";
+    var originalPriceClass = ViewData["OriginalPriceClass"] as string ?? "text-[0.8rem] lg:text-[0.85rem]";
+    var regularPriceClass = ViewData["RegularPriceClass"] as string ?? "text-base lg:text-lg";
+    var discountTag = ViewData["discountTag"] as string ?? "";
 }
 
 @if (Model.HasDiscount)
 {
-    <div class="price-tag price-tag--discounted">
-    <span class="price-tag__badge bg-red-700/90">-%@((int)Model.DiscountPercentage)</span>
-        <span class="price-tag__current text-red-700">@Model.Price.ToString("C", culture)</span>
-        <span class="price-tag__original">@Model.OriginalPrice!.Value.ToString("C", culture)</span>
+    <div class="flex items-center gap-1.5 flex-wrap">
+    @if (discountTag != "")
+        {
+            <span
+                class="inline-flex items-center justify-center text-white text-[0.7rem] lg:text-sm font-bold px-1.5 py-0.5 rounded leading-none whitespace-nowrap bg-red-700/90">-%@((int)Model.DiscountPercentage)</span>
+        }
+        <span
+            class="@originalPriceClass text-gray-400 line-through font-medium leading-tight">@Model.OriginalPrice!.Value.ToString("C",
+        culture)</span>
+        <span class="@priceClass font-bold leading-tight text-red-700">@Model.Price.ToString("C", culture)</span>
+
     </div>
 }
 else
 {
-    <div class="price-tag">
-    <span class="price-tag__current">@Model.Price.ToString("C", culture)</span>
+    <div class="flex items-center gap-1.5 flex-wrap">
+    <span class="@regularPriceClass font-bold leading-tight">@Model.Price.ToString("C", culture)</span>
 </div>
 }
