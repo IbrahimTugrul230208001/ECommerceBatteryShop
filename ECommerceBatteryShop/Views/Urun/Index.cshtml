@@ -79,7 +79,7 @@
 else
 {
 
-    <div class="mx-auto py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
     <h1 class="text-3xl font-bold mb-0">
         @if (!string.IsNullOrWhiteSpace(Model.SearchQuery))
             {
@@ -134,7 +134,7 @@ else
 
     @if (totalCount > 0)
     {
-        <div class="mb-4 text-sm text-slate-600 w-7xl mx-auto">
+        <div class="mb-4 text-sm text-slate-600 max-w-7xl mx-auto">
     @if (showingFrom == showingTo)
             {
                 <span>@showingFrom.</span>
@@ -148,7 +148,7 @@ else
     }
 
     <!-- PRODUCT GRID -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-20 w-7xl mx-auto">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-20 max-w-7xl mx-auto">
     @foreach (var product in products)
         {
             @await Html.PartialAsync("~/Views/Components/_ProductCard.cshtml", product)
