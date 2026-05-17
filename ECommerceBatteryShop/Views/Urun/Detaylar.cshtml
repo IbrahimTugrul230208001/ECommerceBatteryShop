@@ -5,7 +5,35 @@
     var productInStock = Model.product.StockQuantity > 0;
     var productStockText = productInStock ? "Stokta var" : "Stokta yok";
     var productStockClass = productInStock ? "text-emerald-600" : "text-rose-600";
+    
+    var strippedDescription = string.IsNullOrWhiteSpace(Model.product.Description) 
+        ? "" 
+        : System.Text.RegularExpressions.Regex.Replace(Model.product.Description, "<.*?>", string.Empty)
+            .Replace("\"", "\\\"").Replace("\r", "").Replace("\n", " ");
 }
+
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org/",
+  "@@type": "Product",
+  "name": "@Html.Raw(Model.product.Name?.Replace("\"", "\\\""))",
+  "image": [
+    "https://pilbataryamarketim.com/img/@(string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "temsili.webp" : Model.product.ImageUrl)"
+   ],
+  "description": "@Html.Raw(strippedDescription)",
+  "brand": {
+    "@@type": "Brand",
+    "name": "Pil Batarya Marketim"
+  },
+  "offers": {
+    "@@type": "Offer",
+    "url": "https://pilbataryamarketim.com/@Model.product.Slug",
+    "priceCurrency": "TRY",
+    "price": "@Model.product.Price.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)",
+    "availability": "@(productInStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock")"
+  }
+}
+</script>
 
 <main class="bg-white min-h-screen py-30 px-4 lg:px-40">
 <div class="mx-auto">

@@ -343,7 +343,7 @@ namespace ECommerceBatteryShop.Controllers
             if (string.IsNullOrWhiteSpace(buyerName)) buyerName = "Belirtilmedi";
             if (string.IsNullOrWhiteSpace(buyerPhone)) buyerPhone = "+90 000 000 00 00";
             if (string.IsNullOrWhiteSpace(buyerAddress)) buyerAddress = "Belirtilmedi";
-            buyerEmail = string.IsNullOrWhiteSpace(buyerEmail) ? "info@dayilyenerji.com" : buyerEmail;
+            buyerEmail = string.IsNullOrWhiteSpace(buyerEmail) ? "info@pilbataryamarketim.com" : buyerEmail;
 
             var shippingFee = orderItems.Any(i => i.UnitPrice > 0m)
                 ? (shipping ?? DefaultShippingFee)

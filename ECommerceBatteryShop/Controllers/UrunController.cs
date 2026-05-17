@@ -52,7 +52,7 @@ namespace ECommerceBatteryShop.Controllers
             const decimal KdvRate = 0.20m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
-            var contextTitle = "Dayily Enerji Ürünleri";
+            var contextTitle = "Pil Batarya Marketim Ürünleri";
             if (!string.IsNullOrWhiteSpace(term))
             {
                 contextTitle = $"\"{term}\" için Arama Sonuçları";
@@ -62,12 +62,12 @@ namespace ECommerceBatteryShop.Controllers
                 contextTitle = $"{categoryName} Ürünleri";
             }
 
-            ViewData["Title"] = $"{contextTitle} | Dayily Enerji";
+            ViewData["Title"] = $"{contextTitle} | Pil Batarya Marketim";
             ViewData["Description"] = !string.IsNullOrWhiteSpace(term)
-                ? $"Dayily Enerji'de \"{term}\" aramasıyla Li-ion ve LiFePO4 pil çeşitlerini, BMS çözümlerini ve enerji depolama ekipmanlarını inceleyin."
+                ? $"Pil Batarya Marketim'de \"{term}\" aramasıyla Li-ion ve LiFePO4 pil çeşitlerini, BMS çözümlerini ve enerji depolama ekipmanlarını inceleyin."
                 : !string.IsNullOrWhiteSpace(categoryName)
-                 ? $"Dayily Enerji'nin {categoryName} kategorisindeki Li-ion pil, LiFePO4 batarya, BMS ve enerji depolama ürünlerini keşfedin."
-                   : "Dayily Enerji'nin Li-ion pil, LiFePO4 batarya, BMS ve enerji depolama ürünlerini filtreleyerek keşfedin.";
+                 ? $"Pil Batarya Marketim'in {categoryName} kategorisindeki Li-ion pil, LiFePO4 batarya, BMS ve enerji depolama ürünlerini keşfedin."
+                   : "Pil Batarya Marketim'in Li-ion pil, LiFePO4 batarya, BMS ve enerji depolama ürünlerini filtreleyerek keşfedin.";
             ViewData["Keywords"] = "lityum pil ürünleri, lifepo4 batarya, bms devresi, enerji depolama mağazası";
             ViewData["Canonical"] = Request.GetDisplayUrl();
             ViewData["OgImage"] = Url.Content("~/img/dayı_amber_banner.jpg");
@@ -236,14 +236,14 @@ namespace ECommerceBatteryShop.Controllers
             }
             else
             {
-                productDescription = $"{product.Name} ürününü Dayily Enerji'de uygun fiyatlı lityum pil ve enerji depolama çözümleriyle keşfedin.";
+                productDescription = $"{product.Name} ürününü Pil Batarya Marketim'de uygun fiyatlı lityum pil ve enerji depolama çözümleriyle keşfedin.";
             }
 
             var productImage = string.IsNullOrWhiteSpace(product.ImageUrl)
                 ? Url.Content("~/img/placeholder-image.svg")
                 : product.ImageUrl;
 
-            ViewData["Title"] = $"{product.Name} | Dayily Enerji";
+            ViewData["Title"] = $"{product.Name} | Pil Batarya Marketim";
             ViewData["Description"] = productDescription;
             ViewData["Canonical"] = Request.GetDisplayUrl();
             ViewData["OgImage"] = productImage;
