@@ -144,6 +144,54 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> FavoriAnalitikleri(int page = 1, int pageSize = 20,
+            CancellationToken ct = default)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0 || pageSize > 50) pageSize = 20;
+
+            var totalCount = await _context.FavoriteLists
+                .Where(f => f.Items.Any())
+                .CountAsync(ct);
+
+            var favorites = await _context.FavoriteLists
+                .AsNoTracking()
+                .Include(f => f.User)
+                .Include(f => f.Items).ThenInclude(i => i.Product)
+                .Where(f => f.Items.Any())
+                .OrderByDescending(f => f.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            var vm = new AnonymousFavoritesViewModel
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalFavoriteCount = totalCount,
+                Favorites = favorites.Select((f, idx) => new AnonymousFavoriteSummary
+                {
+                    FavoriteId = f.Id,
+                    Label = $"Favori #{(page - 1) * pageSize + idx + 1}",
+                    AnonId = f.AnonId,
+                    UserEmail = f.User?.Email,
+                    CreatedAt = f.CreatedAt,
+                    TotalItems = f.Items.Count,
+                    TotalValue = f.Items.Sum(i => (i.Product?.Price ?? 0)),
+                    Items = f.Items.Select(i => new AnonymousFavoriteItemViewModel
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.Product?.Name,
+                        ImageUrl = i.Product?.ImageUrl,
+                        UnitPrice = i.Product?.Price ?? 0
+                    }).ToList()
+                }).ToList()
+            };
+
+            return View(vm);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> SiparisPaneli()
         {
             var orders = await _orderRepository.GetOrdersAsync();
