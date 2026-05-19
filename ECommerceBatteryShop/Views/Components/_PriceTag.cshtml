@@ -3,9 +3,9 @@
 
 @{
     var culture = new CultureInfo("tr-TR");
-    var priceClass = ViewData["PriceClass"] as string ?? "text-[1.05rem] lg:text-[1.15rem]";
+    var priceClass = ViewData["PriceClass"] as string ?? "text-[0.85rem] lg:text-[1.15rem]";
     var originalPriceClass = ViewData["OriginalPriceClass"] as string ?? "text-[0.8rem] lg:text-[0.85rem]";
-    var regularPriceClass = ViewData["RegularPriceClass"] as string ?? "text-base lg:text-lg";
+    var regularPriceClass = ViewData["RegularPriceClass"] as string ?? "text-[0.8rem] lg:text-lg";
     var discountTag = ViewData["discountTag"] as string ?? "";
 }
 
