@@ -1,6 +1,7 @@
 @using System.Globalization
 @using Microsoft.AspNetCore.Html
 @model ECommerceBatteryShop.Models.ProductDetailsViewModel
+@inject Microsoft.AspNetCore.Mvc.ViewFeatures.IFileVersionProvider FileVersionProvider
 @{
     var productInStock = Model.product.StockQuantity > 0;
     var productStockText = productInStock ? "Stokta var" : "Stokta yok";
@@ -48,7 +49,7 @@
                      lensW: 0, lensH: 0, lensX: 0, lensY: 0,
                      bgPosX: 0, bgPosY: 0, bgW: 0, bgH: 0,
                      zoom: 2.5,
-                     imgSrc: '/img/@(string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "temsili.webp" : Model.product.ImageUrl)',
+                     imgSrc: '@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/img/" + (string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "temsili.webp" : Model.product.ImageUrl))',
                      onMove(e) {
                          const wrap = this.$refs.zoomWrap;
                          const img = this.$refs.zoomImg;

@@ -1,6 +1,7 @@
 @model ECommerceBatteryShop.Models.CartViewModel
 @using System.Text.Json
 @using System.Linq
+@inject Microsoft.AspNetCore.Mvc.ViewFeatures.IFileVersionProvider FileVersionProvider
 @{
     ViewBag.Title = "Sepetim";
     var cookieMessage = Model.CookieMessage ?? "Çerezleri kabul etmediğiniz için sepetiniz kaydedilemiyor.";
@@ -12,13 +13,17 @@
 
 @functions {
 
-    public static string NormalizeImg(string? u)
+    public string NormalizeImg(string? u)
     {
-        if (string.IsNullOrWhiteSpace(u)) return "/img/temsili.png";
-        u = u.Replace("\\", "/").Trim();
-        if (u.StartsWith("/img/", StringComparison.OrdinalIgnoreCase)) return u;
-        if (u.StartsWith("img/", StringComparison.OrdinalIgnoreCase)) return "/" + u;
-        return "/img/" + u.TrimStart('/');
+        string path;
+        if (string.IsNullOrWhiteSpace(u)) path = "/img/temsili.png";
+        else {
+            u = u.Replace("\\", "/").Trim();
+            if (u.StartsWith("/img/", StringComparison.OrdinalIgnoreCase)) path = u;
+            else if (u.StartsWith("img/", StringComparison.OrdinalIgnoreCase)) path = "/" + u;
+            else path = "/img/" + u.TrimStart('/');
+        }
+        return FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, path);
     }
 
 }

@@ -1736,20 +1736,8 @@
   .text-\[0\.8rem\] {
     font-size: 0.8rem;
   }
-  .text-\[0\.9rem\] {
-    font-size: 0.9rem;
-  }
   .text-\[0\.75rem\] {
     font-size: 0.75rem;
-  }
-  .text-\[0\.85rem\] {
-    font-size: 0.85rem;
-  }
-  .text-\[0\.95rem\] {
-    font-size: 0.95rem;
-  }
-  .text-\[1\.05rem\] {
-    font-size: 1.05rem;
   }
   .text-\[10px\] {
     font-size: 10px;
@@ -3433,14 +3421,19 @@
       line-height: var(--tw-leading, var(--text-xl--line-height));
     }
   }
-  .lg\:text-\[0\.85rem\] {
+  .lg\:text-\[0\.9rem\] {
     @media (width >= 64rem) {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
   }
   .lg\:text-\[1\.15rem\] {
     @media (width >= 64rem) {
       font-size: 1.15rem;
+    }
+  }
+  .lg\:text-\[0\.1\.15rem\] {
+    @media (width >= 64rem) {
+      color: 0.1.15rem;
     }
   }
   .xl\:grid-cols-\[minmax\(0\,1fr\)_360px\] {
