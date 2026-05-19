@@ -99,7 +99,7 @@
                  x-on:mouseleave="zooming = false"
                  style="cursor: zoom-in;">
 
-                <img :src="imgSrc"
+                <img asp-append-version="true" :src="imgSrc"
                      x-ref="zoomImg"
                      alt="@(string.IsNullOrWhiteSpace(Model.product.Name) ? "Görsel yok" : Model.product.Name)"
                      class="max-h-full w-full object-contain select-none pointer-events-none"/>
@@ -276,9 +276,9 @@
             
 
             <div class="flex items-center gap-4 mt-6">
-                <img class="h-12 w-auto" src="~/img/3dsecure_blue.webp" alt="3D Secure"/>
-                <img class="h-8 w-auto" src="~/img/go.webp" alt="Güvenli Ödeme"/>
-                <img class="h-12 w-auto" src="~/img/paywithiyzico.webp" alt="Güvenli Ödeme"/>
+                <img asp-append-version="true" class="h-12 w-auto" src="~/img/3dsecure_blue.webp" alt="3D Secure"/>
+                <img asp-append-version="true" class="h-8 w-auto" src="~/img/go.webp" alt="Güvenli Ödeme"/>
+                <img asp-append-version="true" class="h-12 w-auto" src="~/img/paywithiyzico.webp" alt="Güvenli Ödeme"/>
             </div>
 
 

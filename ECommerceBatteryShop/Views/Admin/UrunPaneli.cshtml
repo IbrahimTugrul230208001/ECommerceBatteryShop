@@ -60,7 +60,7 @@
                             <a class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition hover:border-slate-300 hover:bg-slate-100" href="@Url.Action("UrunPaneli", "Admin", new { productId = item.Id, search = Model.SearchTerm })">
                                 <span class="flex items-center gap-3">
                                     <span class="h-9 w-9 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                                        <img src="@imagePath" alt="@item.Name" class="h-full w-full object-cover"/>
+                                        <img asp-append-version="true" src="@imagePath" alt="@item.Name" class="h-full w-full object-cover"/>
                                     </span>
                                     <span>
                                         <span class="block font-semibold">@item.Name</span>
@@ -138,7 +138,7 @@
                     <label asp-for="Image" class="block text-sm font-medium text-slate-700"></label>
                     <div class="mt-2 flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/80 p-8 text-center transition hover:border-slate-300">
                         <div class="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-inner">
-                            <img id="imagePreview" src="@existingImagePath" alt="Ürün önizleme" class="h-full w-full object-cover"/>
+                            <img asp-append-version="true" id="imagePreview" src="@existingImagePath" alt="Ürün önizleme" class="h-full w-full object-cover"/>
                         </div>
                         <div class="space-y-2 text-sm text-slate-500">
                             <p class="font-medium text-slate-700">Görselinizi sürükleyip bırakın veya tıklayarak seçin</p>
@@ -163,7 +163,7 @@
                         <label asp-for="Document" class="block text-sm font-medium text-slate-700"></label>
                         <div class="mt-2 flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/80 p-8 text-center transition hover:border-slate-300">
                             <div class="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-inner">
-                                <img id="docPreview" src="@existingDocumentPath" alt="Ürün önizleme" class="h-full w-full object-cover"/>
+                                <img asp-append-version="true" id="docPreview" src="@existingDocumentPath" alt="Ürün önizleme" class="h-full w-full object-cover"/>
                             </div>
                             <div class="space-y-2 text-sm text-slate-500">
                                 <p class="font-medium text-slate-700">Dokümanınızı sürükleyip bırakın veya tıklayarak seçin</p>
@@ -249,7 +249,7 @@
                 <div class="mt-4 space-y-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
                     <div class="flex items-start gap-3">
                         <div class="h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-inner">
-                            <img id="cardPreviewImage" src="@existingImagePath" alt="Kart önizleme" class="h-full w-full object-cover"/>
+                            <img asp-append-version="true" id="cardPreviewImage" src="@existingImagePath" alt="Kart önizleme" class="h-full w-full object-cover"/>
                         </div>
                         <div class="flex-1">
                             <p class="text-sm font-semibold text-slate-800" id="cardPreviewName">@(string.IsNullOrWhiteSpace(Model.Name) ? "Ürün adı buraya gelecek" : Model.Name)</p>

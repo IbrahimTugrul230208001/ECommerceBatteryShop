@@ -90,7 +90,7 @@
                             {
                                 var src = NormalizeImg(item.ImageUrl);
                                 <li class="relative">
-                                    <img src="@src" alt="@item.Name" loading="lazy" class="h-16 w-16 rounded-lg object-cover border border-slate-200" />
+                                    <img asp-append-version="true" src="@src" alt="@item.Name" loading="lazy" class="h-16 w-16 rounded-lg object-cover border border-slate-200" />
                                     <span class="absolute -top-2 -right-2 inline-flex items-center justify-center rounded-full bg-amber-500 text-white text-xs font-semibold w-6 h-6">@item.Quantity</span>
                                 </li>
                             }
@@ -123,16 +123,16 @@
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-slate-900">Ödeme Yöntemi</h2>
                         <div x-show="method==='card'" class="flex items-center space-x-5">
-                            <img src="/img/3dsecure.webp"
+                            <img asp-append-version="true" src="/img/3dsecure.webp"
                                  alt="Pay with iyzico"
                                  class="h-10 w-auto"
                                  loading="lazy" />
-                            <img src="/img/go.webp"
+                            <img asp-append-version="true" src="/img/go.webp"
                                  alt="Pay with iyzico"
                                  class="h-6 w-auto"
                                  loading="lazy" />
 
-                            <img src="/img/paywithiyzico.webp"
+                            <img asp-append-version="true" src="/img/paywithiyzico.webp"
                                  alt="Pay with iyzico"
                                  class="h-10 w-auto"
                                  loading="lazy" />
