@@ -9,6 +9,7 @@ namespace ECommerceBatteryShop.Models
         public string? SearchQuery { get; init; }
         public string? CategoryFilter { get; init; }
         public int CurrentPage { get; init; }
+        public string CategoryPath { get; init; } = string.Empty;
 
         public int TotalPages { get; init; }
 

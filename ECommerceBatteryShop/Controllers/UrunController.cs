@@ -29,14 +29,13 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet("/Urun/{categorySlug}")]
-        public async Task<IActionResult> Index(string categorySlug, string? search, string? q, 
+        public async Task<IActionResult> Index(string categorySlug, string? search, string? q,
                                          decimal? minPrice, decimal? maxPrice, string? sort,
-                                         int page = 1,
-                                         CancellationToken ct = default)
+                                         int page = 1, string? categoryPath, CancellationToken ct = default)
         {
             string categoryName = string.Empty;
             int? categoryId = null;
-            
+
             // Resolve category by slug if provided
             if (!string.IsNullOrWhiteSpace(categorySlug))
             {
@@ -47,7 +46,7 @@ namespace ECommerceBatteryShop.Controllers
                     categoryId = cat.Id;
                 }
             }
-    
+
             var term = search ?? q ?? null;
             const decimal KdvRate = 0.20m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
@@ -79,10 +78,10 @@ namespace ECommerceBatteryShop.Controllers
                 TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
                 _log.LogWarning("USD→TRY unavailable; using USD display.");
             }
-          
+
             // --- PRICE FILTERING ---
             // Inputs are given in the display currency -> convert back to USD for filtering source prices.
-            decimal ? minUsd = minPrice.HasValue ? Math.Max(0, minPrice.Value / fx) : null;
+            decimal? minUsd = minPrice.HasValue ? Math.Max(0, minPrice.Value / fx) : null;
             decimal? maxUsd = maxPrice.HasValue ? Math.Max(0, maxPrice.Value / fx) : null;
             if (minUsd.HasValue && maxUsd.HasValue && minUsd > maxUsd)
                 (minUsd, maxUsd) = (maxUsd, minUsd); // normalize swapped inputs
@@ -95,18 +94,18 @@ namespace ECommerceBatteryShop.Controllers
                 // Priority 1: Search term
                 if (!string.IsNullOrWhiteSpace(term))
                 {
-                      return await _repo.ProductSearchResultAsync(term, targetPage, PageSize, minUsd, maxUsd, ct);
+                    return await _repo.ProductSearchResultAsync(term, targetPage, PageSize, minUsd, maxUsd, ct);
                 }
-                
+
                 // Priority 2: Category filter
                 if (categoryId.HasValue)
                 {
-                     return await _repo.BringProductsByCategoryIdAsync(categoryId.Value, targetPage, PageSize, minUsd, maxUsd, ct);
+                    return await _repo.BringProductsByCategoryIdAsync(categoryId.Value, targetPage, PageSize, minUsd, maxUsd, ct);
                 }
 
-             // Priority 3: All products
-                 return await _repo.GetMainPageProductsAsync(targetPage, PageSize, minUsd, maxUsd, ct);
-             }
+                // Priority 3: All products
+                return await _repo.GetMainPageProductsAsync(targetPage, PageSize, minUsd, maxUsd, ct);
+            }
 
             var result = await LoadPageAsync(currentPage);
             var products = result.Items;
@@ -176,7 +175,7 @@ namespace ECommerceBatteryShop.Controllers
             ViewBag.CurrentPage = currentPage;
             ViewBag.Sort = sort;
             ViewBag.CategoryId = categoryId;
-            
+
             var vm = new ProductIndexViewModel
             {
                 Products = mapped,
@@ -193,7 +192,7 @@ namespace ECommerceBatteryShop.Controllers
 
 
         }
-        
+
         async Task<HashSet<int>> LoadFavoriteIdsAsync(CancellationToken token)
         {
             FavoriteOwner? owner = null;
@@ -227,7 +226,7 @@ namespace ECommerceBatteryShop.Controllers
                 : new HashSet<int>(list.Items.Select(i => i.ProductId));
         }
         [HttpGet("/{slug}")] // attribute route only; avoid mixing with conventional
-        public async Task<IActionResult> Detaylar(string categorySlug,string slug, CancellationToken ct = default)
+        public async Task<IActionResult> Detaylar(string categorySlug, string slug, CancellationToken ct = default)
         {
             var decoded = Uri.UnescapeDataString(slug);
             var product = await _repo.GetProductBySlugAsync(decoded, ct);
@@ -325,12 +324,12 @@ namespace ECommerceBatteryShop.Controllers
 
             return View("Detaylar", vm); // full view under _Layout
         }
-        [HttpGet("/Urun/Search")] 
+        [HttpGet("/Urun/Search")]
         public async Task<IActionResult> Search([FromQuery] string q, CancellationToken ct = default)
         {
             var productData = await _repo.ProductSearchPairsAsync(q ?? string.Empty, ct);
             var vm = productData
-                .Select(p => new ProductPredictionDto(p.Id, p.Name,p.Slug))
+                .Select(p => new ProductPredictionDto(p.Id, p.Name, p.Slug))
                 .ToList();
 
             return PartialView("_ProductPredictions", vm);

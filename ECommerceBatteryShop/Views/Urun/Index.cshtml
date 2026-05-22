@@ -5,7 +5,8 @@
 @{
     var categoriesByService = await CategoryService.GetCategoryTreeAsync();
 
-    ECommerceBatteryShop.DataAccess.Entities.Category? FindCategory(IEnumerable<ECommerceBatteryShop.DataAccess.Entities.Category> nodes, int id)
+    ECommerceBatteryShop.DataAccess.Entities.Category?
+    FindCategory(IEnumerable<ECommerceBatteryShop.DataAccess.Entities.Category> nodes, int id)
     {
         foreach (var node in nodes)
         {
@@ -44,7 +45,8 @@
     var hasSearch = !string.IsNullOrWhiteSpace(searchTerm);
 
     var activeCategory = currentCategoryId.HasValue ? FindCategory(categoriesByService, currentCategoryId.Value) : null;
-    var subCategories = activeCategory?.SubCategories?.ToList() ?? new List<ECommerceBatteryShop.DataAccess.Entities.Category>();
+    var subCategories = activeCategory?.SubCategories?.ToList() ?? new
+    List<ECommerceBatteryShop.DataAccess.Entities.Category>();
 
     Func<int, object> pageRoute = targetPage => new
     {
@@ -117,7 +119,8 @@ else
             }
         </h1>
 
-        <form method="get" class="w-full md:w-auto mb-6 md:mb-0 flex flex-wrap items-center gap-x-3 gap-y-3 md:justify-end">
+        <form method="get"
+            class="w-full md:w-auto mb-6 md:mb-0 flex items-center justify-between md:justify-end gap-4 px-2 md:px-0">
             @if (hasSearch)
             {
                 <input type="hidden" name="search" value="@searchTerm" />
@@ -128,53 +131,50 @@ else
                 <input type="hidden" name="categoryId" value="@currentCategoryId" />
             }
 
+            @if (totalCount > 0)
+            {
+                <div class="text-sm text-slate-600 whitespace-nowrap">
+                    @if (showingFrom == showingTo)
+                    {
+                        <span>@showingFrom.</span>
+                    }
+                    else
+                    {
+                        <span>@showingFrom-@showingTo.</span>
+                    }
+                    <span> ürün gösteriliyor · Toplam @totalCount ürün</span>
+                </div>
+            }
+
             <div class="relative" x-data="{ open: false }">
                 <button type="button" @@click="open = !open"
                     class="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-300 text-gray-900 font-semibold shadow hover:bg-amber-400 transition cursor-pointer">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
                     Sırala
                 </button>
                 <div x-show="open" @@click.away="open = false" x-cloak style="display: none;"
                     class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20 overflow-hidden">
-                    <button type="submit" name="sort" value="asc" class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-slate-50 border-b border-gray-100">
+                    <button type="submit" name="sort" value="asc"
+                        class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-slate-50 border-b border-gray-100">
                         Yükselen fiyat
                     </button>
-                    <button type="submit" name="sort" value="desc" class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-slate-50">
+                    <button type="submit" name="sort" value="desc"
+                        class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-slate-50">
                         Azalan fiyat
                     </button>
                 </div>
             </div>
-
-            @if (hasFilter)
-            {
-                <a href="@Url.Action("Index", "Urun")"
-                    class="md:ml-auto inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">
-                    Filtreleri temizle
-                </a>
-            }
         </form>
     </div>
 
-    @if (totalCount > 0)
-    {
-        <div class="mb-4 text-sm text-slate-600 max-w-7xl mx-auto">
-    @if (showingFrom == showingTo)
-            {
-                <span>@showingFrom.</span>
-            }
-            else
-            {
-                <span>@showingFrom-@showingTo.</span>
-            }
-            <span> ürün gösteriliyor · Toplam @totalCount ürün</span>
-        </div>
-    }
+
 
     <!-- PRODUCT GRID -->
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 mb-20">
-        @if (subCategories.Any())
+    @if (subCategories.Any())
         {
             <aside class="w-full md:w-64 shrink-0">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-24">
@@ -183,7 +183,8 @@ else
                         @foreach (var sub in subCategories)
                         {
                             <li>
-                                <a href="/Urun/@sub.Slug" class="block px-3 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors">
+                                <a href="/Urun/@sub.Slug"
+                                    class="block px-3 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors">
                                     @sub.Name
                                 </a>
                             </li>
@@ -192,10 +193,11 @@ else
                 </div>
             </aside>
         }
-        
+
         <div class="flex-1">
-            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-@(subCategories.Any() ? "3" : "4") xl:grid-cols-4 gap-4">
-            @foreach (var product in products)
+            <div
+                class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-@(subCategories.Any() ? "3" : "4") xl:grid-cols-4 gap-4">
+                @foreach (var product in products)
                 {
                     @await Html.PartialAsync("~/Views/Components/_ProductCard.cshtml", product)
                 }
