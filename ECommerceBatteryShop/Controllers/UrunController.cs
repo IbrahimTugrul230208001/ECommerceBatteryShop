@@ -30,7 +30,7 @@ namespace ECommerceBatteryShop.Controllers
 
         [HttpGet("/Urun/{categorySlug}")]
         public async Task<IActionResult> Index(string categorySlug, string? search, string? q, 
-                                         decimal? minPrice, decimal? maxPrice,
+                                         decimal? minPrice, decimal? maxPrice, string? sort,
                                          int page = 1,
                                          CancellationToken ct = default)
         {
@@ -152,15 +152,30 @@ namespace ECommerceBatteryShop.Controllers
                     Slug = p.Slug,
                     StockQuantity = p.Inventory?.Quantity ?? 0
                 };
-            }).OrderBy(p => p.Id).ToList();
+            }).ToList();
+
+            if (sort == "asc")
+            {
+                mapped = mapped.OrderBy(p => p.Price).ToList();
+            }
+            else if (sort == "desc")
+            {
+                mapped = mapped.OrderByDescending(p => p.Price).ToList();
+            }
+            else
+            {
+                mapped = mapped.OrderBy(p => p.Id).ToList();
+            }
 
             // for the view to persist current filters & "clear" button state
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
             ViewBag.HasFilter = !string.IsNullOrWhiteSpace(term)
-                                || minPrice.HasValue || maxPrice.HasValue;
+                                || minPrice.HasValue || maxPrice.HasValue || !string.IsNullOrWhiteSpace(sort);
             ViewBag.SearchTerm = term;
             ViewBag.CurrentPage = currentPage;
+            ViewBag.Sort = sort;
+            ViewBag.CategoryId = categoryId;
             
             var vm = new ProductIndexViewModel
             {

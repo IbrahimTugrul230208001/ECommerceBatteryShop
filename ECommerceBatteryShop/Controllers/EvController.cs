@@ -56,6 +56,7 @@ namespace ECommerceBatteryShop.Controllers
             {
                 new { Title = "Lityum 12V Batarya Paketleri", CatId = batteryPackages12vId, CatSlug = "lifepo4-batarya-paketleri-12v" },
                 new { Title = "Lityum 24V Batarya Paketleri", CatId = batteryPackages24vId, CatSlug = "lifepo4-batarya-paketleri-24v" },
+                new { Title = "Lityum Polymer Pil", CatId = LiPolymerId, CatSlug = "lithium-polymer-pil" },
                 new { Title = "Punta Cihazları", CatId = puntaCihazıId, CatSlug = "punta-cihazi" },
                 new { Title = "Lithium-ion Pil", CatId = LiIonId, CatSlug = "lithium-ion-pil" },
                 new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId, CatSlug = "bms-pil-koruma-devresi" },

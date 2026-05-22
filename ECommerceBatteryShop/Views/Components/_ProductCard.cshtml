@@ -12,7 +12,8 @@
     <!-- Image -->
     <a href="@href" class="block p-3 pb-0">
         <div class="h-56 grid place-items-center overflow-hidden">
-            <img asp-append-version="true" src="/img/@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "temsili.webp" : Model.ImageUrl)"
+            <img asp-append-version="true"
+                src="/img/@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "temsili.webp" : Model.ImageUrl)"
                 alt="@(string.IsNullOrWhiteSpace(Model.Name) ? "Görsel yok" : Model.Name)"
                 class="h-56 w-auto object-contain transition-transform duration-200" />
         </div>
