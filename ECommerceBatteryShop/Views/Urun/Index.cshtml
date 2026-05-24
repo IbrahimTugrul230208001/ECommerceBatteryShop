@@ -174,30 +174,31 @@ else
 
     <!-- PRODUCT GRID -->
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 mb-20">
+    @*
     @if (subCategories.Any())
-        {
-            <aside class="w-full md:w-64 shrink-0">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-24">
-                    <h3 class="font-bold text-lg mb-4 text-gray-900 border-b pb-2">Alt Kategoriler</h3>
-                    <ul class="flex flex-col gap-2">
-                        @foreach (var sub in subCategories)
-                        {
-                            <li>
-                                <a href="/Urun/@sub.Slug"
-                                    class="block px-3 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors">
-                                    @sub.Name
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </aside>
-        }
-
-        <div class="flex-1">
-            <div
-                class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-@(subCategories.Any() ? "3" : "4") xl:grid-cols-4 gap-4">
-                @foreach (var product in products)
+    {
+    <aside class="w-full md:w-64 shrink-0">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-24">
+    <h3 class="font-bold text-lg mb-4 text-gray-900 border-b pb-2">Alt Kategoriler</h3>
+    <ul class="flex flex-col gap-2">
+    @foreach (var sub in subCategories)
+    {
+    <li>
+    <a href="/Urun/@sub.Slug"
+    class="block px-3 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors">
+    @sub.Name
+    </a>
+    </li>
+    }
+    </ul>
+    </div>
+    </aside>
+    }
+    *@
+    <div class="flex-1">
+        <div
+            class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-@(subCategories.Any() ? "3" : "4") xl:grid-cols-4 gap-4">
+            @foreach (var product in products)
                 {
                     @await Html.PartialAsync("~/Views/Components/_ProductCard.cshtml", product)
                 }
