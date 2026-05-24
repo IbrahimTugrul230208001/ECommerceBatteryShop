@@ -29,9 +29,9 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpGet("/Urun/{categorySlug}")]
-        public async Task<IActionResult> Index(string categorySlug, string? search, string? q,
+        public async Task<IActionResult> Index(string categorySlug, string? search, string? q, string? categoryPath,
                                          decimal? minPrice, decimal? maxPrice, string? sort,
-                                         int page = 1, string? categoryPath, CancellationToken ct = default)
+                                         int page = 1, CancellationToken ct = default)
         {
             string categoryName = string.Empty;
             int? categoryId = null;
@@ -178,6 +178,7 @@ namespace ECommerceBatteryShop.Controllers
 
             var vm = new ProductIndexViewModel
             {
+                CategoryPath = categoryPath,
                 Products = mapped,
                 CurrentPage = currentPage,
                 TotalPages = totalPages,

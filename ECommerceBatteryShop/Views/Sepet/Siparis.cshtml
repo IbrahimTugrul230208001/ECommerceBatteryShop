@@ -26,9 +26,31 @@
     {
         if (string.IsNullOrWhiteSpace(u)) return "/img/temsili.webp";
         u = u.Replace("\\", "/").Trim();
-        if (u.StartsWith("/img/", System.StringComparison.OrdinalIgnoreCase)) return u;
-        if (u.StartsWith("img/", System.StringComparison.OrdinalIgnoreCase)) return "/" + u;
-        return "/img/" + u.TrimStart('/');
+        if (u.StartsWith("/img/Products/", System.StringComparison.OrdinalIgnoreCase)) return u;
+        if (u.StartsWith("img/Products/", System.StringComparison.OrdinalIgnoreCase)) return "/" + u;
+        if (u.StartsWith("/img/", System.StringComparison.OrdinalIgnoreCase))
+        {
+            var fileName = u.Substring(5);
+            if (fileName == "temsili.webp" || fileName == "temsili.png" || fileName.Contains("logo") || fileName.Contains("secure"))
+            {
+                return u;
+            }
+            return "/img/Products/" + fileName;
+        }
+        if (u.StartsWith("img/", System.StringComparison.OrdinalIgnoreCase))
+        {
+            var fileName = u.Substring(4);
+            if (fileName == "temsili.webp" || fileName == "temsili.png" || fileName.Contains("logo") || fileName.Contains("secure"))
+            {
+                return "/" + u;
+            }
+            return "/img/Products/" + fileName;
+        }
+        if (u == "temsili.webp" || u == "temsili.png" || u.Contains("placeholder"))
+        {
+            return "/img/" + u;
+        }
+        return "/img/Products/" + u.TrimStart('/');
     }
 }
 <main x-data="checkout(@(subTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)), 0.20)"

@@ -71,7 +71,7 @@ else
                 var name = p.Name ?? "Ürün";
                 var image = string.IsNullOrWhiteSpace(p.ImageUrl)
                 ? "/img/placeholder.png"
-                : (p.ImageUrl!.StartsWith("/img/") ? p.ImageUrl : "/img/" + p.ImageUrl);
+                : (p.ImageUrl!.StartsWith("/img/") ? p.ImageUrl : "/img/Products/" + p.ImageUrl);
                 var inStock = p.StockQuantity > 0;
                 var stockText = inStock ? "Stokta var" : "Stokta yok";
 

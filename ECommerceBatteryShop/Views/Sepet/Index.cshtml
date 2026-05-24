@@ -16,12 +16,34 @@
     public string NormalizeImg(string? u)
     {
         string path;
-        if (string.IsNullOrWhiteSpace(u)) path = "/img/temsili.png";
+        if (string.IsNullOrWhiteSpace(u)) path = "/img/temsili.webp";
         else {
             u = u.Replace("\\", "/").Trim();
-            if (u.StartsWith("/img/", StringComparison.OrdinalIgnoreCase)) path = u;
-            else if (u.StartsWith("img/", StringComparison.OrdinalIgnoreCase)) path = "/" + u;
-            else path = "/img/" + u.TrimStart('/');
+            if (u.StartsWith("/img/Products/", StringComparison.OrdinalIgnoreCase)) path = u;
+            else if (u.StartsWith("img/Products/", StringComparison.OrdinalIgnoreCase)) path = "/" + u;
+            else if (u.StartsWith("/img/", StringComparison.OrdinalIgnoreCase)) {
+                var fileName = u.Substring(5);
+                if (fileName == "temsili.webp" || fileName == "temsili.png" || fileName.Contains("logo") || fileName.Contains("secure")) {
+                    path = u;
+                } else {
+                    path = "/img/Products/" + fileName;
+                }
+            }
+            else if (u.StartsWith("img/", StringComparison.OrdinalIgnoreCase)) {
+                var fileName = u.Substring(4);
+                if (fileName == "temsili.webp" || fileName == "temsili.png" || fileName.Contains("logo") || fileName.Contains("secure")) {
+                    path = "/" + u;
+                } else {
+                    path = "/img/Products/" + fileName;
+                }
+            }
+            else {
+                if (u == "temsili.webp" || u == "temsili.png" || u.Contains("placeholder")) {
+                    path = "/img/" + u;
+                } else {
+                    path = "/img/Products/" + u.TrimStart('/');
+                }
+            }
         }
         return FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, path);
     }

@@ -381,3 +381,6 @@ docker-compose.*.secrets.yml
 .terraform/
 crash.log
 .tf
+
+# E-commerce product images subdirectory
+ECommerceBatteryShop/wwwroot/img/Products/

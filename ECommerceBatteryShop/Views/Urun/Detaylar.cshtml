@@ -19,7 +19,7 @@
   "@@type": "Product",
   "name": "@Html.Raw(Model.product.Name?.Replace("\"", "\\\""))",
   "image": [
-    "https://pilbataryamarketim.com/img/@(string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "temsili.webp" : Model.product.ImageUrl)"
+    "https://pilbataryamarketim.com@(string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "/img/temsili.webp" : "/img/Products/" + Model.product.ImageUrl)"
    ],
   "description": "@Html.Raw(strippedDescription)",
   "brand": {
@@ -49,7 +49,7 @@
                      lensW: 0, lensH: 0, lensX: 0, lensY: 0,
                      bgPosX: 0, bgPosY: 0, bgW: 0, bgH: 0,
                      zoom: 2.5,
-                     imgSrc: '@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/img/" + (string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "temsili.webp" : Model.product.ImageUrl))',
+                     imgSrc: '@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, string.IsNullOrWhiteSpace(Model.product.ImageUrl) ? "/img/temsili.webp" : "/img/Products/" + Model.product.ImageUrl)',
                      onMove(e) {
                          const wrap = this.$refs.zoomWrap;
                          const img = this.$refs.zoomImg;
@@ -283,9 +283,8 @@
             
 
             <div class="flex items-center gap-4 mt-6">
-                <img asp-append-version="true" class="h-12 w-auto" src="~/img/3dsecure_blue.webp" alt="3D Secure"/>
-                <img asp-append-version="true" class="h-8 w-auto" src="~/img/go.webp" alt="Güvenli Ödeme"/>
-                <img asp-append-version="true" class="h-12 w-auto" src="~/img/paywithiyzico.webp" alt="Güvenli Ödeme"/>
+               <img asp-append-version="true" class="h-12 w-auto" src="~/img/3dsecure_blue.webp" alt="Güvenli Ödeme"/>
+               <img asp-append-version="true" class="h-12 w-auto" src="~/img/paywithiyzico.webp" alt="Güvenli Ödeme"/>
             </div>
 
 

@@ -7,7 +7,7 @@
 @{
     var existingImagePath = string.IsNullOrWhiteSpace(Model.ExistingImageUrl)
         ? Url.Content("~/img/placeholder-image.svg")
-        : Url.Content($"~/img/{Model.ExistingImageUrl}");
+        : (Model.ExistingImageUrl.Contains("Products/") ? Url.Content($"~/img/{Model.ExistingImageUrl}") : Url.Content($"~/img/Products/{Model.ExistingImageUrl}"));
     var existingDocumentPath = string.IsNullOrWhiteSpace(Model.ExistingDocumentUrl)
         ? null
         : Url.Content($"~/doc/{Model.ExistingDocumentUrl}");
@@ -55,7 +55,7 @@
                     {
                         var imagePath = string.IsNullOrWhiteSpace(item.ImageUrl)
                             ? Url.Content("~/img/placeholder-image.svg")
-                            : Url.Content($"~/img/{item.ImageUrl}");
+                            : (item.ImageUrl.Contains("Products/") ? Url.Content($"~/img/{item.ImageUrl}") : Url.Content($"~/img/Products/{item.ImageUrl}"));
                         <li >
                             <a class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition hover:border-slate-300 hover:bg-slate-100" href="@Url.Action("UrunPaneli", "Admin", new { productId = item.Id, search = Model.SearchTerm })">
                                 <span class="flex items-center gap-3">
