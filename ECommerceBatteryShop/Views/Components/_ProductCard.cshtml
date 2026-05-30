@@ -15,6 +15,7 @@
             <img asp-append-version="true"
                 src="@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "/img/temsili.webp" : $"/img/Products/{Model.ImageUrl}")"
                 alt="@(string.IsNullOrWhiteSpace(Model.Name) ? "Görsel yok" : Model.Name)"
+                onerror="this.onerror=null;this.src='/img/temsili.webp';"
                 class="h-56 w-auto object-contain transition-transform duration-200" />
         </div>
     </a>

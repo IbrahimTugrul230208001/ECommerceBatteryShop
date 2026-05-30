@@ -1,1 +1,35 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
+
+@theme {
+    --width-1xl: 20rem; /* 320px – custom sidebar width for w-1xl */
+}
+
+/* ── Category Tree Sidebar ─────────────────────────────── */
+.cat-tree-item {
+    transition: all 0.2s ease;
+}
+.cat-tree-item:hover {
+    background: #fffbeb;
+}
+.cat-tree-item.active {
+    background: #fef3c7;
+    color: #92400e;
+    font-weight: 600;
+}
+.cat-tree-toggle {
+    transition: transform 0.25s ease;
+}
+.cat-tree-toggle.open {
+    transform: rotate(90deg);
+}
+.cat-tree-children {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+}
+.cat-tree-children.expanded {
+    grid-template-rows: 1fr;
+}
+.cat-tree-children > div {
+    overflow: hidden;
+}

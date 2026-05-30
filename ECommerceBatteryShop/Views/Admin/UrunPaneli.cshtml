@@ -60,7 +60,7 @@
                             <a class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition hover:border-slate-300 hover:bg-slate-100" href="@Url.Action("UrunPaneli", "Admin", new { productId = item.Id, search = Model.SearchTerm })">
                                 <span class="flex items-center gap-3">
                                     <span class="h-9 w-9 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                                        <img asp-append-version="true" src="@imagePath" alt="@item.Name" class="h-full w-full object-cover"/>
+                                        <img asp-append-version="true" src="@imagePath" alt="@item.Name" onerror="this.onerror=null;this.src='/img/temsili.webp';" class="h-full w-full object-cover"/>
                                     </span>
                                     <span>
                                         <span class="block font-semibold">@item.Name</span>

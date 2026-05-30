@@ -48,6 +48,47 @@
     var subCategories = activeCategory?.SubCategories?.ToList() ?? new
     List<ECommerceBatteryShop.DataAccess.Entities.Category>();
 
+    // Build set of ancestor IDs so we can auto-expand & highlight the active path
+    var activePath = new HashSet<int>();
+    ECommerceBatteryShop.DataAccess.Entities.Category? rootCategory = null;
+    var breadcrumbCategories = new List<ECommerceBatteryShop.DataAccess.Entities.Category>();
+    if (activeCategory != null)
+    {
+        activePath.Add(activeCategory.Id);
+        // Walk up ancestors via Path
+        var segments = activeCategory.Path.Split('/');
+        var pathSoFar = "";
+        foreach (var seg in segments)
+        {
+            pathSoFar = string.IsNullOrEmpty(pathSoFar) ? seg : pathSoFar + "/" + seg;
+            var ancestor = FindCategoryByPredicate(categoriesByService, c => c.Path == pathSoFar);
+            if (ancestor != null)
+            {
+                activePath.Add(ancestor.Id);
+                breadcrumbCategories.Add(ancestor);
+            }
+        }
+        // Root ancestor = first path segment
+        var rootPath = segments[0];
+        rootCategory = FindCategoryByPredicate(categoriesByService, c => c.Path == rootPath);
+    }
+    var showSidebar = rootCategory != null;
+
+    ECommerceBatteryShop.DataAccess.Entities.Category?
+    FindCategoryByPredicate(IEnumerable<ECommerceBatteryShop.DataAccess.Entities.Category> nodes, Func<ECommerceBatteryShop.DataAccess.Entities.Category, bool> predicate)
+    {
+        foreach (var node in nodes)
+        {
+            if (predicate(node)) return node;
+            if (node.SubCategories != null && node.SubCategories.Any())
+            {
+                var found = FindCategoryByPredicate(node.SubCategories, predicate);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
     Func<int, object> pageRoute = targetPage => new
     {
         page = targetPage,
@@ -103,7 +144,7 @@
 else
 {
 
-    <div class="max-w-7xl mx-auto py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div class="max-w-[95rem] mx-auto py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between px-4">
     <h1 class="text-3xl font-bold mb-0">
         @if (!string.IsNullOrWhiteSpace(Model.SearchQuery))
             {
@@ -120,7 +161,7 @@ else
         </h1>
 
         <form method="get"
-            class="w-full md:w-auto mb-6 md:mb-0 flex items-center justify-between md:justify-end gap-4 px-2 md:px-0">
+            class="w-full md:w-auto md:mb-0 flex items-center justify-between gap-4 px-2 md:px-0">
             @if (hasSearch)
             {
                 <input type="hidden" name="search" value="@searchTerm" />
@@ -148,7 +189,7 @@ else
 
             <div class="relative" x-data="{ open: false }">
                 <button type="button" @@click="open = !open"
-                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-300 text-gray-900 font-semibold shadow hover:bg-amber-400 transition cursor-pointer">
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 text-gray-900 font-semibold shadow hover:bg-amber-400 transition cursor-pointer">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -170,35 +211,116 @@ else
         </form>
     </div>
 
+    @if (breadcrumbCategories.Any())
+    {
+        <nav aria-label="Breadcrumb" class="max-w-[95rem] mx-auto px-4 mt-2">
+            <ol class="flex items-center flex-wrap gap-1.5 text-sm text-gray-500">
+                <li class="flex items-center gap-1.5">
+                    <a href="/" class="hover:text-amber-600 transition-colors">Anasayfa</a>
+                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </li>
+                @for (var i = 0; i < breadcrumbCategories.Count; i++)
+                {
+                    var bc = breadcrumbCategories[i];
+                    var isLast = i == breadcrumbCategories.Count - 1;
+                    <li class="flex items-center gap-1.5">
+                        @if (isLast)
+                        {
+                            <span class="font-semibold text-amber-700">@bc.Name</span>
+                        }
+                        else
+                        {
+                            <a href="/Urun/@bc.Slug" class="hover:text-amber-600 transition-colors">@bc.Name</a>
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        }
+                    </li>
+                }
+            </ol>
+        </nav>
+    }
+
 
 
     <!-- PRODUCT GRID -->
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 mb-20">
-    @*
-    @if (subCategories.Any())
-    {
-    <aside class="w-full md:w-64 shrink-0">
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-24">
-    <h3 class="font-bold text-lg mb-4 text-gray-900 border-b pb-2">Alt Kategoriler</h3>
-    <ul class="flex flex-col gap-2">
-    @foreach (var sub in subCategories)
-    {
-    <li>
-    <a href="/Urun/@sub.Slug"
-    class="block px-3 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors">
-    @sub.Name
-    </a>
-    </li>
-    }
-    </ul>
-    </div>
-    </aside>
-    }
-    *@
-    <div class="flex-1">
-        <div
-            class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-@(subCategories.Any() ? "3" : "4") xl:grid-cols-4 gap-4">
-            @foreach (var product in products)
+    <div class="max-w-[95rem] mx-auto flex flex-col md:flex-row gap-6 mb-20 px-4 mt-10">
+
+        @if (showSidebar)
+        {
+            <!-- ── Category Tree Sidebar ── -->
+            <aside class="shrink-0 hidden md:block w-1xl">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 sticky top-24 overflow-hidden">
+                    <!-- Sidebar Header -->
+                    <div class="px-5 py-4 bg-gradient-to-r from-amber-50 to-amber-100/50 border-b border-amber-200/60">
+                        <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                            </svg>
+                            @rootCategory!.Name
+                        </h3>
+                    </div>
+
+                    <!-- Tree -->
+                    <nav class="p-3 max-h-[calc(100vh-10rem)] overflow-y-auto">
+                        @{ void RenderCategoryTree(IEnumerable<ECommerceBatteryShop.DataAccess.Entities.Category> categories, int depth = 0)
+                        {
+                            foreach (var cat in categories)
+                            {
+                                var hasChildren = cat.SubCategories != null && cat.SubCategories.Any();
+                                var isActive = currentCategoryId.HasValue && cat.Id == currentCategoryId.Value;
+                                var isInPath = activePath.Contains(cat.Id) && !isActive;
+                                var shouldExpand = activePath.Contains(cat.Id);
+
+                                <div x-data="{ open: @(shouldExpand ? "true" : "false") }">
+                                    <div class="flex items-center gap-1 group rounded-lg cat-tree-item @(isActive ? "active" : "") @(isInPath ? "bg-amber-50/60" : "")">
+                                        @if (hasChildren)
+                                        {
+                                            <button @@click="open = !open" type="button"
+                                                class="p-1.5 rounded-md hover:bg-gray-400 transition-colors shrink-0 cursor-pointer">
+                                                <svg class="w-3.5 h-3.5 text-gray-500 cat-tree-toggle transition-transform duration-200"
+                                                     :class="open && 'open'"
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="w-7 shrink-0"></span>
+                                        }
+                                        <a href="/Urun/@cat.Slug"
+                                           class="flex-1 py-2 text-sm @(isActive ? "text-amber-800 font-semibold" : isInPath ? "text-amber-700 font-medium" : "text-gray-700") transition-colors truncate">
+                                            @cat.Name
+                                        </a>
+                                        @if (isActive)
+                                        {
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2 shrink-0"></span>
+                                        }
+                                    </div>
+
+                                    @if (hasChildren)
+                                    {
+                                        <div x-show="open" x-collapse>
+                                            <div class="border-l-2 border-slate-100" style="margin-left: @(depth * 1.0 + 1.0)rem;">
+                                                @{ RenderCategoryTree(cat.SubCategories!, depth + 1); }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        RenderCategoryTree(rootCategory!.SubCategories); }
+                    </nav>
+                </div>
+            </aside>
+        }
+
+        <div class="flex-1 min-w-0">
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-@(showSidebar ? "3" : "4") xl:grid-cols-4 gap-4">
+                @foreach (var product in products)
                 {
                     @await Html.PartialAsync("~/Views/Components/_ProductCard.cshtml", product)
                 }

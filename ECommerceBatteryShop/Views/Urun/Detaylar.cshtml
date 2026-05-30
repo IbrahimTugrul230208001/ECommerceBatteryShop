@@ -103,6 +103,7 @@
                 <img asp-append-version="true" :src="imgSrc"
                      x-ref="zoomImg"
                      alt="@(string.IsNullOrWhiteSpace(Model.product.Name) ? "Görsel yok" : Model.product.Name)"
+                     onerror="this.onerror=null;this.src='/img/temsili.webp';"
                      class="max-h-full w-full object-contain select-none pointer-events-none"/>
 
                 <!-- Lens Overlay -->

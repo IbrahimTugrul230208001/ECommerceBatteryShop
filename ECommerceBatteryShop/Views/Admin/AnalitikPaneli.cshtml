@@ -35,7 +35,7 @@
           <tr>
             <td class="px-4 py-3">
               <div class="flex items-center gap-3">
-                <img asp-append-version="true" src="@(string.IsNullOrWhiteSpace(p.ImageUrl) ? "/img/temsili.webp" : (p.ImageUrl.StartsWith("/img/")? p.ImageUrl : "/img/" + p.ImageUrl))" alt="@p.Name" class="h-10 w-10 rounded object-cover border border-slate-200" />
+                <img asp-append-version="true" src="@(string.IsNullOrWhiteSpace(p.ImageUrl) ? "/img/temsili.webp" : (p.ImageUrl.StartsWith("/img/")? p.ImageUrl : "/img/" + p.ImageUrl))" alt="@p.Name" class="h-10 w-10 rounded object-cover border border-slate-200" onerror="this.onerror=null;this.src='/img/temsili.webp';" />
                 <div>
                   <div class="font-semibold text-slate-900">@p.Name</div>
                   <div class="text-xs text-slate-500">#@p.ProductId</div>
