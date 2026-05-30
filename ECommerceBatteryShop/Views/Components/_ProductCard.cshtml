@@ -1,6 +1,12 @@
 @model ECommerceBatteryShop.Models.ProductViewModel
 @{
     var href = $"/{Model.Slug}";
+    var useThumbs = ViewData["UseThumbnails"] is true;
+    var imgSrc = string.IsNullOrWhiteSpace(Model.ImageUrl)
+        ? "/img/temsili.webp"
+        : useThumbs
+            ? $"/img/Products/thumbs/{Model.ImageUrl}"
+            : $"/img/Products/{Model.ImageUrl}";
 }
 
 <article
@@ -13,7 +19,7 @@
     <a href="@href" class="block p-3 pb-0">
         <div class="h-56 grid place-items-center overflow-hidden">
             <img asp-append-version="true"
-                src="@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "/img/temsili.webp" : $"/img/Products/{Model.ImageUrl}")"
+                src="@imgSrc"
                 alt="@(string.IsNullOrWhiteSpace(Model.Name) ? "Görsel yok" : Model.Name)"
                 onerror="this.onerror=null;this.src='/img/temsili.webp';"
                 class="h-56 w-auto object-contain transition-transform duration-200" />

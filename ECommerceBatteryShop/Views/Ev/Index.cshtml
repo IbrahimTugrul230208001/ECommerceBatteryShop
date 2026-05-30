@@ -351,7 +351,7 @@
 
                     <div
                         class="flex-none min-w-0 lg:basis-[calc((100%-4*var(--g))/6)] md:basis-[calc((100%-2*var(--g))/4)] basis-[calc((100%-1*var(--g))/2)] snap-start">
-                        @await Html.PartialAsync("~/Views/Components/_ProductCard.cshtml", product)
+                        @await Html.PartialAsync("~/Views/Components/_ProductCard.cshtml", product, new ViewDataDictionary(ViewData) { { "UseThumbnails", s.UseThumbnails } })
                     </div>
                 }
             </div>

@@ -54,16 +54,16 @@ namespace ECommerceBatteryShop.Controllers
             // Ensure this includes ProductCategories (CategoryId is enough; Category.Include not required)
             var plan = new[]
             {
-                new { Title = "Lityum 12V Batarya Paketleri", CatId = batteryPackages12vId, CatSlug = "lifepo4-batarya-paketleri-12v" },
-                new { Title = "Lityum 24V Batarya Paketleri", CatId = batteryPackages24vId, CatSlug = "lifepo4-batarya-paketleri-24v" },
-                new { Title = "Lityum Polymer Pil", CatId = LiPolymerId, CatSlug = "lithium-polymer-pil" },
-                new { Title = "Punta Cihazları", CatId = puntaCihazıId, CatSlug = "punta-cihazi" },
-                new { Title = "Lithium-ion Pil", CatId = LiIonId, CatSlug = "lithium-ion-pil" },
-                new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId, CatSlug = "bms-pil-koruma-devresi" },
-                new { Title = "LiFePO4 Pil", CatId = LfpId, CatSlug = "lifepo4-pil" },
-                new { Title = "Soketler", CatId = socketsId, CatSlug = "soketler" },
-                new { Title = "Silikon Kablolar", CatId = siliconCablesId, CatSlug = "silikon-kablolar" },
-                new { Title = "Bantlar", CatId = bandsId, CatSlug = "bantlar" }
+                new { Title = "Lityum 12V Batarya Paketleri", CatId = batteryPackages12vId, CatSlug = "lifepo4-batarya-paketleri-12v", Thumb = true },
+                new { Title = "Lityum 24V Batarya Paketleri", CatId = batteryPackages24vId, CatSlug = "lifepo4-batarya-paketleri-24v", Thumb = true },
+                new { Title = "Lityum Polymer Pil", CatId = LiPolymerId, CatSlug = "lithium-polymer-pil", Thumb = true },
+                new { Title = "Punta Cihazları", CatId = puntaCihazıId, CatSlug = "punta-cihazi", Thumb = true },
+                new { Title = "Lithium-ion Pil", CatId = LiIonId, CatSlug = "lithium-ion-pil", Thumb = true },
+                new { Title = "BMS - Pil Koruma Devresi", CatId = BmsId, CatSlug = "bms-pil-koruma-devresi", Thumb = true },
+                new { Title = "LiFePO4 Pil", CatId = LfpId, CatSlug = "lifepo4-pil", Thumb = true },
+                new { Title = "Soketler", CatId = socketsId, CatSlug = "soketler", Thumb = false },
+                new { Title = "Silikon Kablolar", CatId = siliconCablesId, CatSlug = "silikon-kablolar", Thumb = true },
+                new { Title = "Bantlar", CatId = bandsId, CatSlug = "bantlar", Thumb = false }
             };
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
@@ -115,7 +115,8 @@ namespace ECommerceBatteryShop.Controllers
                     {
                         Title = def.Title,
                         AllLink = $"/Urun/{def.CatSlug}",
-                        Products = ps.Select(Map).ToList()
+                        Products = ps.Select(Map).ToList(),
+                        UseThumbnails = def.Thumb
                     });
             }
 
