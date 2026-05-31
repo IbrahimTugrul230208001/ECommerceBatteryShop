@@ -708,11 +708,12 @@ namespace ECommerceBatteryShop.Controllers
 
         private async Task<List<CategorySelectionViewModel>> LoadCategoryItemsAsync(int? selectedId = null)
         {
-            // Root-based: we don't use ParentCategoryId. Exclude depth 0 (top-level roots) like the previous logic did,
-            // and sort by path to present a stable order.
+            // Include all non-root categories, plus depth-0 categories that have no children
+            // (i.e. leaf root categories that can directly hold products).
             var items = await _context.Categories
                 .AsNoTracking()
-                .Where(c => c.Depth != "0")
+                .Where(c => c.Depth != "0"
+                    || !_context.Categories.Any(child => child.Path.StartsWith(c.Path + "/") && child.Id != c.Id))
                 .OrderBy(c => c.Path)
                 .Select(c => new CategorySelectionViewModel
                 {
