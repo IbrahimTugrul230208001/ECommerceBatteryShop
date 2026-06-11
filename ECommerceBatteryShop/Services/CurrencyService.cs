@@ -1,4 +1,4 @@
-﻿// Services/CurrencyService.cs
+// Services/CurrencyService.cs
 using System.Globalization;
 using System.Text.Json;
 using ECommerceBatteryShop.Options;
@@ -16,11 +16,14 @@ public sealed class CurrencyService : ICurrencyService
 
     private const string CacheKeyRate = "USDTRY_RATE";
     private const string CacheKeyLkg = "USDTRY_LKG";
-    private const decimal HardFallbackRate = 42m; // fixed multiplier if nothing cached
+
+    /// <inheritdoc />
+    public decimal FallbackRate { get; }
 
     public CurrencyService(HttpClient http, IMemoryCache cache, IOptions<CurrencyOptions> opt, ILogger<CurrencyService> log)
     {
         _http = http; _cache = cache; _opt = opt.Value; _log = log;
+        FallbackRate = _opt.FallbackUsdTryRate;
 
         _http.BaseAddress = new Uri(_opt.BaseUrl);
 
@@ -39,7 +42,7 @@ public sealed class CurrencyService : ICurrencyService
     {
         if (_cache.TryGetValue(CacheKeyRate, out decimal r)) return r;
         if (_cache.TryGetValue(CacheKeyLkg, out decimal lkg)) return lkg; // allow immediate use after startup
-        return HardFallbackRate; // immediate hard fallback if nothing cached
+        return FallbackRate; // configured fallback from appsettings
     }
 
     public decimal ConvertUsdToTry(decimal usd, decimal rate)
@@ -52,8 +55,8 @@ public sealed class CurrencyService : ICurrencyService
     {
         try
         {
-            // Your sample payload is from /economy/allCurrency (TRY-based list of many FX).
-            using var resp = await _http.GetAsync("/economy/allCurrency", ct);
+            // Fetching USD to ALL, where we'll look for TRY
+            using var resp = await _http.GetAsync("/economy/currencyToAll?int=1&base=USD", ct);
             if (!resp.IsSuccessStatusCode)
             {
                 _log.LogWarning("CollectAPI status: {Status}", resp.StatusCode);
@@ -100,20 +103,22 @@ public sealed class CurrencyService : ICurrencyService
         using var doc = JsonDocument.Parse(raw);
 
         if (!doc.RootElement.TryGetProperty("result", out var result) ||
-            result.ValueKind != JsonValueKind.Array)
+            result.ValueKind != JsonValueKind.Object)
             return false;
 
-        foreach (var el in result.EnumerateArray())
+        if (!result.TryGetProperty("data", out var data) ||
+            data.ValueKind != JsonValueKind.Array)
+            return false;
+
+        foreach (var el in data.EnumerateArray())
         {
             if (!el.TryGetProperty("code", out var codeEl)) continue;
-            if (!string.Equals(codeEl.GetString(), "USD", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!string.Equals(codeEl.GetString(), "TRY", StringComparison.OrdinalIgnoreCase)) continue;
 
-            if (TryGetNumber(el, "selling", out rate) && rate > 0) return true;
+            if (TryGetNumber(el, "rate", out rate) && rate > 0) return true;
             if (TryGetNumber(el, "calculated", out rate) && rate > 0) return true;
-            if (TryGetNumber(el, "buying", out rate) && rate > 0) return true;
 
-            if (TryParseTr(el, "sellingstr", out rate) && rate > 0) return true;
-            if (TryParseTr(el, "buyingstr", out rate) && rate > 0) return true;
+            if (TryParseTr(el, "calculatedstr", out rate) && rate > 0) return true;
 
             return false;
         }

@@ -107,7 +107,7 @@ namespace ECommerceBatteryShop.Controllers
             }
 
             var rate = await _currencyService.GetCachedUsdTryAsync();
-            decimal fx = rate ?? 42m;
+            decimal fx = rate ?? _currencyService.FallbackRate;
             var cart = await _cartService.GetAsync(owner, createIfMissing: false, ct);
             var model = new CartViewModel();
             if (cart is not null)
@@ -178,7 +178,7 @@ namespace ECommerceBatteryShop.Controllers
             }
 
             var rate = await _currencyService.GetCachedUsdTryAsync();
-            decimal fx = rate ?? 42m;
+            decimal fx = rate ?? _currencyService.FallbackRate;
 
             IReadOnlyList<AddressViewModel> addresses = Array.Empty<AddressViewModel>();
             int? defaultAddressId = null;

@@ -1,4 +1,4 @@
-﻿using ECommerceBatteryShop.DataAccess;
+using ECommerceBatteryShop.DataAccess;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Concrete;
 using ECommerceBatteryShop.Options;
@@ -286,6 +286,7 @@ app.MapPost("/debug/currency/refresh", async (ICurrencyService svc, Cancellation
     var r = await svc.RefreshNowAsync(ct);
     return Results.Ok(new { rate = r });
 });
+
 
 // ⬇️ Minimal login/logout routes (optional; use your own controller if preferred)
 app.MapGet("/login", (HttpContext ctx) =>

@@ -49,7 +49,7 @@ namespace ECommerceBatteryShop.Controllers
             const int batteryPackages12vId = 59;
             const int batteryPackages24vId = 60;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
-            var fx = rate ?? 41.5m;
+            var fx = rate ?? _currency.FallbackRate;
 
             // Ensure this includes ProductCategories (CategoryId is enough; Category.Include not required)
             var plan = new[]

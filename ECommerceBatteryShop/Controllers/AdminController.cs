@@ -196,7 +196,7 @@ namespace ECommerceBatteryShop.Controllers
         {
             var orders = await _orderRepository.GetOrdersAsync();
             var rate = await _currencyService.GetCachedUsdTryAsync();
-            decimal fx = rate ?? 42m;
+            decimal fx = rate ?? _currencyService.FallbackRate;
 
             OrderViewModel vm = new OrderViewModel
             {

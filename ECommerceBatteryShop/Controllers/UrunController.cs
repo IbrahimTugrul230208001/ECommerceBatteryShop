@@ -72,7 +72,7 @@ namespace ECommerceBatteryShop.Controllers
             ViewData["OgImage"] = Url.Content("~/img/dayı_amber_banner.jpg");
 
             var rate = await _currency.GetCachedUsdTryAsync(ct);
-            decimal fx = rate ?? 42m;
+            decimal fx = rate ?? _currency.FallbackRate;
             if (rate is null)
             {
                 TempData["FxNotice"] = "TRY conversion unavailable; showing USD.";
@@ -236,7 +236,7 @@ namespace ECommerceBatteryShop.Controllers
 
             const decimal KdvRate = 0.20m;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
-            var fx = rate ?? 42m;
+            var fx = rate ?? _currency.FallbackRate;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
             var relatedProducts = await _repo.GetLatestProductsAsync();
 

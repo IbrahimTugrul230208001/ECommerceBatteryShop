@@ -1,4 +1,4 @@
-﻿namespace ECommerceBatteryShop.Options
+namespace ECommerceBatteryShop.Options
 {
     public sealed class CurrencyOptions
     {
@@ -6,5 +6,6 @@
         public string ApiKey { get; set; } = ""; // "apikey YOUR_TOKEN"
         public int CacheSeconds { get; set; } = 86400; // 24h; we'll refresh 3×/day anyway
         public string[] RefreshTimesLocal { get; set; } = new[] { "10:00", "15:00", "20:00" }; // TR time
+        public decimal FallbackUsdTryRate { get; set; } = 46m; // used when API is unreachable & nothing is cached
     }
 }
