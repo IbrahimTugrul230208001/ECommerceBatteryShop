@@ -55,12 +55,12 @@ public sealed class CurrencyService : ICurrencyService
     {
         try
         {
-            // Fetching USD to ALL, where we'll look for TRY
-            using var resp = await _http.GetAsync("/economy/currencyToAll?int=1&base=USD", ct);
+            // Your sample payload is from /economy/allCurrency (TRY-based list of many FX).
+            using var resp = await _http.GetAsync("/economy/allCurrency", ct);
             if (!resp.IsSuccessStatusCode)
             {
                 _log.LogWarning("CollectAPI status: {Status}", resp.StatusCode);
-                return UseLkgOrNull();
+                return UseLkgOrNull() ?? FallbackRate;
             }
 
             var json = await resp.Content.ReadAsStringAsync(ct);
@@ -74,13 +74,13 @@ public sealed class CurrencyService : ICurrencyService
             }
 
             _log.LogWarning("CollectAPI parse failed. Head: {Head}", json[..Math.Min(json.Length, 300)]);
-            return UseLkgOrNull();
+            return UseLkgOrNull() ?? FallbackRate;
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             _log.LogWarning(ex, "CollectAPI refresh failed");
-            return UseLkgOrNull();
+            return UseLkgOrNull() ?? FallbackRate;
         }
     }
 
@@ -103,22 +103,20 @@ public sealed class CurrencyService : ICurrencyService
         using var doc = JsonDocument.Parse(raw);
 
         if (!doc.RootElement.TryGetProperty("result", out var result) ||
-            result.ValueKind != JsonValueKind.Object)
+            result.ValueKind != JsonValueKind.Array)
             return false;
 
-        if (!result.TryGetProperty("data", out var data) ||
-            data.ValueKind != JsonValueKind.Array)
-            return false;
-
-        foreach (var el in data.EnumerateArray())
+        foreach (var el in result.EnumerateArray())
         {
             if (!el.TryGetProperty("code", out var codeEl)) continue;
-            if (!string.Equals(codeEl.GetString(), "TRY", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!string.Equals(codeEl.GetString(), "USD", StringComparison.OrdinalIgnoreCase)) continue;
 
-            if (TryGetNumber(el, "rate", out rate) && rate > 0) return true;
+            if (TryGetNumber(el, "selling", out rate) && rate > 0) return true;
             if (TryGetNumber(el, "calculated", out rate) && rate > 0) return true;
+            if (TryGetNumber(el, "buying", out rate) && rate > 0) return true;
 
-            if (TryParseTr(el, "calculatedstr", out rate) && rate > 0) return true;
+            if (TryParseTr(el, "sellingstr", out rate) && rate > 0) return true;
+            if (TryParseTr(el, "buyingstr", out rate) && rate > 0) return true;
 
             return false;
         }
