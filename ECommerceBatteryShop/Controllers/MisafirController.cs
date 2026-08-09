@@ -8,13 +8,6 @@ namespace ECommerceBatteryShop.Controllers;
 
 public class MisafirController : Controller
 {
-    private readonly ICartService _cartService;
-    private readonly BatteryShopContext _ctx;
-    public MisafirController(ICartService cartService, BatteryShopContext ctx)
-    {
-        _cartService = cartService;
-        _ctx = ctx;
-    }
 
     [HttpGet]
     public IActionResult Index()

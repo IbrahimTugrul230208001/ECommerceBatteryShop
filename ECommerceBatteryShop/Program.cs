@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
@@ -240,6 +241,21 @@ builder.Services.AddAuthentication(o =>
     });
 
 var app = builder.Build();
+
+// Behind the droplet's TLS-terminating reverse proxy Kestrel only ever sees plain http://:8080,
+// so Request.Scheme/Host must come from the proxy's forwarded headers. Without this the Google
+// OAuth handler builds redirect_uri as http://... and Google rejects it (redirect_uri_mismatch).
+// Must run before any middleware that reads the scheme, host or client IP.
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+};
+// The proxy reaches us over the Docker bridge, not loopback; the defaults only trust loopback
+// and would otherwise silently discard its headers. Clear() is required here - an empty
+// collection initializer (KnownNetworks = { }) compiles but adds nothing and clears nothing.
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 if (!app.Environment.IsDevelopment())
 {
