@@ -3,19 +3,7 @@
     Layout = "_AccountLayout";
 }
 
-@if (TempData["SuccessMessage"] is string successMessage)
-{
-    <div class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
-        @successMessage
-    </div>
-}
-
-@if (TempData["ErrorMessage"] is string errorMessage)
-{
-    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-        @errorMessage
-    </div>
-}
+@await Html.PartialAsync("_FlashMessages")
 
 <!-- Google -->
 <a asp-action="GoogleLogin"
@@ -44,7 +32,7 @@
 <div class="space-y-2">
     <form asp-action="LogIn" asp-controller="Hesap" method="post" class="space-y-6" novalidate>
         @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="text-sm text-red-600"></div>
+        @await Html.PartialAsync("_ValidationSummary")
 
         <div>
             <div class="flex items-center justify-between">

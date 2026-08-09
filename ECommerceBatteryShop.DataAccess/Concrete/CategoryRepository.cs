@@ -21,6 +21,37 @@ public sealed class CategoryRepository : ICategoryRepository
             .FirstOrDefaultAsync(c => c.Slug == slug, ct);
     }
 
+    public Task<Category?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        return _ctx.Categories.FirstOrDefaultAsync(c => c.Id == id, ct);
+    }
+
+    public Task<bool> HasProductsAsync(int categoryId, CancellationToken ct = default)
+    {
+        return _ctx.ProductCategories.AnyAsync(pc => pc.CategoryId == categoryId, ct);
+    }
+
+    public async Task DeleteAsync(Category category, CancellationToken ct = default)
+    {
+        _ctx.Categories.Remove(category);
+        await _ctx.SaveChangesAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<(int Id, string Name)>> GetAssignableAsync(CancellationToken ct = default)
+    {
+        // Include all non-root categories, plus depth-0 categories that have no children
+        // (i.e. leaf root categories that can directly hold products).
+        var rows = await _ctx.Categories
+            .AsNoTracking()
+            .Where(c => c.Depth != "0"
+                || !_ctx.Categories.Any(child => child.Path.StartsWith(c.Path + "/") && child.Id != c.Id))
+            .OrderBy(c => c.Path)
+            .Select(c => new { c.Id, c.Name })
+            .ToListAsync(ct);
+
+        return rows.Select(r => (r.Id, r.Name)).ToList();
+    }
+
     public async Task<List<Category>> GetCategoryTreeAsync()
     {
         var all = await _ctx.Categories

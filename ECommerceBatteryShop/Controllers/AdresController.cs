@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Entities;
+using ECommerceBatteryShop.Mapping;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -30,7 +31,7 @@ public class AdresController : Controller
         }
 
         var addresses = await _addressRepository.GetByUserAsync(userId.Value, ct);
-        return PartialView("_AddressListPartial", addresses.Select(MapToViewModel).ToList());
+        return PartialView("_AddressListPartial", addresses.Select(AddressMapper.ToViewModel).ToList());
     }
 
     [HttpPost]
@@ -46,7 +47,7 @@ public class AdresController : Controller
         {
             Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
             var addresses = await _addressRepository.GetByUserAsync(userId.Value, ct);
-            return PartialView("_AddressListPartial", addresses.Select(MapToViewModel).ToList());
+            return PartialView("_AddressListPartial", addresses.Select(AddressMapper.ToViewModel).ToList());
         }
 
         var shouldSetDefault = model.IsDefault;
@@ -109,7 +110,7 @@ public class AdresController : Controller
             refreshed = await _addressRepository.GetByUserAsync(userId.Value, ct);
         }
 
-        return PartialView("_AddressListPartial", refreshed.Select(MapToViewModel).ToList());
+        return PartialView("_AddressListPartial", refreshed.Select(AddressMapper.ToViewModel).ToList());
     }
 
     [HttpPost]
@@ -129,7 +130,7 @@ public class AdresController : Controller
         }
 
         var addresses = await _addressRepository.GetByUserAsync(userId.Value, ct);
-        return PartialView("_AddressListPartial", addresses.Select(MapToViewModel).ToList());
+        return PartialView("_AddressListPartial", addresses.Select(AddressMapper.ToViewModel).ToList());
     }
 
     private int? GetUserId()
@@ -148,6 +149,7 @@ public class AdresController : Controller
         _logger.LogWarning("Could not parse user id claim value {Claim}", claim.Value);
         return null;
     }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
@@ -170,23 +172,6 @@ public class AdresController : Controller
             await _addressRepository.SetDefaultAsync(userId.Value, fallback.Id, ct);
             addresses = await _addressRepository.GetByUserAsync(userId.Value, ct);
         }
-        return PartialView("_AddressListPartial", addresses.Select(MapToViewModel).ToList());
-    }
-    private static AddressViewModel MapToViewModel(Address address)
-    {
-        return new AddressViewModel
-        {
-            Id = address.Id,
-            UserId = address.UserId,
-            Title = address.Title,
-            Name = address.Name,
-            Surname = address.Surname,
-            PhoneNumber = address.PhoneNumber,
-            FullAddress = address.FullAddress,
-            City = address.City,
-            State = address.State,
-            Neighbourhood = address.Neighbourhood,
-            IsDefault = address.IsDefault
-        };
+        return PartialView("_AddressListPartial", addresses.Select(AddressMapper.ToViewModel).ToList());
     }
 }

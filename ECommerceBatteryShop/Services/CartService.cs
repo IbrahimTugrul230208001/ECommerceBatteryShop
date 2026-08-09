@@ -59,18 +59,5 @@ namespace ECommerceBatteryShop.Services
         {
             await _cartRepo.MergeCartsAsync(anonId, userId, ct);
         }
-
-        public async Task<decimal> CartTotalPriceAsync(CartOwner owner, CancellationToken ct = default)
-        {
-            var cart = await _cartRepo.GetCartAsync(owner.UserId, owner.AnonId, ct);
-            if (cart is null) return 0m;
-
-            decimal totalPrice = 0m;
-            foreach (var item in cart.Items)
-            {
-                totalPrice += item.UnitPrice * item.Quantity * 1.2m; // Including tax
-            }
-            return totalPrice;
-        }
     }
 }

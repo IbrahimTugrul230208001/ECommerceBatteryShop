@@ -7,26 +7,23 @@ namespace ECommerceBatteryShop.Services
         Task<int> CountAsync(FavoriteOwner owner, CancellationToken ct);
         Task<FavoriteList?> GetAsync(FavoriteOwner owner, bool createIfMissing, CancellationToken ct);
         Task<ToggleResult> ToggleAsync(FavoriteOwner owner, int productId, CancellationToken ct);
-        Task<Dictionary<int, decimal>> GetPricesAsync(IEnumerable<int> productIds, CancellationToken ct);
     }
 
 
     public sealed record ToggleResult(bool Added, int TotalCount);
-    public sealed class FavoriteOwner
+    public sealed record FavoriteOwner
     {
         public int? UserId { get; }
         public string? AnonId { get; }
-
+        public bool IsUser => UserId is not null;
         private FavoriteOwner(int? userId, string? anonId)
         {
             UserId = userId;
             AnonId = anonId;
         }
 
-        public static FavoriteOwner FromUser(int userId) =>
-            new FavoriteOwner(userId, null);
+        public static FavoriteOwner FromUser(int userId) => new (userId, null);
 
-        public static FavoriteOwner FromAnon(string anonId) =>
-            new FavoriteOwner(null, anonId);
+        public static FavoriteOwner FromAnon(string anonId) => new (null, anonId);
     }
 }

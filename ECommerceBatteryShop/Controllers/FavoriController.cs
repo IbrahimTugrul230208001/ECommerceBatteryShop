@@ -1,3 +1,4 @@
+using ECommerceBatteryShop.Infrastructure;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +13,16 @@ namespace ECommerceBatteryShop.Controllers
     {
         private readonly IFavoritesService _favoritesService;
         private readonly ICurrencyService _currency;
+        private readonly IPricingService _pricing;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
         private const string FavoritesConsentMessage = "Çerezleri reddettiniz. Favoriler özelliğini kullanabilmek için çerezleri kabul etmelisiniz.";
 
-        public FavoriController(IFavoritesService favoritesService, ICurrencyService currency)
+        public FavoriController(IFavoritesService favoritesService, ICurrencyService currency, IPricingService pricing)
         {
             _favoritesService = favoritesService;
             _currency = currency;
+            _pricing = pricing;
         }
 
         private bool IsCookieConsentRejected()
@@ -46,10 +49,10 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> Index(CancellationToken ct)
         {
             FavoriteOwner owner;
-            if (User.Identity?.IsAuthenticated == true)
+            var userId = User.GetUserId();
+            if (userId is not null)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = FavoriteOwner.FromUser(userId);
+                owner = FavoriteOwner.FromUser(userId.Value);
             }
             else
             {
@@ -62,8 +65,8 @@ namespace ECommerceBatteryShop.Controllers
                     });
                 }
 
-                var anonId = Request.Cookies["ANON_ID"];
-                if (string.IsNullOrEmpty(anonId))
+                var anonId = AnonymousId.Read(Request);
+                if (anonId is null)
                 {
                     return View(new FavoriteViewModel());
                 }
@@ -72,36 +75,23 @@ namespace ECommerceBatteryShop.Controllers
             var list = await _favoritesService.GetAsync(owner, createIfMissing: false, ct);
             if (list is null || list.Items.Count == 0) return View(new FavoriteViewModel());
 
-            var ids = list.Items.Select(i => i.ProductId).Distinct().ToArray();
-            var rate = await _currency.GetCachedUsdTryAsync(ct);   // ensure this is decimal
-            const decimal kdvRate = 0.20m;
-
-            var priceMap = await _favoritesService.GetPricesAsync(ids, ct); // IReadOnlyDictionary<int, decimal>
+            var rate = await _currency.GetCachedUsdTryAsync(ct);
+            var fx = rate ?? _currency.FallbackRate;
 
             var model = new FavoriteViewModel
             {
                 Items = list.Items.Select(i =>
                 {
-                    priceMap.TryGetValue(i.ProductId, out decimal basePrice);   // <-- non-nullable
-                    var priceWithKdvAndRate = basePrice * (1 + kdvRate) * rate;
-
-                    // Find active discount
-                    var now = DateTime.UtcNow;
-                    var activeDiscount = i.Product?.Discounts?
-                        .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
-                        .OrderByDescending(d => d.DiscountPercentage)
-                        .FirstOrDefault();
-                    var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
-                    var finalPrice = discountPct > 0
-                        ? Math.Round((decimal)priceWithKdvAndRate * (1 - discountPct / 100m), 2)
-                        : (decimal)priceWithKdvAndRate;
+                    var priced = i.Product is null
+                        ? new PricedUnit(0m, null, 0m)
+                        : _pricing.PriceUnit(i.Product, fx);
 
                     return new FavoriteItemViewModel
                     {
                         ProductId = i.ProductId,
-                        UnitPrice = finalPrice,
-                        OriginalPrice = discountPct > 0 ? (decimal)priceWithKdvAndRate : null,
-                        DiscountPercentage = discountPct,
+                        UnitPrice = priced.Final,
+                        OriginalPrice = priced.Original,
+                        DiscountPercentage = priced.DiscountPercentage,
                         Name = i.Product?.Name ?? string.Empty,
                         ImageUrl = i.Product?.ImageUrl,
                         Slug = i.Product?.Slug,
@@ -118,10 +108,10 @@ namespace ECommerceBatteryShop.Controllers
         {
             // 1) Owner çöz
             FavoriteOwner owner;
-            if (User.Identity?.IsAuthenticated == true)
+            var userId = User.GetUserId();
+            if (userId is not null)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = FavoriteOwner.FromUser(userId);
+                owner = FavoriteOwner.FromUser(userId.Value);
             }
             else
             {
@@ -130,19 +120,7 @@ namespace ECommerceBatteryShop.Controllers
                     return CookieConsentRequired(FavoritesConsentMessage);
                 }
 
-                var anonId = Request.Cookies["ANON_ID"];
-                if (string.IsNullOrEmpty(anonId))
-                {
-                    anonId = Guid.NewGuid().ToString("N");
-                    Response.Cookies.Append("ANON_ID", anonId, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        IsEssential = true,
-                        SameSite = SameSiteMode.Lax,
-                        Expires = DateTimeOffset.UtcNow.AddYears(1)
-                    });
-                }
-                owner = FavoriteOwner.FromAnon(anonId);
+                owner = FavoriteOwner.FromAnon(AnonymousId.Ensure(HttpContext));
             }
 
             // 2) Toggle et → sonuçtan toplamı öğren

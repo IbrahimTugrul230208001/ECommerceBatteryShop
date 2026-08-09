@@ -1,0 +1,28 @@
+@*
+    Model-level validation errors (those added with ModelState.AddModelError(string.Empty, ...)).
+    Rendered manually instead of via asp-validation-summary, because that tag helper emits an
+    empty <div> even when the model is valid — which would show an empty red box on first load.
+*@
+@{
+    var summaryErrors = ViewData.ModelState[string.Empty]?.Errors;
+}
+
+@if (summaryErrors is { Count: > 0 })
+{
+    <div role="alert" aria-live="assertive"
+         class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3
+                text-sm font-medium text-red-800 shadow-sm">
+        <svg class="mt-0.5 h-5 w-5 flex-none text-red-500" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path stroke-linecap="round" d="M12 7.75v4.75" />
+            <path stroke-linecap="round" d="M12 16.25h.01" />
+        </svg>
+        <div class="space-y-1">
+            @foreach (var error in summaryErrors)
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    </div>
+}

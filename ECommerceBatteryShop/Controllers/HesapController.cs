@@ -1,10 +1,8 @@
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Entities;
+using ECommerceBatteryShop.Mapping;
 using ECommerceBatteryShop.Models;
-using ECommerceBatteryShop.Options;
 using ECommerceBatteryShop.Services;
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -12,15 +10,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ECommerceBatteryShop.Controllers;
 
@@ -28,30 +23,30 @@ public class HesapController : Controller
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IConfiguration _configuration;
-    private readonly IUserService _userService;
+    private readonly IAccountService _accountService;
+    private readonly IEmailService _emailService;
     private readonly IAddressRepository _addressRepository;
     private readonly ICartService _cartService;
     private readonly IOrderRepository _orderRepository;
-    private readonly IOptions<SmtpOptions> _smtpOptions;
     private readonly ILogger<HesapController> _logger;
 
     public HesapController(
         IAccountRepository accountRepository,
         IOrderRepository orderRepository,
         IConfiguration configuration,
-        IUserService userService,
+        IAccountService accountService,
+        IEmailService emailService,
         IAddressRepository addressRepository,
         ICartService cartService,
-        IOptions<SmtpOptions> smtpOptions,
         ILogger<HesapController> logger)
     {
         _accountRepository = accountRepository;
         _configuration = configuration;
-        _userService = userService;
+        _accountService = accountService;
+        _emailService = emailService;
         _addressRepository = addressRepository;
         _cartService = cartService;
         _orderRepository = orderRepository;
-        _smtpOptions = smtpOptions;
         _logger = logger;
     }
     public IActionResult Ayarlar()
@@ -97,47 +92,29 @@ public class HesapController : Controller
 
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     [EnableRateLimiting("auth")]
-    public async Task<IActionResult> RegisterUser(UserViewModel userViewModel)
+    public async Task<IActionResult> RegisterUser(UserViewModel userViewModel, CancellationToken ct)
     {
         try
         {
-            string email = userViewModel.Email;
-            string password = userViewModel.Password;
-            string confirmPassword = userViewModel.ConfirmPassword;
+            var result = await _accountService.RegisterAsync(
+                userViewModel.Email, userViewModel.Password, userViewModel.ConfirmPassword, ct);
 
-
-            if (password != confirmPassword)
+            if (!result.Success)
             {
-                return Json(new { success = false, message = "Şifreler eşleşmiyor." });
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Kayıt tamamlanamadı.");
+                return KayitView(userViewModel);
             }
 
-            if (await _accountRepository.ValidateEmailAsync(email) == false)
-            {
-                return Json(new { success = false, message = "Email zaten kayıtlı." });
-            }
-
-            if (await _accountRepository.ValidateUserNameAsync(email) == false)
-            {
-                return Json(new { success = false, message = "Kullanıcı adı mevcut Başka bir isim deneyiniz." });
-            }
-
-            string verificationCode = new Random().Next(100000, 999999).ToString();
-            _userService.VerificationCode = verificationCode;
-            _userService.Email = email;
-            _userService.Password = password;
-            await _accountRepository.RegisterAsync(email, password);
-            return Json(new { success = true, redirectUrl = Url.Action("Giris", "Hesap") });
-        }
-        catch (ApplicationException ex)
-        {
-            Console.WriteLine($"Application Error: {ex.Message}");
-            return Json(new { success = false, message = ex.Message });
+            TempData["SuccessMessage"] = "Kaydınız oluşturuldu. Şimdi giriş yapabilirsiniz.";
+            return RedirectToAction(nameof(Giris));
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Unexpected Error: {ex.Message}");
-            return Json(new { success = false, message = "An unexpected error occurred while registering the user." });
+            _logger.LogError(ex, "Unexpected error while registering user {Email}", userViewModel.Email);
+            ModelState.AddModelError(string.Empty, "Kayıt sırasında beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.");
+            return KayitView(userViewModel);
         }
     }
 
@@ -147,7 +124,25 @@ public class HesapController : Controller
     }
     public IActionResult Kayit()
     {
-        return View("~/Views/Hesap/Kayit.cshtml");
+        return KayitView(new UserViewModel());
+    }
+
+    /// <summary>Re-renders the registration form without echoing the submitted passwords back into the HTML.</summary>
+    private IActionResult KayitView(UserViewModel model)
+    {
+        model.Password = null;
+        model.ConfirmPassword = null;
+        return View("~/Views/Hesap/Kayit.cshtml", model);
+    }
+
+    /// <summary>
+    /// Re-renders the login form. The view is named Giris, not LogIn, so the convention-based
+    /// <c>View(model)</c> lookup fails — the path has to be explicit.
+    /// </summary>
+    private IActionResult GirisView(LoginViewModel model)
+    {
+        model.Password = string.Empty;
+        return View("~/Views/Hesap/Giris.cshtml", model);
     }
 
     [HttpPost]
@@ -156,9 +151,8 @@ public class HesapController : Controller
     public async Task<IActionResult> LogIn(LoginViewModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
-
         {
-            return View(model);
+            return GirisView(model);
         }
 
         var adminSection = _configuration.GetSection("Admin");
@@ -189,8 +183,8 @@ public class HesapController : Controller
         var user = await _accountRepository.LogInAsync(model.Email, model.Password, ct);
         if (user == null)
         {
-            ModelState.AddModelError(string.Empty, "Invalid email or password");
-            return View(model);
+            ModelState.AddModelError(string.Empty, "E-posta veya şifre hatalı.");
+            return GirisView(model);
         }
 
         var claims = new List<Claim>
@@ -351,7 +345,7 @@ public class HesapController : Controller
             {
                 var entities = await _addressRepository.GetByUserAsync(userId, ct);
                 orders = await _orderRepository.GetOrdersByUserIdAsync(userId, ct);
-                addresses = entities.Select(MapAddress).ToList();
+                addresses = entities.Select(AddressMapper.ToViewModel).ToList();
             }
         }
 
@@ -442,57 +436,12 @@ public class HesapController : Controller
 
     private async Task SendPasswordResetEmailAsync(string recipientEmail, string token, DateTime expiresAt, CancellationToken ct)
     {
-        var options = _smtpOptions.Value;
-        if (string.IsNullOrWhiteSpace(options.Host) || string.IsNullOrWhiteSpace(options.SenderEmail))
-        {
-            throw new InvalidOperationException("SMTP ayarları eksik. Şifre yenileme e-postası gönderilemedi.");
-        }
-
         var resetUrl = Url.Action(nameof(SifreYenile), "Hesap", new { token }, Request.Scheme);
         if (string.IsNullOrWhiteSpace(resetUrl))
         {
             throw new InvalidOperationException("Şifre yenileme bağlantısı oluşturulamadı.");
         }
 
-        var expiresInMinutes = Math.Max(1, (int)Math.Round((expiresAt - DateTime.UtcNow).TotalMinutes));
-
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(options.SenderName ?? "ECommerce Battery Shop", options.SenderEmail));
-        message.To.Add(MailboxAddress.Parse(recipientEmail));
-        message.Subject = "Şifre Yenileme Bağlantınız";
-        message.Body = new TextPart("plain")
-        {
-            Text = $"Merhaba,\n\nŞifrenizi yenilemek için aşağıdaki bağlantıya tıklayın:\n{resetUrl}\n\nBağlantı {expiresInMinutes} dakika boyunca geçerlidir.\n\nEğer bu talebi siz oluşturmadıysanız lütfen bu e-postayı yok sayın."
-        };
-
-        using var client = new SmtpClient();
-        var socketOptions = options.UseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTlsWhenAvailable;
-        await client.ConnectAsync(options.Host, options.Port, socketOptions, ct);
-
-        if (!string.IsNullOrEmpty(options.UserName))
-        {
-            await client.AuthenticateAsync(options.UserName, options.Password ?? string.Empty, ct);
-        }
-
-        await client.SendAsync(message, ct);
-        await client.DisconnectAsync(true, ct);
-    }
-
-    private static AddressViewModel MapAddress(Address address)
-    {
-        return new AddressViewModel
-        {
-            Id = address.Id,
-            UserId = address.UserId,
-            Title = address.Title,
-            Name = address.Name,
-            Surname = address.Surname,
-            PhoneNumber = address.PhoneNumber,
-            FullAddress = address.FullAddress,
-            City = address.City,
-            State = address.State,
-            Neighbourhood = address.Neighbourhood,
-            IsDefault = address.IsDefault
-        };
+        await _emailService.SendPasswordResetAsync(recipientEmail, resetUrl, expiresAt, ct);
     }
 }

@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Encodings.Web;
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Entities;
+using ECommerceBatteryShop.Infrastructure;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +21,6 @@ namespace ECommerceBatteryShop.Controllers;
 [AutoValidateAntiforgeryToken]
 public class SiparisController : Controller
 {
-    private const decimal KdvRate = 0.20m;
     private const decimal DefaultShippingFee = 129.99m;
     private const decimal IbanDiscountRate = 0.03m; // %3 indirim
 
@@ -31,6 +31,7 @@ public class SiparisController : Controller
     private readonly IIyzicoPaymentService _paymentService;
     private readonly ISavedCardRepository _savedCardRepository;
     private readonly IThreeDSStore _threeDSStore;
+    private readonly IPricingService _pricing;
     private readonly ILogger<SiparisController> _logger;
 
     private const string GuestInfoCookie = "GUEST_INFO";
@@ -43,6 +44,7 @@ public class SiparisController : Controller
         IIyzicoPaymentService paymentService,
         ISavedCardRepository savedCardRepository,
         IThreeDSStore threeDSStore,
+        IPricingService pricing,
         ILogger<SiparisController> logger)
     {
         _cartService = cartService;
@@ -52,6 +54,7 @@ public class SiparisController : Controller
         _paymentService = paymentService;
         _savedCardRepository = savedCardRepository;
         _threeDSStore = threeDSStore;
+        _pricing = pricing;
         _logger = logger;
     }
 
@@ -853,15 +856,15 @@ public class SiparisController : Controller
             new ThreeDSStatusViewModel(false, "Ödemeniz işleniyor. Lütfen birkaç saniye içinde tekrar deneyin."));
     }
 
-    private static (List<IyzicoBasketItem> Items, decimal BasketTotal) BuildBasketItems(Cart cart, decimal fxRate)
+    private (List<IyzicoBasketItem> Items, decimal BasketTotal) BuildBasketItems(Cart cart, decimal fxRate)
     {
         var items = new List<IyzicoBasketItem>();
         decimal total = 0m;
 
         foreach (var item in cart.Items)
         {
-            var unitPriceTry = ((item.UnitPrice * fxRate) + item.Product.ExtraAmount) * (1 + KdvRate);
-            var linePrice = decimal.Round(unitPriceTry * item.Quantity, 2, MidpointRounding.AwayFromZero);
+            var linePrice = _pricing.ChargeLineTotal(item.UnitPrice, item.Product?.ExtraAmount ?? 0,
+                item.Product?.Discounts, item.Quantity, fxRate);
             total += linePrice;
             items.Add(new IyzicoBasketItem
             {
@@ -874,15 +877,13 @@ public class SiparisController : Controller
         return (items, total);
     }
 
-    private static decimal CalculateOrderTotal(Cart cart, decimal fxRate)
+    private decimal CalculateOrderTotal(Cart cart, decimal fxRate)
     {
         decimal total = 0m;
         foreach (var item in cart.Items)
         {
-            var unitPriceTry = ((item.Product.Price * fxRate) + item.Product.ExtraAmount) * (1 + KdvRate);
-            Console.WriteLine(unitPriceTry);
-            var linePrice = decimal.Round(unitPriceTry * item.Quantity, 2, MidpointRounding.AwayFromZero);
-            total += linePrice;
+            total += _pricing.ChargeLineTotal(item.UnitPrice, item.Product?.ExtraAmount ?? 0,
+                item.Product?.Discounts, item.Quantity, fxRate);
         }
 
         return total;
@@ -917,7 +918,8 @@ public class SiparisController : Controller
             return false;
         }
 
-        if (!Request.Cookies.TryGetValue("ANON_ID", out var anonId) || string.IsNullOrWhiteSpace(anonId))
+        var anonId = AnonymousId.Read(Request);
+        if (anonId is null)
         {
             errorResult = BadRequest(new { success = false, message = "Misafir sepeti bulunamadı." });
             return false;

@@ -26,10 +26,12 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ICurrencyService _currencyService;
         private readonly IProductRepository _productRepository;
         private readonly ICategoryService _categoryService;
+        private readonly IInventoryRepository _inventoryRepository;
 
         public AdminController(BatteryShopContext context, IWebHostEnvironment environment,
             ICategoryRepository categoryRepository, IOrderRepository orderRepository, ICurrencyService currencyService,
-            IProductRepository productRepository, ICategoryService categoryService)
+            IProductRepository productRepository, ICategoryService categoryService,
+            IInventoryRepository inventoryRepository)
         {
             _context = context;
             _environment = environment;
@@ -38,6 +40,7 @@ namespace ECommerceBatteryShop.Controllers
             _currencyService = currencyService;
             _productRepository = productRepository;
             _categoryService = categoryService;
+            _inventoryRepository = inventoryRepository;
         }
 
         [HttpGet]
@@ -258,23 +261,21 @@ namespace ECommerceBatteryShop.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteCategory(int categoryId, CancellationToken cancellationToken)
         {
-            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == categoryId, cancellationToken);
+            var category = await _categoryRepository.GetByIdAsync(categoryId, cancellationToken);
             if (category is null)
             {
                 TempData["CategoryError"] = "Silinecek kategori bulunamadı veya zaten silinmiş olabilir.";
                 return RedirectToAction(nameof(Index));
             }
 
-            var hasProducts =
-                await _context.ProductCategories.AnyAsync(pc => pc.CategoryId == categoryId, cancellationToken);
+            var hasProducts = await _categoryRepository.HasProductsAsync(categoryId, cancellationToken);
             if (hasProducts)
             {
                 TempData["CategoryError"] = "Bu kategoriye bağlı ürünler olduğu için silinemez.";
                 return RedirectToAction(nameof(Index));
             }
 
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _categoryRepository.DeleteAsync(category, cancellationToken);
             _categoryService.InvalidateCache();
             TempData["CategorySuccess"] = "Kategori başarıyla silindi.";
             return RedirectToAction(nameof(Index));
@@ -316,43 +317,8 @@ namespace ECommerceBatteryShop.Controllers
                 return RedirectToAction("StokPaneli", "Admin");
             }
 
-            var productIds = model.Items.Select(i => i.ProductId).ToList();
-
-            var existingProducts = await _context.Products
-                .Where(p => productIds.Contains(p.Id))
-                .Select(p => p.Id)
-                .ToListAsync(cancellationToken);
-
-            var inventories = await _context.Inventories
-                .Where(i => productIds.Contains(i.ProductId))
-                .ToDictionaryAsync(i => i.ProductId, cancellationToken);
-
-            var now = DateTime.UtcNow;
-
-            foreach (var item in model.Items)
-            {
-                if (!existingProducts.Contains(item.ProductId))
-                {
-                    continue;
-                }
-
-                if (inventories.TryGetValue(item.ProductId, out var inventory))
-                {
-                    inventory.Quantity = item.Quantity;
-                    inventory.LastUpdated = now;
-                }
-                else
-                {
-                    _context.Inventories.Add(new Inventory
-                    {
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        LastUpdated = now
-                    });
-                }
-            }
-
-            await _context.SaveChangesAsync(cancellationToken);
+            await _inventoryRepository.UpdateQuantitiesAsync(
+                model.Items.Select(i => (i.ProductId, i.Quantity)).ToList(), cancellationToken);
 
             TempData["StockUpdateSuccess"] = "Seçili ürünlerin stok durumları güncellendi.";
 
@@ -572,35 +538,13 @@ namespace ECommerceBatteryShop.Controllers
         private async Task<IList<AdminStockItemViewModel>> LoadStockItemsAsync(string? searchTerm,
             CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
+            var rows = await _inventoryRepository.SearchAsync(searchTerm, 25, cancellationToken);
+            return rows.Select(r => new AdminStockItemViewModel
             {
-                return new List<AdminStockItemViewModel>();
-            }
-
-            searchTerm = searchTerm.Trim();
-
-            var query = _context.Products.AsNoTracking();
-            var pattern = $"%{searchTerm}%";
-
-            if (int.TryParse(searchTerm, out var productId))
-            {
-                query = query.Where(p => p.Id == productId || EF.Functions.ILike(p.Name, pattern));
-            }
-            else
-            {
-                query = query.Where(p => EF.Functions.ILike(p.Name, pattern));
-            }
-
-            return await query
-                .OrderBy(p => p.Name)
-                .Take(25)
-                .Select(p => new AdminStockItemViewModel
-                {
-                    ProductId = p.Id,
-                    ProductName = p.Name,
-                    Quantity = p.Inventory != null && p.Inventory.Quantity >= 0 ? p.Inventory.Quantity : 0
-                })
-                .ToListAsync(cancellationToken);
+                ProductId = r.ProductId,
+                ProductName = r.ProductName,
+                Quantity = r.Quantity
+            }).ToList();
         }
 
         private async Task PopulateEntryViewModelAsync(AdminProductEntryViewModel model, int? productId,
@@ -708,21 +652,12 @@ namespace ECommerceBatteryShop.Controllers
 
         private async Task<List<CategorySelectionViewModel>> LoadCategoryItemsAsync(int? selectedId = null)
         {
-            // Include all non-root categories, plus depth-0 categories that have no children
-            // (i.e. leaf root categories that can directly hold products).
-            var items = await _context.Categories
-                .AsNoTracking()
-                .Where(c => c.Depth != "0"
-                    || !_context.Categories.Any(child => child.Path.StartsWith(c.Path + "/") && child.Id != c.Id))
-                .OrderBy(c => c.Path)
-                .Select(c => new CategorySelectionViewModel
-                {
-                    CategoryId = c.Id,
-                    CategoryName = c.Name,
-                })
-                .ToListAsync();
-
-            return items;
+            var items = await _categoryRepository.GetAssignableAsync();
+            return items.Select(c => new CategorySelectionViewModel
+            {
+                CategoryId = c.Id,
+                CategoryName = c.Name,
+            }).ToList();
         }
     }
 }

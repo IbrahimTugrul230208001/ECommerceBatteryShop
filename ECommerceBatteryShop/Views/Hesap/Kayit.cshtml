@@ -3,6 +3,8 @@
 }
 @model UserViewModel
 
+@await Html.PartialAsync("_FlashMessages")
+
                 <!-- Google -->
                 <a asp-action="GoogleLogin"
                    asp-controller="Hesap"
@@ -28,6 +30,9 @@
 
                 <!-- Form -->
 <form asp-action="RegisterUser" asp-controller="Hesap" method="post" class="space-y-4">
+    @Html.AntiForgeryToken()
+    @await Html.PartialAsync("_ValidationSummary")
+
     <div>
         <div class="flex items-center justify-between">
             <label asp-for="Email" class="block text-sm font-medium text-gray-900">E-posta</label>

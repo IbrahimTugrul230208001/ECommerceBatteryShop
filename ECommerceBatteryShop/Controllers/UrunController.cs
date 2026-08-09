@@ -1,5 +1,6 @@
 using System;
 using ECommerceBatteryShop.DataAccess.Abstract;
+using ECommerceBatteryShop.Infrastructure;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -16,16 +17,18 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ILogger<UrunController> _log;
         private readonly IFavoritesService _favorites;
         private readonly ICategoryRepository _categories;
+        private readonly IPricingService _pricing;
 
         public UrunController(
             IProductRepository repo,
             ICurrencyService currency,
             ILogger<UrunController> log,
             IFavoritesService favorites,
-            ICategoryRepository categories)
+            ICategoryRepository categories,
+            IPricingService pricing)
         {
             _repo = repo; _currency = currency; _log = log; _favorites = favorites; _categories = categories;
-
+            _pricing = pricing;
         }
 
         [HttpGet("/Urun/{categorySlug}")]
@@ -48,7 +51,6 @@ namespace ECommerceBatteryShop.Controllers
             }
 
             var term = search ?? q ?? null;
-            const decimal KdvRate = 0.20m;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
 
             var contextTitle = "Pil Batarya Marketim Ürünleri";
@@ -127,24 +129,15 @@ namespace ECommerceBatteryShop.Controllers
 
             var mapped = products.Select(p =>
             {
-                var basePrice = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate);
-                var now = DateTime.UtcNow;
-                var activeDiscount = p.Discounts?
-                    .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
-                    .OrderByDescending(d => d.DiscountPercentage)
-                    .FirstOrDefault();
-                var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
-                var finalPrice = discountPct > 0
-                    ? Math.Round(basePrice * (1 - discountPct / 100m), 2)
-                    : basePrice;
+                var priced = _pricing.PriceUnit(p, fx);
 
                 return new ProductViewModel
                 {
                     Id = p.Id,
                     Name = p.Name,
-                    Price = finalPrice,
-                    OriginalPrice = discountPct > 0 ? basePrice : null,
-                    DiscountPercentage = discountPct,
+                    Price = priced.Final,
+                    OriginalPrice = priced.Original,
+                    DiscountPercentage = priced.DiscountPercentage,
                     Rating = p.Rating,
                     ImageUrl = p.ImageUrl,
                     IsFavorite = favoriteIds.Contains(p.Id),
@@ -198,18 +191,15 @@ namespace ECommerceBatteryShop.Controllers
         {
             FavoriteOwner? owner = null;
 
-            if (User.Identity?.IsAuthenticated == true)
+            var userId = User.GetUserId();
+            if (userId is not null)
             {
-                var sub = User.FindFirst("sub")?.Value;
-                if (int.TryParse(sub, out var userId))
-                {
-                    owner = FavoriteOwner.FromUser(userId);
-                }
+                owner = FavoriteOwner.FromUser(userId.Value);
             }
             else
             {
-                var anonId = Request.Cookies["ANON_ID"];
-                if (!string.IsNullOrWhiteSpace(anonId))
+                var anonId = AnonymousId.Read(Request);
+                if (anonId is not null)
                 {
                     owner = FavoriteOwner.FromAnon(anonId);
                 }
@@ -234,7 +224,6 @@ namespace ECommerceBatteryShop.Controllers
 
             if (product is null) return NotFound();
 
-            const decimal KdvRate = 0.20m;
             var rate = await _currency.GetCachedUsdTryAsync(ct);
             var fx = rate ?? _currency.FallbackRate;
             var favoriteIds = await LoadFavoriteIdsAsync(ct);
@@ -265,16 +254,7 @@ namespace ECommerceBatteryShop.Controllers
             ViewData["Keywords"] = $"{product.Name}, lityum pil, enerji depolama";
 
             // Compute discount for main product
-            var mainBasePrice = (_currency.ConvertUsdToTry(product.Price, fx) + product.ExtraAmount) * (1 + KdvRate);
-            var now = DateTime.UtcNow;
-            var mainActiveDiscount = product.Discounts?
-                .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
-                .OrderByDescending(d => d.DiscountPercentage)
-                .FirstOrDefault();
-            var mainDiscountPct = mainActiveDiscount?.DiscountPercentage ?? 0m;
-            var mainFinalPrice = mainDiscountPct > 0
-                ? Math.Round(mainBasePrice * (1 - mainDiscountPct / 100m), 2)
-                : mainBasePrice;
+            var mainPriced = _pricing.PriceUnit(product, fx);
 
             var vm = new ProductDetailsViewModel
             {
@@ -282,9 +262,9 @@ namespace ECommerceBatteryShop.Controllers
                 {
                     Id = product.Id,
                     Name = product.Name,
-                    Price = mainFinalPrice,
-                    OriginalPrice = mainDiscountPct > 0 ? mainBasePrice : null,
-                    DiscountPercentage = mainDiscountPct,
+                    Price = mainPriced.Final,
+                    OriginalPrice = mainPriced.Original,
+                    DiscountPercentage = mainPriced.DiscountPercentage,
                     Rating = product.Rating,
                     ImageUrl = product.ImageUrl ?? string.Empty,
                     IsFavorite = favoriteIds.Contains(product.Id),
@@ -297,23 +277,15 @@ namespace ECommerceBatteryShop.Controllers
                     .Take(16)
                     .Select(p =>
                     {
-                        var relBasePrice = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate);
-                        var relActiveDiscount = p.Discounts?
-                            .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
-                            .OrderByDescending(d => d.DiscountPercentage)
-                            .FirstOrDefault();
-                        var relDiscountPct = relActiveDiscount?.DiscountPercentage ?? 0m;
-                        var relFinalPrice = relDiscountPct > 0
-                            ? Math.Round(relBasePrice * (1 - relDiscountPct / 100m), 2)
-                            : relBasePrice;
+                        var relPriced = _pricing.PriceUnit(p, fx);
 
                         return new ProductViewModel
                         {
                             Id = p.Id,
                             Name = p.Name,
-                            Price = relFinalPrice,
-                            OriginalPrice = relDiscountPct > 0 ? relBasePrice : null,
-                            DiscountPercentage = relDiscountPct,
+                            Price = relPriced.Final,
+                            OriginalPrice = relPriced.Original,
+                            DiscountPercentage = relPriced.DiscountPercentage,
                             Rating = p.Rating,
                             ImageUrl = p.ImageUrl ?? string.Empty,
                             IsFavorite = favoriteIds.Contains(p.Id),

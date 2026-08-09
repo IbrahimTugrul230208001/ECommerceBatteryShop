@@ -1,5 +1,6 @@
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Entities;
+using ECommerceBatteryShop.Infrastructure;
 using ECommerceBatteryShop.Models;
 using ECommerceBatteryShop.Services;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -13,21 +14,23 @@ namespace ECommerceBatteryShop.Controllers
         private readonly IProductRepository _repo;
         private readonly ICurrencyService _currency;
         private readonly IFavoritesService _favorites;
+        private readonly IPricingService _pricing;
 
         public EvController(IProductRepository repo,
             ICurrencyService currency,
             IFavoritesService favorites,
-            ILogger<EvController> log)
+            ILogger<EvController> log,
+            IPricingService pricing)
         {
             _repo = repo;
             _currency = currency;
             _favorites = favorites;
             _logger = log;
+            _pricing = pricing;
         }
 
         public async Task<IActionResult> Index(CancellationToken ct)
         {
-            const decimal KdvRate = 0.20m;
             const int perSection = 16;
 
             ViewData["Title"] = "PilBataryaMarketim | Lityum Pil ve Enerji Depolama Mağazası";
@@ -69,27 +72,15 @@ namespace ECommerceBatteryShop.Controllers
 
             ProductViewModel Map(Product p)
             {
-                var basePrice = (_currency.ConvertUsdToTry(p.Price, fx) + p.ExtraAmount) * (1 + KdvRate);
-
-                // Find the best active discount for this product
-                var now = DateTime.UtcNow;
-                var activeDiscount = p.Discounts?
-                    .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
-                    .OrderByDescending(d => d.DiscountPercentage)
-                    .FirstOrDefault();
-
-                var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
-                var finalPrice = discountPct > 0
-                    ? Math.Round(basePrice * (1 - discountPct / 100m), 2)
-                    : basePrice;
+                var priced = _pricing.PriceUnit(p, fx);
 
                 return new ProductViewModel
                 {
                     Id = p.Id,
                     Name = p.Name,
-                    Price = finalPrice,
-                    OriginalPrice = discountPct > 0 ? basePrice : null,
-                    DiscountPercentage = discountPct,
+                    Price = priced.Final,
+                    OriginalPrice = priced.Original,
+                    DiscountPercentage = priced.DiscountPercentage,
                     Rating = p.Rating,
                     ImageUrl = p.ImageUrl ?? string.Empty,
                     ExtraAmount = p.ExtraAmount,
@@ -126,18 +117,15 @@ namespace ECommerceBatteryShop.Controllers
             {
                 FavoriteOwner? owner = null;
 
-                if (User.Identity?.IsAuthenticated == true)
+                var userId = User.GetUserId();
+                if (userId is not null)
                 {
-                    var sub = User.FindFirst("sub")?.Value;
-                    if (int.TryParse(sub, out var userId))
-                    {
-                        owner = FavoriteOwner.FromUser(userId);
-                    }
+                    owner = FavoriteOwner.FromUser(userId.Value);
                 }
                 else
                 {
-                    var anonId = Request.Cookies["ANON_ID"];
-                    if (!string.IsNullOrWhiteSpace(anonId))
+                    var anonId = AnonymousId.Read(Request);
+                    if (anonId is not null)
                     {
                         owner = FavoriteOwner.FromAnon(anonId);
                     }

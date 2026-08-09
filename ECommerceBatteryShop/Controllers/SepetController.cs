@@ -1,5 +1,7 @@
 using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Entities;
+using ECommerceBatteryShop.Infrastructure;
+using ECommerceBatteryShop.Mapping;
 using ECommerceBatteryShop.Services;
 using ECommerceBatteryShop.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +22,7 @@ namespace ECommerceBatteryShop.Controllers
         private readonly ICartService _cartService;
         private readonly ICurrencyService _currencyService;
         private readonly IAddressRepository _addressRepository;
+        private readonly IPricingService _pricing;
         public readonly ILogger<SepetController> _logger;
         private const string CookieConsentCookieName = "COOKIE_CONSENT";
         private const string CookieConsentRejectedValue = "rejected";
@@ -30,12 +33,13 @@ namespace ECommerceBatteryShop.Controllers
         private const string GuestInfoCookie = "GUEST_INFO";
 
         public SepetController(ICartRepository repo, ICartService cartService, ICurrencyService currencyService,
-            IAddressRepository addressRepository, ILogger<SepetController> logger)
+            IAddressRepository addressRepository, IPricingService pricing, ILogger<SepetController> logger)
         {
             _repo = repo;
             _cartService = cartService;
             _currencyService = currencyService;
             _addressRepository = addressRepository;
+            _pricing = pricing;
             _logger = logger;
         }
 
@@ -81,10 +85,10 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> Index(CancellationToken ct)
         {
             CartOwner owner;
-            if (User.Identity?.IsAuthenticated == true)
+            var userId = User.GetUserId();
+            if (userId is not null)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                owner = CartOwner.FromUser(userId.Value);
             }
             else
             {
@@ -97,8 +101,8 @@ namespace ECommerceBatteryShop.Controllers
                     });
                 }
 
-                var anonId = Request.Cookies["ANON_ID"];
-                if (string.IsNullOrEmpty(anonId))
+                var anonId = AnonymousId.Read(Request);
+                if (anonId is null)
                 {
                     return View(new CartViewModel());
                 }
@@ -114,27 +118,16 @@ namespace ECommerceBatteryShop.Controllers
             {
                 model.Items = cart.Items.Select(i =>
                 {
-                    var baseUnitPrice = ((i.UnitPrice * fx) + (i.Product?.ExtraAmount ?? 0)) * 1.2m;
-
-                    // Find active discount
-                    var now = DateTime.UtcNow;
-                    var activeDiscount = i.Product?.Discounts?
-                        .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
-                        .OrderByDescending(d => d.DiscountPercentage)
-                        .FirstOrDefault();
-                    var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
-                    var finalUnitPrice = discountPct > 0
-                        ? Math.Round(baseUnitPrice * (1 - discountPct / 100m), 2)
-                        : baseUnitPrice;
+                    var priced = _pricing.PriceUnit(i.UnitPrice, i.Product?.ExtraAmount ?? 0, i.Product?.Discounts, fx);
 
                     return new CartItemViewModel
                     {
                         ProductId = i.ProductId,
                         Name = i.Product?.Name ?? string.Empty,
                         ImageUrl = i.Product?.ImageUrl,
-                        UnitPrice = finalUnitPrice,
-                        OriginalUnitPrice = discountPct > 0 ? baseUnitPrice : null,
-                        DiscountPercentage = discountPct,
+                        UnitPrice = priced.Final,
+                        OriginalUnitPrice = priced.Original,
+                        DiscountPercentage = priced.DiscountPercentage,
                         Slug = i.Product?.Slug,
                         Quantity = i.Quantity
                     };
@@ -162,19 +155,7 @@ namespace ECommerceBatteryShop.Controllers
                     return CookieConsentRequired(CartConsentMessage);
                 }
 
-                var anonId = Request.Cookies["ANON_ID"];
-                if (string.IsNullOrEmpty(anonId))
-                {
-                    anonId = Guid.NewGuid().ToString();
-                    Response.Cookies.Append("ANON_ID", anonId, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        IsEssential = true,
-                        Expires = DateTimeOffset.UtcNow.AddMonths(3)
-                    });
-                }
-
-                owner = CartOwner.FromAnon(anonId);
+                owner = CartOwner.FromAnon(AnonymousId.Ensure(HttpContext));
             }
 
             var rate = await _currencyService.GetCachedUsdTryAsync();
@@ -186,7 +167,7 @@ namespace ECommerceBatteryShop.Controllers
             {
                 var userId = int.Parse(User.FindFirst("sub")!.Value);
                 var addressEntities = await _addressRepository.GetByUserAsync(userId, HttpContext.RequestAborted);
-                addresses = addressEntities.Select(MapAddress).ToList();
+                addresses = addressEntities.Select(AddressMapper.ToViewModel).ToList();
                 defaultAddressId = addresses.FirstOrDefault(a => a.IsDefault)?.Id
                                    ?? addresses.FirstOrDefault()?.Id;
             }
@@ -206,23 +187,10 @@ namespace ECommerceBatteryShop.Controllers
             decimal subTotal = 0m;
             if (cart is not null)
             {
-                var now = DateTime.UtcNow;
                 foreach (var item in cart.Items)
                 {
-                    var extra = item.Product?.ExtraAmount ?? 0m;
-                    var baseItemPrice = ((item.UnitPrice * fx) + extra) * 1.2m;
-
-                    // Apply active discount
-                    var activeDiscount = item.Product?.Discounts?
-                        .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
-                        .OrderByDescending(d => d.DiscountPercentage)
-                        .FirstOrDefault();
-                    var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
-                    var finalItemPrice = discountPct > 0
-                        ? Math.Round(baseItemPrice * (1 - discountPct / 100m), 2)
-                        : baseItemPrice;
-
-                    subTotal += finalItemPrice * item.Quantity;
+                    var priced = _pricing.PriceUnit(item.UnitPrice, item.Product?.ExtraAmount ?? 0, item.Product?.Discounts, fx);
+                    subTotal += priced.Final * item.Quantity;
                 }
             }
 
@@ -257,34 +225,20 @@ namespace ECommerceBatteryShop.Controllers
             decimal rate,
             decimal? shipping)
         {
-            const decimal KdvRate = 0.20m;
             const decimal DefaultShippingFee = 150m;
 
             var orderItems = new List<OrderItem>();
 
             if (cart is not null)
             {
-                var now = DateTime.UtcNow;
                 foreach (var item in cart.Items)
                 {
-                    var extraAmount = item.Product?.ExtraAmount ?? 0m;
-                    var baseUnitPriceTry = decimal.Round(((item.UnitPrice * rate) + extraAmount) * (1 + KdvRate), 2,
-                        MidpointRounding.AwayFromZero);
-
-                    // Apply active discount
-                    var activeDiscount = item.Product?.Discounts?
-                        .Where(d => d.IsActive && d.StartDate <= now && d.EndDate >= now)
-                        .OrderByDescending(d => d.DiscountPercentage)
-                        .FirstOrDefault();
-                    var discountPct = activeDiscount?.DiscountPercentage ?? 0m;
-                    var unitPriceTry = discountPct > 0
-                        ? decimal.Round(baseUnitPriceTry * (1 - discountPct / 100m), 2, MidpointRounding.AwayFromZero)
-                        : baseUnitPriceTry;
+                    var priced = _pricing.PriceUnit(item.UnitPrice, item.Product?.ExtraAmount ?? 0, item.Product?.Discounts, rate);
 
                     orderItems.Add(new OrderItem
                     {
                         Quantity = item.Quantity,
-                        UnitPrice = unitPriceTry
+                        UnitPrice = priced.Final
                     });
                 }
             }
@@ -372,23 +326,6 @@ namespace ECommerceBatteryShop.Controllers
             return model;
         }
 
-        private static AddressViewModel MapAddress(Address address)
-        {
-            return new AddressViewModel
-            {
-                Id = address.Id,
-                UserId = address.UserId,
-                Title = address.Title,
-                Name = address.Name,
-                Surname = address.Surname,
-                PhoneNumber = address.PhoneNumber,
-                FullAddress = address.FullAddress,
-                City = address.City,
-                State = address.State,
-                Neighbourhood = address.Neighbourhood,
-                IsDefault = address.IsDefault
-            };
-        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -396,11 +333,10 @@ namespace ECommerceBatteryShop.Controllers
         {
             // resolve owner: account vs guest
             CartOwner owner;
-            if (User.Identity?.IsAuthenticated == true)
+            var userId = User.GetUserId();
+            if (userId is not null)
             {
-                // adapt this to however you store user id in claims
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                owner = CartOwner.FromUser(userId.Value);
             }
             else
             {
@@ -409,19 +345,7 @@ namespace ECommerceBatteryShop.Controllers
                     return CookieConsentRequired(CartConsentMessage);
                 }
 
-                var anonId = Request.Cookies["ANON_ID"];
-                if (string.IsNullOrEmpty(anonId))
-                {
-                    anonId = Guid.NewGuid().ToString();
-                    Response.Cookies.Append("ANON_ID", anonId, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        IsEssential = true,
-                        Expires = DateTimeOffset.UtcNow.AddMonths(3)
-                    });
-                }
-
-                owner = CartOwner.FromAnon(anonId);
+                owner = CartOwner.FromAnon(AnonymousId.Ensure(HttpContext));
             }
 
             var count = await _cartService.AddAsync(owner, productId, quantity, ct);
@@ -435,11 +359,10 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> SetQuantity(int productId, int quantity, CancellationToken ct = default)
         {
             CartOwner owner;
-            if (User.Identity?.IsAuthenticated == true)
+            var userId = User.GetUserId();
+            if (userId is not null)
             {
-                // adapt this to however you store user id in claims
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                owner = CartOwner.FromUser(userId.Value);
             }
             else
             {
@@ -448,19 +371,7 @@ namespace ECommerceBatteryShop.Controllers
                     return CookieConsentRequired(CartConsentMessage);
                 }
 
-                var anonId = Request.Cookies["ANON_ID"];
-                if (string.IsNullOrEmpty(anonId))
-                {
-                    anonId = Guid.NewGuid().ToString();
-                    Response.Cookies.Append("ANON_ID", anonId, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        IsEssential = true,
-                        Expires = DateTimeOffset.UtcNow.AddMonths(3)
-                    });
-                }
-
-                owner = CartOwner.FromAnon(anonId);
+                owner = CartOwner.FromAnon(AnonymousId.Ensure(HttpContext));
             }
 
             var count = await _cartService.SetQuantityAsync(owner, productId, quantity, ct);
@@ -473,10 +384,10 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> Delete(int productId, CancellationToken ct = default)
         {
             CartOwner owner;
-            if (User.Identity?.IsAuthenticated == true)
+            var userId = User.GetUserId();
+            if (userId is not null)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                owner = CartOwner.FromUser(userId.Value);
             }
             else
             {
@@ -485,8 +396,8 @@ namespace ECommerceBatteryShop.Controllers
                     return CookieConsentRequired(CartConsentMessage);
                 }
 
-                var anonId = Request.Cookies["ANON_ID"];
-                if (string.IsNullOrEmpty(anonId))
+                var anonId = AnonymousId.Read(Request);
+                if (anonId is null)
                 {
                     return PartialView("_CartCount", 0);
                 }
@@ -504,10 +415,10 @@ namespace ECommerceBatteryShop.Controllers
         public async Task<IActionResult> DeleteAll(CancellationToken ct = default)
         {
             CartOwner owner;
-            if (User.Identity?.IsAuthenticated == true)
+            var userId = User.GetUserId();
+            if (userId is not null)
             {
-                var userId = int.Parse(User.FindFirst("sub")!.Value);
-                owner = CartOwner.FromUser(userId);
+                owner = CartOwner.FromUser(userId.Value);
             }
             else
             {
@@ -516,8 +427,8 @@ namespace ECommerceBatteryShop.Controllers
                     return CookieConsentRequired(CartConsentMessage);
                 }
 
-                var anonId = Request.Cookies["ANON_ID"];
-                if (string.IsNullOrEmpty(anonId))
+                var anonId = AnonymousId.Read(Request);
+                if (anonId is null)
                 {
                     return PartialView("_CartCount", 0);
                 }

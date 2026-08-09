@@ -1,98 +1,31 @@
-using ECommerceBatteryShop.DataAccess;
+using ECommerceBatteryShop.DataAccess.Abstract;
 using ECommerceBatteryShop.DataAccess.Entities;
-using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace ECommerceBatteryShop.Services
 {
+    /// <summary>
+    /// Thin orchestration over <see cref="IFavoritesRepository"/>: translates the web-layer
+    /// <see cref="FavoriteOwner"/> into (userId, anonId) primitives. Data access lives in the repository.
+    /// </summary>
     public sealed class FavoritesService : IFavoritesService
     {
-        private readonly BatteryShopContext _db;
+        private readonly IFavoritesRepository _repo;
 
-        public FavoritesService(BatteryShopContext db)
+        public FavoritesService(IFavoritesRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<FavoriteList?> GetAsync(FavoriteOwner owner, bool createIfMissing, CancellationToken ct)
-        {
-            IQueryable<FavoriteList> query = _db.Set<FavoriteList>()
-                .Include(f => f.Items)
-                .ThenInclude(i => i.Product)
-                .ThenInclude(p => p!.Inventory)
-                .Include(f => f.Items)
-                .ThenInclude(i => i.Product)
-                .ThenInclude(p => p!.Discounts);
-
-            FavoriteList? list = owner.UserId is int uid
-                ? await query.FirstOrDefaultAsync(f => f.UserId == uid, ct)
-                : await query.FirstOrDefaultAsync(f => f.AnonId == owner.AnonId, ct);
-
-            if (list == null && createIfMissing)
-            {
-                list = new FavoriteList
-                {
-                    UserId = owner.UserId,
-                    AnonId = owner.AnonId,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _db.Add(list);
-                await _db.SaveChangesAsync(ct);
-            }
-
-            return list;
-        }
+        public Task<FavoriteList?> GetAsync(FavoriteOwner owner, bool createIfMissing, CancellationToken ct)
+            => _repo.GetAsync(owner.UserId, owner.AnonId, createIfMissing, ct);
 
         public async Task<ToggleResult> ToggleAsync(FavoriteOwner owner, int productId, CancellationToken ct)
         {
-            var list = await GetAsync(owner, createIfMissing: true, ct);
-
-            var existing = await _db.Set<FavoriteListItem>()
-                .FirstOrDefaultAsync(i => i.FavoriteId == list!.Id && i.ProductId == productId, ct);
-
-            bool added;
-            if (existing is null)
-            {
-                _db.Add(new FavoriteListItem
-                {
-                    FavoriteId = list!.Id,
-                    ProductId = productId
-                });
-                added = true;
-            }
-            else
-            {
-                _db.Remove(existing);
-                added = false;
-            }
-
-            await _db.SaveChangesAsync(ct);
-
-            var total = await _db.Set<FavoriteListItem>()
-                .CountAsync(i => i.FavoriteId == list!.Id, ct);
-
+            var (added, total) = await _repo.ToggleAsync(owner.UserId, owner.AnonId, productId, ct);
             return new ToggleResult(added, total);
         }
-        public async Task<int> CountAsync(FavoriteOwner owner, CancellationToken ct)
-        {
-            var list = await GetAsync(owner, createIfMissing: false, ct);
-            if (list is null)
-            {
-                return 0;
-            }
 
-            var count = await _db.Set<FavoriteListItem>()
-                .CountAsync(i => i.FavoriteId == list.Id, ct);
-
-            return count;
-        }
-        public async Task<Dictionary<int, decimal>> GetPricesAsync(IEnumerable<int> productIds, CancellationToken ct)
-        {
-            return await _db.Products
-                .Where(p => productIds.Contains(p.Id))
-                .ToDictionaryAsync(p => p.Id, p => p.Price, ct);
-        }
-
-
+        public Task<int> CountAsync(FavoriteOwner owner, CancellationToken ct)
+            => _repo.CountAsync(owner.UserId, owner.AnonId, ct);
     }
 }
