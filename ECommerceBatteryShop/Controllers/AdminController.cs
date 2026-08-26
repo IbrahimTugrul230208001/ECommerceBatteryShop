@@ -242,6 +242,7 @@ namespace ECommerceBatteryShop.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int orderId, string newStatus,
             CancellationToken cancellationToken)
         {
@@ -253,7 +254,6 @@ namespace ECommerceBatteryShop.Controllers
             {
                 await _orderRepository.UpdateOrderStatusAsync(orderId, newStatus);
                 TempData["OrderStatusSuccess"] = "Sipariş durumu başarıyla güncellendi.";
-                Response.Headers["HX-Refresh"] = "true"; // veya HX-Redirect
                 return RedirectToAction("SiparisPaneli", "Admin");
             }
         }

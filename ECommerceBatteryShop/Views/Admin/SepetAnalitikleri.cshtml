@@ -89,10 +89,10 @@
                   <tr>
                     <td class="px-5 py-3">
                       <div class="flex items-center gap-3">
-                        <img asp-append-version="true" src="@(string.IsNullOrWhiteSpace(item.ImageUrl) ? "/img/temsili.webp" : (item.ImageUrl.StartsWith("/img/") ? item.ImageUrl : "/img/" + item.ImageUrl))"
+                        <img asp-append-version="true" src="@(string.IsNullOrWhiteSpace(item.ImageUrl) ? "/img/temsili.webp" : (item.ImageUrl.StartsWith("/img/Products/") ? item.ImageUrl : "/img/Products/" + item.ImageUrl))"
                              alt="@item.ProductName"
                              onerror="this.onerror=null;this.src='/img/temsili.webp';"
-                             class="h-9 w-9 rounded object-cover border border-slate-200" />
+                             class="h-12 w-12 rounded object-cover border border-slate-200" />
                         <div>
                           <div class="font-medium text-slate-900">@item.ProductName</div>
                           <div class="text-xs text-slate-400">#@item.ProductId</div>

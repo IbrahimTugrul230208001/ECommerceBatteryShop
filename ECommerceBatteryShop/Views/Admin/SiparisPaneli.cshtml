@@ -22,9 +22,8 @@
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Sipariş Yönetim Paneli</p>
             <h1 class="text-3xl font-semibold text-slate-900">Sipariş Akışı ve Durum Güncellemeleri</h1>
             <p class="max-w-3xl text-sm leading-6 text-slate-500">
-                Bu sayfa, OrdersRepository üzerinden gelen sipariş akışını gerçek zamanlı takip etmek için tasarlandı.
-                Aşağıdaki dummy veriler; yeni siparişlerin izlenmesi, durum değişiklikleri ve kargo süreçlerinin yönetimi
-                için kullanılacak bileşenleri göstermektedir.
+                Tüm siparişleri tek ekrandan takip edin; ödeme, hazırlık, kargo ve teslimat süreçlerini
+                hızlıca yönetin. Sipariş durumunu değiştirmek için ilgili işlem adımına tıklamanız yeterlidir.
             </p>
         </div>
     </header>
@@ -33,17 +32,7 @@
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <h2 class="text-lg font-semibold text-slate-900">Sipariş Akışı</h2>
-                <p class="text-sm text-slate-500">OrdersRepository üzerinden alınan veriler burada listelenecek. Satırlar üzerinden durum güncelleyebilirsiniz.</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Durum Filtrele</label>
-                <select class="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200">
-                    <option value="">Tümü</option>
-                    @foreach (var option in workflowStatusOptions)
-                    {
-                        <option value="@option">@option</option>
-                    }
-                </select>
+                <p class="text-sm text-slate-500">Panel üzerinden alınan veriler burada listelenecek. Satırlar üzerinden durum güncelleyebilirsiniz.</p>
             </div>
         </div>
 
@@ -57,7 +46,6 @@
                             <th class="px-4 py-3">Ödeme</th>
                             <th class="px-4 py-3">Durum</th>
                             <th class="px-4 py-3">Kargo</th>
-                            <th class="px-4 py-3">Son İşlem</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -75,6 +63,9 @@
                             var displayEmail = isGuest
                                 ? (order.BuyerEmail ?? "-")
                                 : (order.User?.Email ?? "-");
+                            var displayPhone = isGuest
+                                ? (order.BuyerPhone ?? "-")
+                                : (order.Address?.PhoneNumber ?? "-");
                             <tr>
                                 <td class="px-4 py-4 align-top font-semibold text-slate-900">
                                     <div class="space-y-1">
@@ -91,7 +82,7 @@
                                                 <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Misafir</span>
                                             }
                                         </div>
-                                        <p class="text-xs text-slate-500">@displayEmail</p>
+                                        <p class="text-xs text-slate-500">@displayPhone</p>
                                     </div>
                                 </td>
                                 <td class="px-4 py-4 align-top font-semibold text-slate-900">@order.TotalAmount.ToString("C", culture)</td>
@@ -103,15 +94,6 @@
                                     </span>
                                 </td>
                             <td class="px-4 py-4 align-top text-sm font-medium text-slate-700">@(!string.IsNullOrWhiteSpace(carrier) ? carrier : "-")</td>
-                            <td class="px-4 py-4 align-top">
-                                    <div class="flex items-center">
-                                    <button class="apply-status bg-gray-900 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-slate-100 transition hover:opacity-70 trasition duration-100"
-                                            type="button"
-                                            data-order="@order.OrderId">
-                                        Durumu Güncelle
-                                    </button>
-                                    </div>
-                                </td>
                             </tr>
                             <tr class="bg-slate-50/50">
                                 <td colspan="7" class="px-4 pb-6">
@@ -142,22 +124,27 @@
                                                 }
                                             </ul>
                                         </div>
-                                    <div class="space-y-3 rounded-2xl bg-slate-900/90 p-4 text-xs text-white"
-                                         data-order="@order.OrderId">
+                                    <form asp-controller="Admin"
+                                          asp-action="UpdateStatus"
+                                          method="post"
+                                          class="space-y-3 rounded-2xl bg-slate-900/90 p-4 text-xs text-white">
+                                        <input type="hidden" name="orderId" value="@order.OrderId" />
                                         <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-300">Hızlı Aksiyonlar</p>
 
                                         @foreach (var option in workflowStatusOptions)
                                         {
                                             var isCurrent = option == order.Status;
-                                            <button type="button" id="currentOption"
+                                            <button type="submit"
+                                                    name="newStatus"
+                                                    value="@option"
                                                     class="status-option w-full rounded-xl px-3 py-2 text-left font-semibold transition
                                    @(isCurrent ? "ring-2 ring-emerald-400 bg-white/20 text-white"
                                                                                                                                        : "bg-white/10 text-white hover:bg-white/20")"
-                                            data-status="@option">
-                                        @option
-                                    </button>
-                                                                        }
-                                    </div>
+                                                    aria-current="@(isCurrent ? "true" : null)">
+                                                @option
+                                            </button>
+                                        }
+                                    </form>
 
                                     </div>
                                 </td>
@@ -168,81 +155,3 @@
             </div>
         </article>  
 </div>
-<script>
-    (function () {
-      // orderNo -> seçili (bekleyen) durum
-      const pending = new Map();
-
-      // 1) Durum seçimi: aynı sipariş için tek seçim, tıklayınca toggle
-      document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.status-option');
-        if (!btn) return;
-
-        const container = btn.closest('[data-order]');
-        const orderNo = container?.dataset.order;
-        if (!orderNo) return;
-
-        // aynı paneldeki tüm butonlardan seçimi temizle
-        container.querySelectorAll('.status-option').forEach(b => {
-          b.classList.remove('ring-2', 'ring-emerald-400', 'bg-white/20');
-          b.classList.add('bg-white/10');
-        });
-
-        // toggle: eğer zaten seçili ise temizle; değilse seç
-        const chosen = btn.dataset.status;
-        const current = pending.get(orderNo);
-
-        if (current === chosen) {
-          // seçimi kaldır
-          pending.delete(orderNo);
-        } else {
-          // yeni seçimi ata ve highlight et
-          pending.set(orderNo, chosen);
-          btn.classList.add('ring-2', 'ring-emerald-400', 'bg-white/20');
-          btn.classList.remove('bg-white/10');
-        }
-      });
-
-      // 2) "Durumu Güncelle" tıklanınca sadece seçili olanı uygula
-      document.addEventListener('click', async (e) => {
-        const applyBtn = e.target.closest('.apply-status');
-        if (!applyBtn) return;
-
-        const orderId = applyBtn.dataset.order;
-        if (!orderId) return;
-
-        const nextStatus = pending.get(orderId);
-        if (!nextStatus) {
-          // Seçim yapılmadıysa hiç bir şey yapma (isterseniz ufak bir uyarı gösterebilirsiniz)
-          applyBtn.classList.add('animate-pulse');
-          setTimeout(() => applyBtn.classList.remove('animate-pulse'), 600);
-          return;
-        }
-
-      const form = new URLSearchParams();
-    form.append('orderId', orderId);
-    form.append('newStatus', nextStatus);
-
-
-    const res = await fetch('/Admin/UpdateStatus', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: form.toString()
-    });
-
-
-        // Seçimi temizle
-        pending.delete(orderNo);
-
-        // Görsel geri bildirim
-        applyBtn.textContent = 'Güncellendi';
-        applyBtn.classList.remove('border-slate-200', 'text-slate-600');
-        applyBtn.classList.add('border-emerald-300', 'text-emerald-700');
-        setTimeout(() => {
-          applyBtn.textContent = 'Durumu Güncelle';
-          applyBtn.classList.add('border-slate-200', 'text-slate-600');
-          applyBtn.classList.remove('border-emerald-300', 'text-emerald-700');
-        }, 1200);
-      });
-    })();
-</script>
